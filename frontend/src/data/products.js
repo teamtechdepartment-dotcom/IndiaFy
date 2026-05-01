@@ -1,4 +1,4 @@
-import kurti from "../assets/products/women/cutton-kurti.jpg";
+import kurti from "../assets/products/women/Cutton-kurti.jpg";
 import suit from "../assets/products/women/Embroidered suit.jpg";
 import trousers from "../assets/products/women/Trousers.jpg";
 import jacket from "../assets/products/women/Denim Jacket.jpg";
