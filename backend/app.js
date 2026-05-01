@@ -17,7 +17,7 @@ import customerProfileRoutes from "./routers/customer/profile.route.js";
 const app = express();
 
 app.use(cors({
-    origin: [process.env.CORS_ORIGIN, "http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: (origin, callback) => callback(null, origin || true),
     credentials: true,
 }));
 
@@ -28,7 +28,9 @@ app.use((req, res, next) => {
 });
 
 // Security Headers
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
 
 // Global Rate Limiting
 // const limiter = rateLimit({
@@ -67,16 +69,29 @@ const authLimiter = rateLimit({
 
 // Routes
 app.use("/api/v1/indiafy/admin/auth", adminAuthRoutes);
-// app.use("/api/v1/indiafy/admin/auth", authLimiter, adminAuthRoutes);
+app.use("/admin/auth", adminAuthRoutes);
+
 app.use("/api/v1/indiafy/customer/auth", customerAuthRoutes);
-// app.use("/api/v1/indiafy/customer/auth", authLimiter, customerAuthRoutes);
+app.use("/customer/auth", customerAuthRoutes);
+
 app.use("/api/v1/indiafy/seller/auth", sellerAuthRoutes);
-// app.use("/api/v1/indiafy/seller/auth", authLimiter, sellerAuthRoutes);
+app.use("/seller/auth", sellerAuthRoutes);
+
 app.use("/api/v1/indiafy/products", productRoutes);
+app.use("/products", productRoutes);
+
 app.use("/api/v1/indiafy/orders", orderRoutes);
+app.use("/orders", orderRoutes);
+
 app.use("/api/v1/indiafy/payments", paymentRoutes);
+app.use("/payments", paymentRoutes);
+
 app.use("/api/v1/indiafy/customer/cart", customerCartRoutes);
+app.use("/customer/cart", customerCartRoutes);
+
 app.use("/api/v1/indiafy/customer/profile", customerProfileRoutes);
+app.use("/customer/profile", customerProfileRoutes);
+
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {
     // Log the error for internal debugging
@@ -100,5 +115,6 @@ app.use((err, req, res, next) => {
         stack: process.env.NODE_ENV === "development" ? err.stack : undefined
     });
 });
+
 
 export default app;
