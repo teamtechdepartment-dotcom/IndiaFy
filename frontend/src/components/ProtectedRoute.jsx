@@ -6,8 +6,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
   const { user, isAuthenticated } = useAuthStore();
 
   if (!isAuthenticated || !user) {
-    const isSellerPath = allowedRoles?.some(role => role.toLowerCase() === "seller");
-    return <Navigate to={isSellerPath ? "/seller-auth" : "/login"} replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (allowedRoles && !allowedRoles.some(role => role.toLowerCase() === user?.role?.toLowerCase())) {
