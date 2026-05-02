@@ -211,7 +211,8 @@ export default function WebsiteNavbar() {
 
               <div className="flex items-center gap-1 sm:gap-2 md:border-l border-zinc-500/30 md:ml-2 md:pl-4">
                 <button
-                  className={`hidden sm:flex p-2 rounded-full transition-all ${isLightTheme ? "hover:bg-zinc-100" : "hover:bg-white/10"}`}
+                  className={`p-2 rounded-full transition-all ${isLightTheme ? "hover:bg-zinc-100" : "hover:bg-white/10"}`}
+                  onClick={() => navigate("/cart")}
                 >
                   <Heart size={20} strokeWidth={1.5} />
                 </button>

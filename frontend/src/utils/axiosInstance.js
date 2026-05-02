@@ -46,7 +46,7 @@ axiosInstance.interceptors.response.use(
             if (isMeCall) return Promise.reject(error);
 
             // 2. Only redirect if NOT on a public page
-            const publicPaths = ['/', '/about', '/product/', '/category/', '/search', '/store/'];
+            const publicPaths = ['/', '/about', '/product/', '/category/', '/search', '/store/', '/cart'];
             const currentPath = window.location.pathname;
             const isPublicPage = publicPaths.some(path => 
                 path === '/' ? currentPath === '/' : currentPath.startsWith(path)
