@@ -56,8 +56,24 @@ export default function CheckoutPage() {
     ? (addresses[selectedAddr] || addresses[0]) 
     : (quickAddr.street ? { street: quickAddr.street, city: quickAddr.city, country: quickAddr.pincode, state: "Local" } : null);
 
-  // Use only real cart items
-  const displayItems = cartItems;
+  // 🟢 FALLBACK LOGIC: If cart is empty, check if we have a direct purchase item from state
+  const displayItems = useMemo(() => {
+    if (cartItems && cartItems.length > 0) return cartItems;
+    
+    // Fallback to product passed via navigate state (Buy Now flow)
+    const testProduct = location.state?.testProduct;
+    if (testProduct) {
+      return [{
+        productId: testProduct,
+        price: (Array.isArray(testProduct.attribute) ? testProduct.attribute[0] : testProduct.attribute)?.salePrice || 
+               (Array.isArray(testProduct.attribute) ? testProduct.attribute[0] : testProduct.attribute)?.price || 
+               testProduct.currentPrice || 0,
+        quantity: 1,
+        title: testProduct.productName || testProduct.title
+      }];
+    }
+    return [];
+  }, [cartItems, location.state]);
 
   const subtotal = displayItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const deliveryFee = 0;

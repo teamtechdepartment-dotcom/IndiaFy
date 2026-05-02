@@ -43,6 +43,8 @@ const SIGNUP_CLIP = "polygon(0 0, 52% 0, 45% 100%, 0 100%)";
 const FULL_CLIP = "polygon(0 0, 100% 0, 100% 100%, 0 100%)";
 const EASE = "cubic-bezier(0.86, 0, 0.07, 1)";
 
+import { useCartStore } from "../../store/cartStore";
+
 const AuthPage = () => {
   const navigate = useNavigate();
   const bpRef = useRef(null);
@@ -55,6 +57,7 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const loginAuth = useAuthStore((state) => state.login);
+  const addToCart = useCartStore((state) => state.addToCart);
 
   const {
     register: registerLogin,
@@ -130,7 +133,23 @@ const AuthPage = () => {
       if (res.success && res.data) {
         loginAuth(res.data, res.data?._id || null);
         toast.success("Welcome back to Indiafy!");
-        navigate("/");
+        
+        const pendingPurchase = localStorage.getItem("pending_purchase");
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get("redirect");
+
+        if (pendingPurchase && redirect === "checkout") {
+          const { productId, quantity, product } = JSON.parse(pendingPurchase);
+          localStorage.removeItem("pending_purchase");
+          try {
+            await addToCart(productId, quantity);
+            navigate("/checkout", { state: { testProduct: product } });
+          } catch (err) {
+            navigate("/checkout", { state: { testProduct: product } });
+          }
+        } else {
+          navigate("/");
+        }
       } else {
         toast.error(res.message || "Login failed");
       }
@@ -152,8 +171,23 @@ const AuthPage = () => {
       if (res.success && res.data) {
         loginAuth(res.data, res.data?._id || null);
         toast.success("Account created successfully!");
-        resetSignup();
-        navigate("/");
+        
+        const pendingPurchase = localStorage.getItem("pending_purchase");
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get("redirect");
+
+        if (pendingPurchase && redirect === "checkout") {
+          const { productId, quantity, product } = JSON.parse(pendingPurchase);
+          localStorage.removeItem("pending_purchase");
+          try {
+            await addToCart(productId, quantity);
+            navigate("/checkout", { state: { testProduct: product } });
+          } catch (err) {
+            navigate("/checkout", { state: { testProduct: product } });
+          }
+        } else {
+          navigate("/");
+        }
       } else {
         toast.error(res.message || "Signup failed");
       }
@@ -164,6 +198,7 @@ const AuthPage = () => {
       );
     } finally {
       setLoading(false);
+      resetSignup();
     }
   };
 
