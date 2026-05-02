@@ -12,8 +12,18 @@ const axiosInstance = axios.create({
 // Request Interceptor
 axiosInstance.interceptors.request.use(
     (config) => {
-        // You can attach tokens from localStorage here if needed,
-        // but since withCredentials is true, httpOnly cookies will be sent automatically.
+        // Fallback for mobile/cross-domain cookie issues: use Bearer token from localStorage
+        try {
+            const authStorage = localStorage.getItem('indiafy-auth-storage');
+            if (authStorage) {
+                const { state } = JSON.parse(authStorage);
+                if (state.token) {
+                    config.headers.Authorization = `Bearer ${state.token}`;
+                }
+            }
+        } catch (err) {
+            // Silently fail if storage is corrupted or missing
+        }
         return config;
     },
     (error) => {

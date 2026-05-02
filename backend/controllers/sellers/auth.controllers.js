@@ -41,7 +41,8 @@ const Signup = async (req, res) => {
         const tokenData = sellerDetails.toObject();
         tokenData.role = "Seller";
 
-        await userCookies(res, tokenData)
+        const { accessToken } = await userCookies(res, tokenData);
+        tokenData.accessToken = accessToken;
 
         return res.status(200).json(new ApiResponse(200, tokenData, "New Seller registration Successful"));
 
@@ -75,7 +76,8 @@ const Login = async (req, res) => {
         
         tokenData.role = "Seller";
 
-        await userCookies(res, tokenData);
+        const { accessToken } = await userCookies(res, tokenData);
+        tokenData.accessToken = accessToken;
 
         return res.status(200).json(new ApiResponse(200, tokenData, "Access Granted"));
     }

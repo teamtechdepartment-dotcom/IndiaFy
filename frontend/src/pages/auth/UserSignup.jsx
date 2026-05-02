@@ -131,7 +131,7 @@ const AuthPage = () => {
     try {
       const res = await axiosInstance.post("/customer/auth/login", data);
       if (res.success && res.data) {
-        loginAuth(res.data, res.data?._id || null);
+        loginAuth(res.data, res.data.accessToken);
         toast.success("Welcome back to Indiafy!");
         
         const pendingPurchase = localStorage.getItem("pending_purchase");
@@ -169,7 +169,7 @@ const AuthPage = () => {
     try {
       const res = await axiosInstance.post("/customer/auth/signup", data);
       if (res.success && res.data) {
-        loginAuth(res.data, res.data?._id || null);
+        loginAuth(res.data, res.data.accessToken);
         toast.success("Account created successfully!");
         
         const pendingPurchase = localStorage.getItem("pending_purchase");
