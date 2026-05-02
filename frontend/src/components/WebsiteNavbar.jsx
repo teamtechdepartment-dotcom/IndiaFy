@@ -391,21 +391,48 @@ export default function WebsiteNavbar() {
               </div>
 
               {/* Links */}
-              <div className="flex-1 overflow-y-auto py-6 px-6 flex flex-col gap-6">
+              <div className="flex-1 overflow-y-auto py-6 px-6 flex flex-col gap-6 custom-scrollbar">
                 <div className="flex flex-col gap-4">
                   <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                     Menu
                   </span>
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.label}
-                      to={link.path || link.href}
-                      className="text-lg font-black text-zinc-900 tracking-tight flex items-center justify-between"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      {link.label}
-                      <ChevronRight size={18} className="text-zinc-300" />
-                    </Link>
+                  {navLinks.filter(link => {
+                    // Hide order tracking from guests to avoid "unnecessary login"
+                    if (link.label === "Track Order" && !isAuthenticated) return false;
+                    return true;
+                  }).map((link) => (
+                    link.hasDropdown ? (
+                      /* Shop Dropdown for Mobile */
+                      <div key={link.label} className="space-y-3">
+                         <div className="text-lg font-black text-zinc-900 tracking-tight flex items-center justify-between">
+                            {link.label}
+                            <ChevronDown size={18} className="text-zinc-300" />
+                         </div>
+                         <div className="grid grid-cols-1 gap-2 pl-4">
+                            {productCategories.map(cat => (
+                              <Link 
+                                key={cat.label} 
+                                to={cat.path} 
+                                onClick={() => setMenuOpen(false)}
+                                className="flex items-center gap-3 py-2 text-sm font-bold text-zinc-600 hover:text-emerald-600"
+                              >
+                                <span className="p-1.5 bg-zinc-100 rounded-lg">{cat.icon}</span>
+                                {cat.label}
+                              </Link>
+                            ))}
+                         </div>
+                      </div>
+                    ) : (
+                      <Link
+                        key={link.label}
+                        to={link.path || link.href}
+                        className="text-lg font-black text-zinc-900 tracking-tight flex items-center justify-between"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        {link.label}
+                        <ChevronRight size={18} className="text-zinc-300" />
+                      </Link>
+                    )
                   ))}
                 </div>
 
@@ -413,31 +440,29 @@ export default function WebsiteNavbar() {
 
                 <div className="flex flex-col gap-4">
                   <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                    Quick Actions
+                    Quick Access
                   </span>
 
-                  {/* 🔥 FIX: Added onClick navigate to search page for Mobile & auto-close menu */}
-                  <button
-                    onClick={() => {
-                      navigate("/search");
-                      setMenuOpen(false);
+                  {/* Improved Mobile Search Terminal */}
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const q = e.target.search.value;
+                      if (q) {
+                        navigate(`/search?q=${q}`);
+                        setMenuOpen(false);
+                      }
                     }}
-                    className="flex items-center gap-3 text-sm font-bold text-zinc-700 p-3 rounded-xl bg-zinc-50 border border-zinc-100 active:bg-zinc-100 transition-colors"
+                    className="relative group"
                   >
-                    <Search size={18} className="text-zinc-400" /> Search
-                    Products
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      navigate("/order-history");
-                      setMenuOpen(false);
-                    }}
-                    className="flex items-center gap-3 text-sm font-bold text-zinc-700 p-3 rounded-xl bg-zinc-50 border border-zinc-100 active:bg-zinc-100 transition-colors"
-                  >
-                    <Package size={18} className="text-zinc-400" /> Track My
-                    Order
-                  </button>
+                    <input
+                      name="search"
+                      type="text"
+                      placeholder="Search items..."
+                      className="w-full p-4 pl-12 rounded-2xl bg-zinc-100 border border-zinc-200 text-sm font-bold focus:bg-white focus:border-emerald-500 transition-all outline-none"
+                    />
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                  </form>
                 </div>
               </div>
 
