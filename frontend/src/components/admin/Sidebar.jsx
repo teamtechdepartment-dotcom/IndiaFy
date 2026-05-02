@@ -7,6 +7,7 @@ import {
   BarChart2,
   Settings,
   X,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 // import graphuraLogo from "../../assets/logo/logo.webp";
@@ -160,6 +161,30 @@ export default function Sidebar() {
           <Settings size={18} />
           Settings
         </NavLink>
+
+        {/* Logout Button */}
+        <button
+          onClick={() => {
+            // Assuming useAuthStore handles the state
+            // If not available in this scope, we use a simple redirect
+            localStorage.clear(); // Basic clear
+            window.location.href = '/';
+          }}
+          className="
+            flex items-center gap-3
+            px-3 sm:px-4
+            py-2.5 sm:py-3
+            rounded-xl
+            font-semibold
+            text-sm sm:text-base
+            text-red-600 hover:bg-red-50
+            transition-all
+            mt-1
+          "
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
       </aside>
 
       {/* ================= MEDIA QUERY ================= */}

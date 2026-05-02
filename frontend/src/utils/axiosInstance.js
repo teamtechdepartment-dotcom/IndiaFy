@@ -55,7 +55,7 @@ axiosInstance.interceptors.response.use(
             if (!isPublicPage) {
                 // Clear any pending purchase if session expired during checkout
                 // localStorage.removeItem("pending_purchase");
-                window.location.href = '/login';
+                window.location.href = '/';
             }
         }
         return Promise.reject(error);
