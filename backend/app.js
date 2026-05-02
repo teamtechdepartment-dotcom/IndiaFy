@@ -17,8 +17,15 @@ import customerProfileRoutes from "./routers/customer/profile.route.js";
 const app = express();
 
 app.use(cors({
-    origin: (origin, callback) => callback(null, origin || true),
+    origin: [
+        "http://localhost:5173", 
+        "http://localhost:3000",
+        "https://india-fy.vercel.app",
+        "https://indiafy.vercel.app"
+    ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
 }));
 
 // Request Logger

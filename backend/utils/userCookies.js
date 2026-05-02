@@ -23,15 +23,15 @@ const userCookies = async (res, user) => {
 
         res.cookie("AccessToken", accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "Lax",
+            secure: true, // Required for cross-site cookies
+            sameSite: "None", // Required for cross-site cookies
             maxAge: 15 * 60 * 1000
         });
 
         res.cookie("RefreshToken", refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "Lax",
+            secure: true, // Required for cross-site cookies
+            sameSite: "None", // Required for cross-site cookies
             maxAge: 24 * 60 * 60 * 1000
         });
 

@@ -13,12 +13,15 @@ const loginSchema = z.object({
   password: z.string().nonempty("Password is required"),
 });
 
+import { useCartStore } from "../../store/cartStore";
+
 const UserLogin = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const loginAuth = useAuthStore((state) => state.login);
+  const addToCart = useCartStore((state) => state.addToCart);
 
   const {
     register,
@@ -37,7 +40,25 @@ const UserLogin = () => {
         loginAuth(res.data, res.data?._id || null);
         toast.success("Welcome back to Indiafy!");
         reset();
-        navigate("/");
+
+        // Check for pending purchase
+        const pendingPurchase = localStorage.getItem("pending_purchase");
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get("redirect");
+
+        if (pendingPurchase && redirect === "checkout") {
+          const { productId, quantity, product } = JSON.parse(pendingPurchase);
+          localStorage.removeItem("pending_purchase");
+          
+          try {
+            await addToCart(productId, quantity);
+            navigate("/checkout", { state: { testProduct: product } });
+          } catch (err) {
+            navigate("/checkout", { state: { testProduct: product } });
+          }
+        } else {
+          navigate("/");
+        }
       } else {
         toast.error(res.message || "Login failed");
       }

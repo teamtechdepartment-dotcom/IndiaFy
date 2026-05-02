@@ -182,14 +182,20 @@ export default function ProductDetailPage() {
   };
 
   const handleBuyNow = async () => {
+    const idToUse = productData?._id || "507f1f77bcf86cd799439011"; 
+
     if (!isAuthenticated) {
+      // Save pending purchase info to localStorage
+      localStorage.setItem("pending_purchase", JSON.stringify({
+        productId: idToUse,
+        quantity: quantity,
+        product: p
+      }));
+      
       toast.warn("Please login to proceed to checkout");
-      navigate("/login");
+      navigate("/login?redirect=checkout");
       return;
     }
-    
-    // If it's a demo product (no productData), we use the static PRODUCT with a mock ID for testing
-    const idToUse = productData?._id || "507f1f77bcf86cd799439011"; 
     
     if (!productData) {
       toast.info("Proceeding with Demo Product for testing...");
@@ -199,7 +205,6 @@ export default function ProductDetailPage() {
       await addToCart(idToUse, quantity);
       navigate("/checkout", { state: { testProduct: p } });
     } catch (err) {
-      // If backend fails because ID is mock, we still navigate with state for UI testing
       navigate("/checkout", { state: { testProduct: p } });
     }
   };

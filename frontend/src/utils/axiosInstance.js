@@ -24,15 +24,20 @@ axiosInstance.interceptors.request.use(
 // Response Interceptor
 axiosInstance.interceptors.response.use(
     (response) => {
-        // Backend already wraps response in ApiResponse/ApiError
-        // Just return the full response data
         return response.data;
     },
     (error) => {
         // Handle global error responses, like 401 Unauthorized
         if (error.response && error.response.status === 401) {
             console.error("Unauthorized! Session expired.");
-            // Clear auth and redirect if needed
+            // Do not redirect for 'fetchMe' or '/auth/me' calls to avoid infinite loops
+            const isMeCall = error.config.url.includes('/auth/me');
+            if (!isMeCall) {
+                // We can't import useAuthStore here directly to avoid circular dependency
+                // but we can use window.location if necessary, or better, let the components handle it.
+                // For production stability, let's just clear the storage if possible or redirect.
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }
