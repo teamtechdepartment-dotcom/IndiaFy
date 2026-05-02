@@ -79,7 +79,7 @@ export default function SellerAuth() {
         // so res = { statusCode, data, message, success }
         const userData = res.data || res;
         if (userData) {
-          loginAuth(userData, null);
+          loginAuth(userData, userData.accessToken);
           toast.success("Seller Login Successful!");
           navigate('/dashboard');
         }

@@ -397,15 +397,15 @@ export default function WebsiteNavbar() {
                     Menu
                   </span>
                   {navLinks.map((link) => (
-                    <a
+                    <Link
                       key={link.label}
-                      href={link.href || link.path}
+                      to={link.path || link.href}
                       className="text-lg font-black text-zinc-900 tracking-tight flex items-center justify-between"
                       onClick={() => setMenuOpen(false)}
                     >
                       {link.label}
                       <ChevronRight size={18} className="text-zinc-300" />
-                    </a>
+                    </Link>
                   ))}
                 </div>
 
@@ -458,6 +458,7 @@ export default function WebsiteNavbar() {
                       onClick={() => {
                         logout();
                         setMenuOpen(false);
+                        toast.success("Logged out successfully");
                         navigate("/", { replace: true });
                       }}
                       className="w-full py-3.5 text-xs font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-200 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"

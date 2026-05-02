@@ -12,6 +12,7 @@ import {
   Video,
   LogOut
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 const menus = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3, path: "/dashboard" },
@@ -32,6 +33,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
   const handleLogout = () => {
     logout();
+    toast.success("Logged out from Seller Portal");
     navigate("/", { replace: true }); 
     if (sidebarOpen) setSidebarOpen(false);
   };
