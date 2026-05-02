@@ -30,12 +30,21 @@ axiosInstance.interceptors.response.use(
         // Handle global error responses, like 401 Unauthorized
         if (error.response && error.response.status === 401) {
             console.error("Unauthorized! Session expired.");
-            // Do not redirect for 'fetchMe' or '/auth/me' calls to avoid infinite loops
+            
+            // 1. Don't redirect for 'me' calls (handled by authStore)
             const isMeCall = error.config.url.includes('/auth/me');
-            if (!isMeCall) {
-                // We can't import useAuthStore here directly to avoid circular dependency
-                // but we can use window.location if necessary, or better, let the components handle it.
-                // For production stability, let's just clear the storage if possible or redirect.
+            if (isMeCall) return Promise.reject(error);
+
+            // 2. Only redirect if NOT on a public page
+            const publicPaths = ['/', '/about', '/product/', '/category/', '/search', '/store/'];
+            const currentPath = window.location.pathname;
+            const isPublicPage = publicPaths.some(path => 
+                path === '/' ? currentPath === '/' : currentPath.startsWith(path)
+            );
+
+            if (!isPublicPage) {
+                // Clear any pending purchase if session expired during checkout
+                // localStorage.removeItem("pending_purchase");
                 window.location.href = '/login';
             }
         }
