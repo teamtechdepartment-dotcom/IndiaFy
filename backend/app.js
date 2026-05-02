@@ -34,10 +34,34 @@ app.use((req, res, next) => {
     next();
 });
 
-// Security Headers
+// Disable technology exposure
+app.disable("x-powered-by");
+
+// Enhanced Security Headers via Helmet
 app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://checkout.razorpay.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://placehold.co", "https://res.cloudinary.com"],
+            connectSrc: ["'self'", "https://api.razorpay.com", "*.vercel.app", "http://localhost:8000"],
+            frameSrc: ["https://api.razorpay.com"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: [],
+        },
+    },
+    referrerPolicy: { policy: "no-referrer" },
+    hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true,
+    },
+    frameguard: { action: "deny" },
+    noSniff: true,
 }));
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 
 // Global Rate Limiting
 // const limiter = rateLimit({
