@@ -3,8 +3,15 @@ import jwt from "jsonwebtoken";
 const jwtToken = async (user) => {
     const securityKey = process.env.SecurityKey;
     try{
-        const accesToken = await jwt.sign(user, securityKey, {expiresIn: "15m"});
-        const refreshToken = await jwt.sign(user, securityKey, {expiresIn:"30d"});
+        // Only sign essential fields to avoid JWT inflation (prevents ERR_RESPONSE_HEADERS_TOO_BIG)
+        const payload = {
+            _id: user._id,
+            role: user.role,
+            email: user.email
+        };
+
+        const accesToken = jwt.sign(payload, securityKey, {expiresIn: "15m"});
+        const refreshToken = jwt.sign(payload, securityKey, {expiresIn:"30d"});
 
         return {
             message:true,
@@ -12,6 +19,7 @@ const jwtToken = async (user) => {
             refreshToken: refreshToken
         }
     }catch(err){
+        console.error("JWT Signing Error:", err);
         return {message: false}
     }
 }

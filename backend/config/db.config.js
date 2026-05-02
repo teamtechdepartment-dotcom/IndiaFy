@@ -13,7 +13,11 @@ export const databaseConfig = async () => {
         return db;
     }
     catch(err){
-        console.error("❌Database Connection Failed:", err.message);
+        console.error("❌ Database Connection Failed!");
+        console.error("Error Message:", err.message);
+        if (err.message.includes("ECONNREFUSED") || err.message.includes("querySrv")) {
+            console.error("TIP: Your network might be blocking MongoDB Atlas (SRV). Try using a direct connection string or a local MongoDB instance (e.g., mongodb://127.0.0.1:27017/indiafy).");
+        }
         throw err; // Re-throw so callers can retry
     }
 }

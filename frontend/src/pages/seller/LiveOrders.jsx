@@ -24,16 +24,22 @@ export default function LiveOrders() {
   }, [fetchSellerOrders]);
 
   // Show only "Processing" orders
-  const liveOrders = sellerOrders.filter(o => o.status === "Processing" || o.status === "Shipped").map(o => ({
-    id: o._id,
-    displayId: o._id.substring(o._id.length - 8).toUpperCase(),
-    customer: o.customer?.firstName + " " + o.customer?.lastName || "Customer",
-    location: o.shippingAddress?.city + ", " + o.shippingAddress?.postalCode || "Local",
-    time: new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    amount: "₹" + o.totalPrice,
-    items: `${o.orderItems.length} Item(s)`,
-    status: o.status
-  }));
+  const liveOrders = sellerOrders.filter(o => o.status === "Processing" || o.status === "Shipped").map(o => {
+    const firstName = o.customer?.firstName || "";
+    const lastName = o.customer?.lastName || "";
+    const customerName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : "Customer";
+    
+    return {
+      id: o._id,
+      displayId: (o._id || "").toString().substring((o._id || "").toString().length - 8).toUpperCase(),
+      customer: customerName,
+      location: o.shippingAddress?.city + ", " + o.shippingAddress?.postalCode || "Local",
+      time: new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      amount: "₹" + (o.totalPrice || 0),
+      items: `${o.orderItems?.length || 0} Item(s)`,
+      status: o.status
+    };
+  });
 
   const handleUpdateStatus = async (orderId, status) => {
     try {

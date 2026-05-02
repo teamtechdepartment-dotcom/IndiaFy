@@ -19,6 +19,7 @@ import {
   User,
   LogOut,
   LayoutDashboard,
+  Store,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
@@ -29,7 +30,6 @@ const navLinks = [
   { label: "Shop", href: "#", hasDropdown: true },
   { label: "Track Order", href: "/order-history" },
   { label: "Verified Nodes", path: "/local-sellers" },
-  { label: "Sell on Indiafy", path: "/seller-auth" },
   { label: "Help", href: "/support" },
 ];
 
@@ -141,8 +141,8 @@ export default function WebsiteNavbar() {
                     link.hasDropdown && setDropdownOpen(false)
                   }
                 >
-                  <a
-                    href={link.href || link.path}
+                  <Link
+                    to={link.path || link.href}
                     className={`flex items-center gap-1.5 text-[12px] font-black uppercase tracking-[0.1em] transition-all ${
                       isLightTheme
                         ? "text-zinc-600 hover:text-emerald-600"
@@ -156,7 +156,7 @@ export default function WebsiteNavbar() {
                         className={`transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
                       />
                     )}
-                  </a>
+                  </Link>
 
                   {/* MEGA DROPDOWN */}
                   {link.hasDropdown && dropdownOpen && (
@@ -308,29 +308,13 @@ export default function WebsiteNavbar() {
         Addresses
       </Link>
 
-      {user?.role?.toLowerCase() === 'seller' && (
-        <Link
-          to="/dashboard"
-          onClick={() => setUserMenuOpen(false)}
-          className="group flex items-center gap-2 px-4 py-2 text-sm text-emerald-600 font-bold hover:bg-emerald-50 transition"
-        >
-          <motion.div
-            whileHover={{ scale: 1.2, rotate: -5 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <LayoutDashboard size={16} />
-          </motion.div>
-          Seller Dashboard
-        </Link>
-      )}
-
       <div className="border-t my-2" />
 
       <button
         onClick={() => {
           logout();
           setUserMenuOpen(false);
-          navigate("/");
+          navigate("/", { replace: true });
         }}
         className="group w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
       >
@@ -351,20 +335,21 @@ export default function WebsiteNavbar() {
                   // Login/Signup Buttons
                   <>
                     <button
-                      onClick={() => navigate("/login")}
-                      className="text-[11px] font-black uppercase tracking-[0.1em] px-3 hover:text-emerald-500 transition-colors"
-                    >
-                      Login
-                    </button>
-                    <button
                       onClick={() => navigate("/seller-auth")}
-                      className={`px-5 py-2 text-[11px] font-black uppercase tracking-widest rounded-full transition-all active:scale-95 ${
-                        isLightTheme
-                          ? "bg-zinc-900 text-white shadow-lg hover:bg-emerald-500"
-                          : "bg-white text-zinc-900 shadow-lg hover:bg-emerald-500 hover:text-white"
+                      className={`hidden xl:flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.1em] px-5 py-2.5 rounded-full transition-all border-2 ${
+                        isLightTheme 
+                          ? "border-emerald-500 text-emerald-600 hover:bg-emerald-50" 
+                          : "border-white/30 text-white hover:bg-white/10"
                       }`}
                     >
+                      <Zap size={14} className="fill-current" />
                       Become a Seller
+                    </button>
+                    <button
+                      onClick={() => navigate("/login")}
+                      className="text-[11px] font-black uppercase tracking-[0.1em] bg-zinc-900 text-white py-2.5 px-8 rounded-full hover:bg-emerald-500 transition-colors shadow-lg active:scale-[0.98]"
+                    >
+                      Login
                     </button>
                   </>
                 )}
@@ -473,7 +458,7 @@ export default function WebsiteNavbar() {
                       onClick={() => {
                         logout();
                         setMenuOpen(false);
-                        navigate("/");
+                        navigate("/", { replace: true });
                       }}
                       className="w-full py-3.5 text-xs font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-200 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
                     >
@@ -484,21 +469,21 @@ export default function WebsiteNavbar() {
                   <>
                     <button
                       onClick={() => {
-                        navigate("/login");
-                        setMenuOpen(false);
-                      }}
-                      className="w-full py-3.5 text-xs font-black uppercase tracking-widest bg-zinc-900 text-white rounded-xl shadow-md hover:bg-emerald-500 transition-colors"
-                    >
-                      Customer Login / Signup
-                    </button>
-                    <button
-                      onClick={() => {
                         navigate("/seller-auth");
                         setMenuOpen(false);
                       }}
-                      className="w-full py-3.5 text-xs font-black uppercase tracking-widest bg-white border border-zinc-200 text-zinc-900 rounded-xl hover:bg-zinc-100 transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-3.5 text-xs font-black uppercase tracking-widest bg-emerald-500 text-white rounded-xl shadow-md hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
                     >
-                      <User size={16} /> Become a Seller
+                      <Store size={16} /> Become a Seller
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/login");
+                        setMenuOpen(false);
+                      }}
+                      className="w-full py-3.5 text-xs font-black uppercase tracking-widest bg-zinc-900 text-white rounded-xl shadow-md hover:bg-zinc-800 transition-colors"
+                    >
+                      Customer Login / Signup
                     </button>
                   </>
                 )}

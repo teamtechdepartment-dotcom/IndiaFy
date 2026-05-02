@@ -35,7 +35,7 @@ const VideoVerification = () => {
     const fetchOrder = async () => {
       try {
         const res = await axiosInstance.get(`/orders/${id}`);
-        const order = res.data.data;
+        const order = res.data;
         setOrderData(order);
         // map order items to checklist
         const checklist = order.orderItems.map((item, index) => ({
@@ -79,7 +79,15 @@ const VideoVerification = () => {
 
   const startRecording = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      let mediaStream;
+      try {
+        // Try with audio first
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      } catch (err) {
+        console.warn("Audio access failed, trying video only", err);
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+      
       setStream(mediaStream);
       
       if (videoRef.current) {
@@ -87,7 +95,14 @@ const VideoVerification = () => {
         videoRef.current.play();
       }
 
-      const mediaRecorder = new MediaRecorder(mediaStream);
+      // Detect supported MIME types
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
+        ? 'video/webm;codecs=vp9' 
+        : MediaRecorder.isTypeSupported('video/webm') 
+          ? 'video/webm' 
+          : 'video/mp4';
+
+      const mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
@@ -96,18 +111,20 @@ const VideoVerification = () => {
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const blob = new Blob(chunksRef.current, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setVideoSrc(url);
+        // Store the blob globally or in a ref to avoid fetch later
+        mediaRecorderRef.current.recordedBlob = blob;
         if (videoRef.current) videoRef.current.srcObject = null;
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Collect data every 1s
       setIsRecording(true);
       setVideoSrc(null);
     } catch (err) {
       console.error("Camera Error:", err);
-      alert("Could not access camera. Ensure permissions are granted.");
+      toast.error("Could not access camera. Ensure permissions are granted.");
     }
   };
 
@@ -140,26 +157,30 @@ const VideoVerification = () => {
     setIsUploading(true);
 
     try {
-      // Create a blob from video URL to upload
-      let videoBlob;
-      try {
-        const response = await fetch(videoSrc);
-        videoBlob = await response.blob();
-      } catch (err) {
-        throw new Error("Could not read the recorded video.");
+      let videoBlob = mediaRecorderRef.current?.recordedBlob;
+
+      // If no recorded blob (e.g., manual file upload), fetch it from the URL
+      if (!videoBlob) {
+        try {
+          const response = await fetch(videoSrc);
+          videoBlob = await response.blob();
+        } catch (err) {
+          throw new Error("Could not read the video file.");
+        }
       }
 
       const formData = new FormData();
-      formData.append('video', videoBlob, 'packing_video.webm');
+      // Use proper extension based on blob type
+      const extension = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+      formData.append('video', videoBlob, `packing_video.${extension}`);
 
-      // 1. Upload video and update order status to Shipped
       await axiosInstance.post(`/orders/${id}/upload-video`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       toast.success("Video verified & Order Shipped!");
-      fetchSellerOrders(); // Refresh orders in store
-      navigate('/live'); // Go back to live dashboard
+      if (fetchSellerOrders) fetchSellerOrders();
+      navigate('/live');
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || err.message || "Failed to upload verification video");

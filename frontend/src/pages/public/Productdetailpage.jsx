@@ -140,7 +140,7 @@ export default function ProductDetailPage() {
     const fetchProduct = async () => {
       try {
         const res = await axiosInstance.get(`/products/${id}`);
-        setProductData(res.data.data);
+        setProductData(res.data);
       } catch (err) {
         toast.error("Failed to load product details");
       } finally {
@@ -217,7 +217,7 @@ export default function ProductDetailPage() {
           <ChevronLeft size={16} /> Back to Collection
         </button>
 
-        <div className="grid lg:grid-cols-12 gap-16">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-16">
           {/* 1. LEFT: GALLERY SECTION */}
           <div className="lg:col-span-7">
             <div className="sticky top-32 space-y-6">
@@ -281,9 +281,10 @@ export default function ProductDetailPage() {
                   <Star size={12} fill="currentColor" /> {PRODUCT.rating}
                 </div>
               </div>
-              <h1 className="text-4xl font-black text-zinc-900 leading-tight mb-6">
-                {p.productName || PRODUCT.title}
-              </h1>
+              <h1 className="text-2xl md:text-4xl font-black text-zinc-900 tracking-tight flex items-center gap-2">
+                      {p.productName || (p.brand ? `${p.brand}'s Product` : "Verified Product")}
+                      <BadgeCheck size={24} className="text-emerald-500" />
+                    </h1>
               <div className="flex items-baseline gap-4">
                 <span className="text-4xl font-black text-zinc-900">
                   {fmt(pPrice)}
@@ -353,16 +354,16 @@ export default function ProductDetailPage() {
             </div>
 
             {/* ✅ BUTTONS — Add to Cart → /cart | Buy Now → /checkout */}
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 py-5 bg-white border-2 border-zinc-900 rounded-3xl font-black uppercase tracking-widest text-xs hover:bg-zinc-50 transition-all flex items-center justify-center gap-3"
+                className="flex-1 py-4 sm:py-5 bg-white border-2 border-zinc-900 rounded-3xl font-black uppercase tracking-widest text-[10px] sm:text-xs hover:bg-zinc-50 transition-all flex items-center justify-center gap-3"
               >
                 <ShoppingBag size={18} /> Add to Cart
               </button>
               <button
                 onClick={handleBuyNow}
-                className="flex-1 py-5 bg-zinc-900 text-white rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-zinc-300 hover:bg-zinc-800 transition-all flex items-center justify-center gap-3"
+                className="flex-1 py-4 sm:py-5 bg-zinc-900 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-2xl shadow-zinc-300 hover:bg-zinc-800 transition-all flex items-center justify-center gap-3"
               >
                 <Zap size={18} className="text-yellow-400 fill-yellow-400" /> Buy Now
               </button>
@@ -372,7 +373,7 @@ export default function ProductDetailPage() {
 
         {/* ─── TABS SECTION ─── */}
         <div className="mt-24">
-          <div className="flex gap-10 border-b border-zinc-100 mb-10">
+          <div className="flex gap-6 sm:gap-10 border-b border-zinc-100 mb-10 overflow-x-auto no-scrollbar whitespace-nowrap">
             {["description", "specifications", "reviews"].map((t) => (
               <button
                 key={t}

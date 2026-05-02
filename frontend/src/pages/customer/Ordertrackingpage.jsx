@@ -21,27 +21,31 @@ import Footer from "../../components/Footer";
 const STEPS = [
   {
     label: "Order Placed",
-    sub: "Received by Indiafy Node",
+    sub: "Confirmed by Indiafy Node",
     icon: <Package size={18} />,
-    status: "Pending"
+    status: "Pending",
+    color: "emerald"
   },
   {
     label: "Seller Accepted",
-    sub: "Inventory check complete",
+    sub: "Preparing for dispatch",
     icon: <BadgeCheck size={18} />,
-    status: "Processing"
+    status: "Processing",
+    color: "orange"
   },
   {
-    label: "Video Packing & Shipped",
-    sub: "Proof attached to Order ID",
+    label: "On the Way",
+    sub: "Out for secure delivery",
     icon: <Truck size={18} />,
-    status: "Shipped"
+    status: "Shipped",
+    color: "blue"
   },
   {
     label: "Delivered",
-    sub: "Order delivered successfully",
+    sub: "Received by customer",
     icon: <CheckCircle2 size={18} />,
-    status: "Delivered"
+    status: "Delivered",
+    color: "emerald"
   },
 ];
 
@@ -49,7 +53,7 @@ const STATUS_LIST = ["Pending", "Processing", "Shipped", "Delivered"];
 
 const Card = ({ children, className = "" }) => (
   <div
-    className={`bg-zinc-900/50 border border-zinc-800 rounded-[2.5rem] ${className}`}
+    className={`bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] overflow-hidden ${className}`}
   >
     {children}
   </div>
@@ -71,6 +75,9 @@ export default function OrderTrackingPage() {
       const data = await fetchOrderById(orderId);
       if (data) {
         setOrder(data);
+        if (data.status === "Cancelled" && !showRefresh) {
+          toast.error("This order has been cancelled by the seller.");
+        }
       } else {
         setError("Order not found");
       }
@@ -88,40 +95,43 @@ export default function OrderTrackingPage() {
     loadOrder();
   }, [loadOrder]);
 
-  // Auto-refresh every 30 seconds for real-time tracking
+  // Auto-refresh every 10 seconds for real-time tracking
   useEffect(() => {
     if (!order || order.status === "Delivered" || order.status === "Cancelled") return;
     
     const interval = setInterval(() => {
       loadOrder(false);
-    }, 10000); // 10s for better real-time experience
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [order?.status, loadOrder]);
 
   const handleRefresh = () => {
     loadOrder(true);
-    toast.info("Refreshing order status...");
   };
 
   if (loading) return (
-    <div className="bg-zinc-950 min-h-screen flex items-center justify-center">
-       <div className="w-12 h-12 border-4 border-zinc-800 border-t-emerald-500 rounded-full animate-spin" />
+    <div className="bg-black min-h-screen flex items-center justify-center">
+       <div className="relative">
+         <div className="w-16 h-16 border-4 border-zinc-800 border-t-orange-500 rounded-full animate-spin" />
+         <div className="absolute inset-0 flex items-center justify-center">
+           <Package size={20} className="text-orange-500 animate-pulse" />
+         </div>
+       </div>
     </div>
   );
 
   if (error || !order) return (
-    <div className="bg-zinc-950 min-h-screen text-zinc-400">
+    <div className="bg-black min-h-screen text-zinc-400">
       <WebsiteNavbar />
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <Package size={48} className="text-zinc-700" />
-        <p className="text-xl font-bold text-white">{error || "Order Not Found"}</p>
-        <p className="text-zinc-500 text-sm">The order you're looking for doesn't exist or you don't have access.</p>
+        <Package size={48} className="text-zinc-800" />
+        <p className="text-2xl font-black text-white tracking-tighter">{error || "Order Not Found"}</p>
         <button 
           onClick={() => navigate("/order-history")}
-          className="px-8 py-3 bg-white text-zinc-900 rounded-2xl font-bold text-sm hover:bg-zinc-200 transition-all"
+          className="px-10 py-4 bg-white text-black rounded-[2rem] font-black text-xs uppercase tracking-widest hover:scale-105 transition-all"
         >
-          Go to Order History
+          View History
         </button>
       </div>
     </div>
@@ -133,9 +143,11 @@ export default function OrderTrackingPage() {
   };
 
   const currentStep = getStatusIndex(order.status);
+  const isCancelled = order.status === "Cancelled";
 
   // Calculate ETA based on status
   const getETA = () => {
+    if (isCancelled) return "N/A";
     switch(order.status) {
       case "Delivered": return "0";
       case "Shipped": return "12";
@@ -152,129 +164,148 @@ export default function OrderTrackingPage() {
   };
 
   return (
-    <div className="bg-zinc-950 min-h-screen text-zinc-400">
+    <div className="bg-[#050505] min-h-screen text-zinc-400 selection:bg-orange-500/30">
       <WebsiteNavbar />
 
-      <main className="max-w-4xl mx-auto px-4 pt-32 pb-24">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+      <main className="max-w-5xl mx-auto px-6 pt-32 pb-24">
+        {/* HEADER AREA */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
           <div>
             <button
               onClick={() => navigate("/order-history")}
-              className="flex items-center gap-2 text-zinc-600 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] mb-4"
+              className="group flex items-center gap-2 text-zinc-600 hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.3em] mb-6"
             >
-              <ChevronLeft size={14} /> Back to Orders
+              <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Back to orders
             </button>
-            <h1 className="text-4xl font-black text-white tracking-tighter flex items-center gap-3">
-              Track <span className="text-zinc-700 italic">Live</span>
-              {order.status !== "Delivered" && order.status !== "Cancelled" && (
-                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
-              )}
-              {order.status === "Delivered" && (
-                <span className="w-2 h-2 bg-emerald-500 rounded-full" />
+            <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter flex items-center gap-4">
+              Track <span className="text-zinc-800 italic">Order</span>
+              {!isCancelled && order.status !== "Delivered" && (
+                <div className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+                </div>
               )}
             </h1>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs font-bold text-zinc-400 hover:text-white hover:border-zinc-600 transition-all disabled:opacity-50"
-          >
-            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
-            {refreshing ? "Refreshing..." : "Refresh Status"}
-          </button>
+          
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Last Update</p>
+              <p className="text-xs font-bold text-white">{formatDate(order.updatedAt)}</p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="p-4 bg-zinc-900 border border-white/5 rounded-2xl text-white hover:bg-zinc-800 transition-all disabled:opacity-50 group"
+            >
+              <RefreshCw size={18} className={refreshing ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500"} />
+            </button>
+          </div>
         </div>
 
+        {isCancelled && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-8 bg-red-500/10 border border-red-500/20 rounded-[2.5rem] flex items-center gap-6"
+          >
+            <div className="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-2xl shadow-red-500/20">
+              <Package size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-red-500 uppercase tracking-tight">Order Rejected by Seller</h3>
+              <p className="text-sm font-medium text-red-400/60 mt-1">
+                The seller was unable to fulfill your request. A full refund has been initiated to your original payment method.
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         <div className="grid lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-7 space-y-6">
-            {/* ETA CARD */}
-            <Card className="p-10 bg-gradient-to-br from-zinc-900 to-zinc-950">
+          <div className="lg:col-span-7 space-y-8">
+            {/* DYNAMIC ETA CARD */}
+            <Card className="p-10 relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10 flex justify-between items-end">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-400 mb-2">
-                    {order.status === "Delivered" ? "Delivered" : "Estimated Arrival"}
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-500 mb-4">
+                    {isCancelled ? "Status: Cancelled" : order.status === "Delivered" ? "Order Delivered" : "Estimated Arrival"}
                   </p>
-                  <div className="flex items-baseline gap-2">
-                    <h2 className="text-7xl font-black text-white">
+                  <div className="flex items-baseline gap-3">
+                    <h2 className={`text-8xl font-black tracking-tighter ${isCancelled ? "text-zinc-800" : "text-white"}`}>
                       {getETA()}
                     </h2>
-                    <span className="text-zinc-600 text-xl font-bold uppercase tracking-widest">
-                      {order.status === "Delivered" ? "" : "Mins"}
-                    </span>
+                    {!isCancelled && order.status !== "Delivered" && (
+                      <span className="text-zinc-700 text-2xl font-black uppercase tracking-widest italic">Mins</span>
+                    )}
                   </div>
                   {order.status === "Delivered" && order.deliveredAt && (
-                    <p className="text-xs text-emerald-500 font-bold mt-2">
-                      Delivered on {formatDate(order.deliveredAt)}
-                    </p>
+                    <div className="flex items-center gap-2 text-emerald-500 mt-4">
+                      <CheckCircle2 size={16} />
+                      <p className="text-sm font-black uppercase tracking-tight">Completed on {formatDate(order.deliveredAt)}</p>
+                    </div>
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-zinc-500 mb-1 uppercase tracking-tighter">
-                    Order ID
-                  </p>
-                  <p className="text-sm font-black text-white">
+                  <div className="bg-zinc-800/50 p-4 rounded-3xl border border-white/5 mb-4">
+                    <Truck size={32} className={isCancelled ? "text-zinc-700" : "text-orange-500"} />
+                  </div>
+                  <p className="text-sm font-black text-white uppercase tracking-tighter">
                     #{(order._id || "").slice(-8).toUpperCase()}
-                  </p>
-                  <p className="text-[10px] text-zinc-600 font-medium mt-1">
-                    {formatDate(order.createdAt)}
                   </p>
                 </div>
               </div>
             </Card>
 
-            {/* STATUS TRACKER */}
-            <Card className="p-8">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 mb-6">
-                Order Progress
-              </p>
+            {/* PROGRESS TRACKER */}
+            <Card className="p-10">
+              <div className="flex items-center justify-between mb-10">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">Live Timeline</p>
+                <div className="px-3 py-1 bg-white/5 rounded-full text-[9px] font-black uppercase tracking-widest text-zinc-500">
+                  Real-time Sync
+                </div>
+              </div>
+              
               <div className="space-y-0">
                 {STEPS.map((step, i) => {
                   const isCompleted = i < currentStep;
-                  const isCurrent = i === currentStep;
-                  const isFuture = i > currentStep;
+                  const isCurrent = i === currentStep && !isCancelled;
+                  const isFuture = i > currentStep || isCancelled;
 
                   return (
-                    <div key={i} className="flex gap-6">
+                    <div key={i} className="flex gap-8 group/step">
                       <div className="flex flex-col items-center">
                         <div
-                          className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shrink-0 ${
+                          className={`w-12 h-12 rounded-[1.25rem] flex items-center justify-center transition-all duration-500 shrink-0 ${
                             isCurrent 
-                              ? "bg-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.3)] scale-110" 
+                              ? "bg-orange-500 text-white shadow-[0_0_30px_rgba(249,115,22,0.4)] scale-110" 
                               : isCompleted 
-                                ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/30" 
-                                : "bg-zinc-900 text-zinc-700 border border-zinc-800"
+                                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" 
+                                : "bg-zinc-900 text-zinc-800 border border-white/5"
                           }`}
                         >
-                          {isCompleted ? (
-                            <CheckCircle2 size={20} />
-                          ) : (
-                            step.icon
-                          )}
+                          {isCompleted ? <CheckCircle2 size={22} /> : step.icon}
                         </div>
                         {i !== STEPS.length - 1 && (
-                          <div className={`w-0.5 h-12 my-1 transition-all ${isCompleted ? "bg-emerald-500/30" : "bg-zinc-800"}`} />
+                          <div className={`w-0.5 h-16 my-2 transition-all duration-700 ${isCompleted ? "bg-emerald-500/20" : "bg-zinc-900"}`} />
                         )}
                       </div>
-                      <div className="pt-1 pb-6">
+                      <div className="pt-2 pb-10">
                         <p
-                          className={`text-sm font-black uppercase tracking-tight ${
-                            isCurrent ? "text-orange-400" : isCompleted ? "text-white" : "text-zinc-700"
+                          className={`text-base font-black uppercase tracking-tight transition-colors duration-500 ${
+                            isCurrent ? "text-orange-500" : isCompleted ? "text-white" : "text-zinc-800"
                           }`}
                         >
                           {step.label}
                         </p>
-                        <p className={`text-[11px] font-medium mt-1 ${isCompleted ? "text-zinc-400" : "text-zinc-600"}`}>
+                        <p className={`text-xs font-medium mt-1 transition-colors duration-500 ${isCompleted ? "text-zinc-500" : "text-zinc-700"}`}>
                           {step.sub}
                         </p>
                         {isCurrent && (
-                          <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-orange-500/10 text-orange-400 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
-                            Current
-                          </span>
-                        )}
-                        {isCompleted && (
-                          <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                            ✓ Complete
-                          </span>
+                          <div className="flex items-center gap-2 mt-4">
+                            <span className="flex h-2 w-2 rounded-full bg-orange-500"></span>
+                            <span className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]">Active Now</span>
+                          </div>
                         )}
                       </div>
                     </div>

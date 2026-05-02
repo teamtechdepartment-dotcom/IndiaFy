@@ -163,7 +163,7 @@ export default function StorePage() {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h1 className="text-2xl md:text-4xl font-black text-zinc-900 tracking-tight flex items-center gap-2">
-                      {storeInfo.businessName || `${storeInfo.firstName}'s Store`}
+                      {storeInfo.businessName || (storeInfo.firstName ? `${storeInfo.firstName}'s Store` : "Verified Local Store")}
                       <BadgeCheck size={24} className="text-emerald-500" />
                     </h1>
                     <p className="text-zinc-500 font-bold text-xs md:text-sm uppercase tracking-widest mt-1">

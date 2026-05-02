@@ -181,15 +181,15 @@ const AuthPage = () => {
       <div className="relative w-full max-w-[850px] bg-white rounded-[2.5rem] shadow-[0_32px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden flex min-h-[520px]">
         {/* --- LOGIN SECTION --- */}
         <div
-          className={`form-side w-[55%] p-10 sm:p-14 flex flex-col justify-center transition-all duration-500 ${isLogin ? "opacity-100 z-1" : "opacity-0 z-0 pointer-events-none"}`}
+          className={`form-side w-full sm:w-[55%] p-8 sm:p-14 flex flex-col justify-center transition-all duration-500 ${isLogin ? "opacity-100 z-1" : "opacity-0 z-0 pointer-events-none absolute inset-0 sm:relative sm:inset-auto"}`}
           style={{ marginLeft: "auto" }}
         >
-          <div className="w-full space-y-8">
+          <div className="w-full space-y-6 sm:space-y-8">
             <div className="space-y-2 text-center sm:text-left">
-              <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
                 Welcome Back
               </h2>
-              <p className="text-slate-500 font-medium text-sm">
+              <p className="text-slate-500 font-medium text-xs sm:text-sm">
                 Please enter your details to login.
               </p>
             </div>
@@ -437,7 +437,7 @@ const AuthPage = () => {
         {/* --- BLACK SWEEP PANEL (THE DESIGN) --- */}
         <div
           ref={bpRef}
-          className="black-panel absolute inset-0 bg-[#0f172a] z-10 pointer-events-none flex flex-col justify-center p-12 overflow-hidden shadow-2xl"
+          className="black-panel absolute inset-0 bg-[#0f172a] z-10 pointer-events-none hidden sm:flex flex-col justify-center p-12 overflow-hidden shadow-2xl"
         >
           {/* Animated Orbs for the Black Side */}
           <div className="absolute inset-0 overflow-hidden">

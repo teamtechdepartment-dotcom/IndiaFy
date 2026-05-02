@@ -252,14 +252,27 @@ export default function TrendingProducts() {
                       </button>
                     </div>
                   </div>
-                  <div className="px-2 cursor-pointer" onClick={() => navigate(`/product/${id}`)}>
+                   <div className="px-2">
                     <div className="flex items-center gap-2 mb-1">
                       <ShieldCheck size={14} className="text-zinc-400" />
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
+                      <span 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isReal && product.sellerId?._id) {
+                            navigate(`/store/${product.sellerId._id}`);
+                          } else {
+                            toast.info("Store page coming soon for this demo seller.");
+                          }
+                        }}
+                        className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none hover:text-zinc-900 cursor-pointer transition-colors"
+                      >
                         {sellerName}
                       </span>
                     </div>
-                    <h3 className="text-lg font-bold text-zinc-900 mb-2 group-hover:text-zinc-600 transition-colors truncate">
+                    <h3 
+                      onClick={() => navigate(`/product/${id}`)}
+                      className="text-lg font-bold text-zinc-900 mb-2 group-hover:text-zinc-600 transition-colors truncate cursor-pointer"
+                    >
                       {name}
                     </h3>
                     <div className="flex items-center justify-between mb-3">

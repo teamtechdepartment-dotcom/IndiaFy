@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   BadgeCheck,
   ChevronLeft,
+  Package,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import axiosInstance from "../../utils/axiosInstance";
@@ -86,18 +87,21 @@ export default function OrderSuccessPage() {
         </div>
 
         <div className="space-y-6">
-          {/* 1. SECTOR-BASED TRACKING CARD */}
+          {/* 1. SHIPMENT TRACKING CARD */}
           <section className="bg-zinc-900 rounded-[2.5rem] p-8 text-white shadow-2xl overflow-hidden relative">
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-8">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-1">
-                    Estimated Delivery
+                    Delivery Status
                   </p>
-                  <h2 className="text-5xl font-black">15-25 mins</h2>
+                  <h2 className="text-4xl font-black">Awaiting Confirmation</h2>
+                  <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-tighter">
+                    Heavy item: Seller will confirm and ship shortly.
+                  </p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-                  <Truck size={32} className="text-emerald-400" />
+                  <Package size={32} className="text-emerald-400" />
                 </div>
               </div>
 
@@ -116,13 +120,13 @@ export default function OrderSuccessPage() {
               </div>
 
               <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                <span className="text-emerald-400">Confirmed</span>
-                <span className="text-white">Preparing</span>
-                <span>Out for Delivery</span>
+                <span className="text-emerald-400">Order Placed</span>
+                <span className="text-white">Seller Accepted</span>
+                <span>Shipped</span>
               </div>
             </div>
             <div className="absolute -right-8 -bottom-8 text-white/5 rotate-12">
-              <QrCode size={200} />
+              <Truck size={200} />
             </div>
           </section>
 

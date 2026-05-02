@@ -24,13 +24,15 @@ const menus = [
   { id: "finance", label: "Finance", icon: Wallet, path: "/finance" },
   { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
 ];
+import { useAuthStore } from "../store/authStore";
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); 
-    navigate("/seller-auth"); 
+    logout();
+    navigate("/", { replace: true }); 
     if (sidebarOpen) setSidebarOpen(false);
   };
 

@@ -14,10 +14,11 @@ const Signup = async (req, res) => {
             return res.status(400).json(new ApiError(400, "All fields are required."));
         }
 
-        // Password validation: 8+ chars, one letter, one number
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+        // Password validation: 6+ chars (aligned with validator), one letter, one number
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/;
         if (!passwordRegex.test(password)) {
-            return res.status(400).json(new ApiError(400, "Password must be at least 8 characters long and include at least one letter and one number."));
+            console.log("Signup failed: Password does not meet complexity requirements.");
+            return res.status(400).json(new ApiError(400, "Password must be at least 6 characters long and include at least one letter and one number."));
         }
 
         const customer = new CustomerModel({
@@ -62,7 +63,7 @@ const Login = async (req, res) => {
         }
 
         const isMatch = await passwordDecryption(password, customerDetails.password);
-        console.log("Password match result:", isMatch);
+        console.log("Password verification result:", isMatch ? "MATCH" : "MISMATCH");
 
         if(!isMatch){
             return res.status(401).json(new ApiError(401, "Incorrect Password"));

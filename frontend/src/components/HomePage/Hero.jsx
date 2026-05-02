@@ -50,6 +50,7 @@ const bentoImages = [
 export default function Hero() {
   const navigate = useNavigate();
   const [currentImg, setCurrentImg] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -126,18 +127,28 @@ export default function Hero() {
               transition={{ delay: 0.3 }}
               className="relative w-full max-w-2xl mb-10 group"
             >
-              <div className="flex items-center bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-[1.5rem] p-1.5 focus-within:border-zinc-500 transition-all duration-300 shadow-2xl">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (searchQuery.trim()) navigate(`/search?q=${searchQuery}`);
+                }}
+                className="flex items-center bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-[1.5rem] p-1.5 focus-within:border-zinc-500 transition-all duration-300 shadow-2xl"
+              >
                 <Search size={20} className="text-zinc-500 ml-4 mr-2" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search essentials, electronics, or bulk..."
                   className="flex-1 py-3.5 bg-transparent border-none outline-none text-white text-sm sm:text-base placeholder:text-zinc-600 font-medium"
                 />
                 <button 
-              onClick={() => navigate("/search")}className="bg-white text-black p-3.5 rounded-xl hover:bg-zinc-200 active:scale-95 transition-all flex items-center justify-center group-focus-within:bg-emerald-400">
+                  type="submit"
+                  className="bg-white text-black p-3.5 rounded-xl hover:bg-zinc-200 active:scale-95 transition-all flex items-center justify-center group-focus-within:bg-emerald-400"
+                >
                   <ArrowRight size={18} />
                 </button>
-              </div>
+              </form>
             </motion.div>
 
             {/* The 3 Pillars (Vertical Selectors) - Mobile Optimized Grid */}
