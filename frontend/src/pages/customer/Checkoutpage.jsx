@@ -43,8 +43,8 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      toast.info("Please login to proceed with checkout");
-      navigate("/login", { state: { from: location.pathname } });
+      // Redirect to home page instead of login page upon logout/unauth
+      navigate("/");
       return;
     }
     fetchCart();
