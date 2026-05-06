@@ -98,6 +98,16 @@ const authLimiter = rateLimit({
     }
 });
 
+// Health Check Endpoint
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "success",
+        message: "Server is healthy and active",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
 // Routes
 app.use("/api/v1/indiafy/admin/auth", adminAuthRoutes);
 app.use("/admin/auth", adminAuthRoutes);
