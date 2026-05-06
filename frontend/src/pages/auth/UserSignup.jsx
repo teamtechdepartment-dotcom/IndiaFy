@@ -50,9 +50,12 @@ const AuthPage = () => {
   const bpRef = useRef(null);
   const wbRef = useRef(null);
   const busyRef = useRef(false);
-  const isLoginRef = useRef(true);
 
-  const [isLogin, setIsLogin] = useState(true);
+  // Initialize state based on path: /signup starts as signup (isLogin = false), otherwise starts as login (isLogin = true)
+  const isSignupRoute = window.location.pathname === "/signup";
+  const isLoginRef = useRef(!isSignupRoute);
+
+  const [isLogin, setIsLogin] = useState(!isSignupRoute);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -95,10 +98,10 @@ const AuthPage = () => {
     const bp = bpRef.current;
     if (bp) {
       bp.style.transition = "none";
-      bp.style.clipPath = LOGIN_CLIP;
-      setWelcomePos(true);
+      bp.style.clipPath = !isSignupRoute ? LOGIN_CLIP : SIGNUP_CLIP;
+      setWelcomePos(!isSignupRoute);
     }
-  }, []);
+  }, [isSignupRoute]);
 
   const handleToggle = () => {
     if (busyRef.current) return;
@@ -213,10 +216,10 @@ const AuthPage = () => {
         />
       </div>
 
-      <div className="relative w-full max-w-[850px] bg-white rounded-[2.5rem] shadow-[0_32px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden flex min-h-[520px]">
+      <div className="relative w-full max-w-[850px] bg-white rounded-3xl sm:rounded-[2.5rem] shadow-[0_32px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden flex min-h-[520px]">
         {/* --- LOGIN SECTION --- */}
         <div
-          className={`form-side w-full sm:w-[55%] p-8 sm:p-14 flex flex-col justify-center transition-all duration-500 ${isLogin ? "opacity-100 z-1" : "opacity-0 z-0 pointer-events-none absolute inset-0 sm:relative sm:inset-auto"}`}
+          className={`form-side w-full sm:w-[55%] p-6 xs:p-8 sm:p-14 flex flex-col justify-center transition-all duration-500 ${isLogin ? "opacity-100 z-1 relative" : "opacity-0 z-0 pointer-events-none absolute inset-0 sm:relative sm:inset-auto"}`}
           style={{ marginLeft: "auto" }}
         >
           <div className="w-full space-y-6 sm:space-y-8">
@@ -326,7 +329,7 @@ const AuthPage = () => {
 
         {/* --- SIGNUP SECTION --- */}
         <div
-          className={`form-side w-[55%] p-10 sm:p-14 flex flex-col justify-center transition-all duration-500 ${!isLogin ? "opacity-100 z-1" : "opacity-0 z-0 pointer-events-none"}`}
+          className={`form-side w-full sm:w-[55%] p-6 xs:p-8 sm:p-14 flex flex-col justify-center transition-all duration-500 ${!isLogin ? "opacity-100 z-1 relative" : "opacity-0 z-0 pointer-events-none absolute inset-0 sm:relative sm:inset-auto"}`}
         >
           <div className="w-full space-y-8">
             <div className="space-y-2 text-center sm:text-left">

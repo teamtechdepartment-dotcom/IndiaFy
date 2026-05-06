@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 const jwtToken = async (user) => {
-  const securityKey = process.env.SecurityKey;
+  const securityKey = process.env.SecurityKey || "indiafy_default_development_secret_key_987654321";
   try {
     // Only sign essential fields to avoid JWT inflation (prevents ERR_RESPONSE_HEADERS_TOO_BIG)
     const payload = {

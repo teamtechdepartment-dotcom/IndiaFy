@@ -83,9 +83,9 @@ const UserLogin = () => {
         />
       </div>
 
-      <div className="relative w-full max-w-[850px] bg-white rounded-[2.5rem] shadow-[0_32px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden flex min-h-[520px]">
+      <div className="relative w-full max-w-[850px] bg-white rounded-3xl sm:rounded-[2.5rem] shadow-[0_32px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden flex min-h-[520px]">
         {/* --- LOGIN SECTION --- */}
-        <div className="form-side w-full lg:w-[55%] p-10 sm:p-14 flex flex-col justify-center">
+        <div className="form-side w-full lg:w-[55%] p-6 xs:p-8 sm:p-14 flex flex-col justify-center">
           <div className="w-full space-y-8">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
