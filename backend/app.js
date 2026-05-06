@@ -16,51 +16,75 @@ import customerProfileRoutes from "./routers/customer/profile.route.js";
 
 const app = express();
 
-app.use(cors({
+app.use(
+  cors({
     origin: [
-        "http://localhost:5173", 
-        "http://localhost:3000",
-        "https://india-fy.vercel.app",
-        "https://indiafy.vercel.app"
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "https://india-fy.vercel.app",
+      "https://indiafy.vercel.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
-}));
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
+  }),
+);
 
 // Request Logger
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
 });
 
 // Disable technology exposure
 app.disable("x-powered-by");
 
 // Enhanced Security Headers via Helmet
-app.use(helmet({
+app.use(
+  helmet({
     contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://checkout.razorpay.com"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://placehold.co", "https://res.cloudinary.com"],
-            connectSrc: ["'self'", "https://api.razorpay.com", "*.vercel.app", "http://localhost:8000"],
-            frameSrc: ["https://api.razorpay.com"],
-            objectSrc: ["'none'"],
-            upgradeInsecureRequests: [],
-        },
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://checkout.razorpay.com",
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https://images.unsplash.com",
+          "https://placehold.co",
+          "https://res.cloudinary.com",
+        ],
+        connectSrc: [
+          "'self'",
+          "https://api.razorpay.com",
+          "*.vercel.app",
+          "http://localhost:8000",
+        ],
+        frameSrc: ["https://api.razorpay.com"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
     },
     referrerPolicy: { policy: "no-referrer" },
     hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true,
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
     },
     frameguard: { action: "deny" },
     noSniff: true,
-}));
+  }),
+);
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 
 // Global Rate Limiting
@@ -87,25 +111,26 @@ app.use(hpp());
 
 // Auth Rate Limiting (Brute Force Protection)
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10000, // Increased for development/testing
-    handler: (req, res) => {
-        res.status(429).json({
-            success: false,
-            message: "Too many authentication attempts from this IP, please try again after 15 minutes.",
-            statusCode: 429
-        });
-    }
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10000, // Increased for development/testing
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message:
+        "Too many authentication attempts from this IP, please try again after 15 minutes.",
+      statusCode: 429,
+    });
+  },
 });
 
 // Health Check Endpoint
 app.get("/health", (req, res) => {
-    res.status(200).json({
-        status: "success",
-        message: "Server is healthy and active",
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
-    });
+  res.status(200).json({
+    status: "success",
+    message: "Server is healthy and active",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
 });
 
 // Routes
@@ -135,27 +160,40 @@ app.use("/customer/profile", customerProfileRoutes);
 
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {
-    // Log the error for internal debugging
-    console.error(">>> ERROR caught in Global Middleware:");
-    console.error("Path:", req.path);
-    console.error("Method:", req.method);
-    if (["POST", "PUT", "PATCH"].includes(req.method)) {
-        console.error("Body:", JSON.stringify(req.body, null, 2));
-    }
-    console.error("Error Detail:", err);
+  // Log the error for internal debugging
+  console.error(">>> ERROR caught in Global Middleware:");
+  console.error("Path:", req.path);
+  console.error("Method:", req.method);
+  if (["POST", "PUT", "PATCH"].includes(req.method)) {
+    console.error("Body:", JSON.stringify(req.body, null, 2));
+  }
+  console.error("Error Detail:", err);
 
-    const statusCode = err.statusCode || 500;
-    const message = err.message || "Something went wrong";
-    const errors = err.errors || [];
+  let statusCode = err.statusCode || 500;
+  let message = err.message || "Something went wrong";
+  let errors = err.errors || [];
 
-    res.status(statusCode).json({
-        success: false,
-        statusCode,
-        message,
-        errors,
-        stack: process.env.NODE_ENV === "development" ? err.stack : undefined
-    });
+  // Mongoose Validation Error handling
+  if (err.name === 'ValidationError') {
+    statusCode = 400;
+    const messages = Object.values(err.errors).map(val => val.message);
+    message = `Validation Error: ${messages.join(', ')}`;
+    errors = messages;
+  }
+
+  // Mongoose CastError (invalid ObjectId)
+  if (err.name === 'CastError') {
+    statusCode = 400;
+    message = `Resource not found. Invalid: ${err.path}`;
+  }
+
+  res.status(statusCode).json({
+    success: false,
+    statusCode,
+    message,
+    errors,
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+  });
 });
-
 
 export default app;
