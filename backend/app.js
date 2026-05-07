@@ -1,9 +1,16 @@
+import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import hpp from "hpp";
+import { databaseConfig } from "./config/db.config.js";
+
+// Initialize database connection
+databaseConfig().catch((err) => {
+  console.error("❌ Database connection failed on startup:", err);
+});
 
 import adminAuthRoutes from "./routers/admin/auth.route.js";
 import customerAuthRoutes from "./routers/customer/auth.route.js";
