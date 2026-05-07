@@ -13,12 +13,12 @@ app.listen(PORT, () => {
     // Then attempt DB connection with retry
     connectWithRetry();
 
-    // Self-pinging to keep server awake (optional)
-    // Enable by setting SERVER_URL. Interval is configurable via KEEP_ALIVE_INTERVAL_MS
-    const url = process.env.SERVER_URL;
+    // Self-pinging to keep server awake
+    // Enable by setting SERVER_URL. Defaults to your Render URL. Interval is configurable via KEEP_ALIVE_INTERVAL_MS
+    const url = process.env.SERVER_URL || "https://indiafy-1.onrender.com";
     if (url) {
         const protocol = url.startsWith('https') ? https : http;
-        const intervalMs = Number(process.env.KEEP_ALIVE_INTERVAL_MS) || 5 * 60 * 1000; // default 5 minutes
+        const intervalMs = Number(process.env.KEEP_ALIVE_INTERVAL_MS) || 3 * 60 * 1000; // default 3 minutes (180,000 ms)
         console.log(`Self-ping enabled for ${url}/health every ${intervalMs}ms`);
         setInterval(() => {
             protocol.get(`${url}/health`, (res) => {
