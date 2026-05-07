@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --primary: 25 100% 50%; /* Vibrant Orange */
+    --primary: 25 100% 50%;
     --primary-foreground: 0 0% 100%;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -17,13 +17,31 @@
   }
 
   body {
-    @apply bg-white text-gray-900 font-sans antialiased overflow-x-hidden;
-    font-family: 'Inter', sans-serif;
+    @apply bg-white text-zinc-900 font-sans antialiased overflow-x-hidden;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', sans-serif;
-    @apply tracking-tight font-bold text-gray-900;
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+    @apply tracking-tight font-bold text-zinc-900;
+  }
+
+  /* Accessibility: visible focus rings for keyboard navigation */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-zinc-900 rounded-sm;
+    outline-style: solid;
+  }
+
+  /* Remove default focus outline for mouse users */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+@layer components {
+  /* Accessible skip-to-content link */
+  .skip-to-content {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-zinc-900 focus:text-white focus:px-6 focus:py-3 focus:rounded-xl focus:font-bold focus:text-sm focus:uppercase focus:tracking-widest focus:shadow-2xl;
   }
 }
 
@@ -51,6 +69,27 @@
   .animate-slide-up {
     animation: slideUp 0.5s ease-out forwards;
   }
+
+  /* Hide scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Reduced motion: respect user preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @keyframes fadeIn {
@@ -71,19 +110,19 @@
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #d4d4d8;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a1a1aa;
 }

@@ -10,29 +10,45 @@
     <meta name="keywords" content="marketplace, online shopping, ecommerce, local sellers, quick commerce, Indiafy" />
     <meta name="author" content="Indiafy" />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#09090b" />
+    <link rel="canonical" href="https://india-fy.vercel.app/" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://indiafy.com/" />
+    <meta property="og:url" content="https://india-fy.vercel.app/" />
     <meta property="og:title" content="Indiafy - The Modern Marketplace for Everything" />
     <meta property="og:description" content="Indiafy is your premier destination for local shopping, quick commerce, and premium products." />
+    <meta property="og:site_name" content="Indiafy" />
+    <meta property="og:locale" content="en_IN" />
     
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://indiafy.com/" />
-    <meta property="twitter:title" content="Indiafy - The Modern Marketplace for Everything" />
-    <meta property="twitter:description" content="Indiafy is your premier destination for local shopping, quick commerce, and premium products." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://india-fy.vercel.app/" />
+    <meta name="twitter:title" content="Indiafy - The Modern Marketplace for Everything" />
+    <meta name="twitter:description" content="Indiafy is your premier destination for local shopping, quick commerce, and premium products." />
 
-    <!-- Fonts -->
+    <!-- Fonts: preconnect + preload critical font for LCP -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     
-    <link rel="icon" type="image/svg+xml" href="/fabicon.png" />
+    <link rel="icon" type="image/png" href="/fabicon.png" />
+
+    <!-- Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Indiafy",
+      "url": "https://india-fy.vercel.app",
+      "logo": "https://india-fy.vercel.app/Images/logo.png",
+      "description": "Indiafy is a trust-first hyperlocal commerce infrastructure. Discover local sellers, quick commerce, and wholesale B2B.",
+      "sameAs": []
+    }
+    </script>
   </head>
-  <body class="antialiased bg-gray-50 text-gray-900 transition-colors duration-300">
+  <body class="antialiased bg-zinc-50 text-zinc-900 transition-colors duration-300">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -1,3 +1,4 @@
+import React, { memo } from "react";
 import {
   ShoppingBag,
   ShoppingBasket,
@@ -14,7 +15,7 @@ import { Link } from "react-router-dom";
 import { useProductStore } from "../../store/productStore";
 import { useEffect } from "react";
 
-function BrowseCategories() {
+const BrowseCategories = memo(function BrowseCategories() {
   const { categories, fetchCategories } = useProductStore();
 
   useEffect(() => {
@@ -153,6 +154,8 @@ function BrowseCategories() {
       </div>
     </section>
   );
-}
+});
+
+BrowseCategories.displayName = 'BrowseCategories';
 
 export default BrowseCategories;

@@ -154,6 +154,7 @@ export default function TrendingProducts() {
             {/* ✅ "Explore All" → /search?q=trending */}
             <button
               onClick={() => navigate("/search?q=trending")}
+              aria-label="Explore all trending products"
               className="flex items-center gap-2 font-bold text-sm uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors"
             >
               Explore All <Zap size={16} fill="currentColor" className="text-yellow-400" />
@@ -163,15 +164,17 @@ export default function TrendingProducts() {
             <div className="flex gap-2">
               <button
                 onClick={() => scroll("left")}
+                aria-label="Scroll products left"
                 className="p-2.5 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 transition-colors"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={20} aria-hidden="true" />
               </button>
               <button
                 onClick={() => scroll("right")}
+                aria-label="Scroll products right"
                 className="p-2.5 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 transition-colors"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={20} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -214,6 +217,9 @@ export default function TrendingProducts() {
                     <img
                       src={image || "https://placehold.co/400x500?text=No+Image"}
                       alt={name}
+                      width={320}
+                      height={400}
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 pointer-events-none"
                     />
                     <div className="absolute top-4 left-4">
@@ -232,9 +238,10 @@ export default function TrendingProducts() {
                         e.stopPropagation();
                         navigate("/profile");
                       }}
+                      aria-label={`Add ${name} to wishlist`}
                       className="absolute top-4 right-4 p-2.5 rounded-full bg-white text-zinc-400 hover:text-red-500 shadow-md transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300"
                     >
-                      <Heart size={18} />
+                      <Heart size={18} aria-hidden="true" />
                     </button>
                     <div className="absolute inset-x-4 bottom-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                       <button
@@ -248,7 +255,7 @@ export default function TrendingProducts() {
                         }}
                         className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-2xl hover:bg-zinc-700 transition-colors"
                       >
-                        <ShoppingCart size={18} /> Add to Cart
+                        <ShoppingCart size={18} aria-hidden="true" /> Add to Cart
                       </button>
                     </div>
                   </div>

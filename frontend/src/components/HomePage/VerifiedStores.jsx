@@ -100,6 +100,9 @@ function VerifiedStores() {
             <img
               src={stores[0].image}
               alt={stores[0].name}
+              width={800}
+              height={500}
+              loading="lazy"
               className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000"
             />
 
@@ -163,6 +166,9 @@ function VerifiedStores() {
                     <img
                       src={store.image}
                       alt={store.name}
+                      width={128}
+                      height={128}
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
                     />
                     {store.live && (
@@ -193,8 +199,8 @@ function VerifiedStores() {
                         <MapPin size={12} className="text-zinc-300" />
                         {store.distance}
                       </div>
-                      <button className="p-1.5 md:p-2 bg-zinc-900 text-white rounded-lg md:rounded-xl hover:bg-zinc-700 active:scale-95 transition-all">
-                        <ArrowUpRight size={16} />
+                      <button aria-label={`Visit ${store.name}`} className="p-1.5 md:p-2 bg-zinc-900 text-white rounded-lg md:rounded-xl hover:bg-zinc-700 active:scale-95 transition-all">
+                        <ArrowUpRight size={16} aria-hidden="true" />
                       </button>
                     </div>
                   </div>

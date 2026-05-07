@@ -143,7 +143,7 @@ function TrustSection() {
               Our hybrid logistics model uses aggregator partners for bulk
               orders and core riders for precision.
             </p>
-            <button className="px-8 py-3 bg-white text-black rounded-full font-black text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all">
+            <button aria-label="Learn about our verification process" className="px-8 py-3 bg-white text-black rounded-full font-black text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all">
               Learn About Verification
             </button>
           </div>

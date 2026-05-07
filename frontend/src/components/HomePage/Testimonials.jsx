@@ -174,7 +174,9 @@ export default function Testimonials() {
         <div className="lg:hidden w-full relative">
           <div
             ref={scrollRef}
-            className="flex w-full overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-8 pt-4"
+            className="flex w-full overflow-x-auto snap-x snap-mandatory no-scrollbar pb-8 pt-4"
+            role="region"
+            aria-label="Customer reviews carousel"
           >
             {reviews.map((review, index) => (
               <div key={index} className="w-full shrink-0 snap-center px-2">
@@ -184,10 +186,13 @@ export default function Testimonials() {
           </div>
 
           {/* Animated Pagination Dots */}
-          <div className="flex justify-center gap-2 mt-2">
+          <div className="flex justify-center gap-2 mt-2" role="tablist" aria-label="Review pagination">
             {reviews.map((_, idx) => (
               <button
                 key={idx}
+                role="tab"
+                aria-selected={activeIndex === idx}
+                aria-label={`Go to review ${idx + 1} of ${reviews.length}`}
                 onClick={() => {
                   scrollRef.current?.scrollTo({
                     left: idx * scrollRef.current.offsetWidth,
@@ -241,15 +246,6 @@ export default function Testimonials() {
         </motion.div>
       </div>
 
-      {/* Required CSS to hide scrollbars globally for this component */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `,
-        }}
-      />
     </section>
   );
 }

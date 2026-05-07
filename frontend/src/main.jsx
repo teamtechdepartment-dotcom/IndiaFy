@@ -5,6 +5,10 @@ import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    {/* Skip-to-content link for keyboard/screen reader users (WCAG 2.1 AA) */}
+    <a href="#main-content" className="skip-to-content">
+      Skip to main content
+    </a>
     <App />
   </StrictMode>,
 )

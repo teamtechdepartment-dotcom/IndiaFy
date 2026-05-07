@@ -1,52 +1,68 @@
-import React from "react";
+import React, { lazy, Suspense, memo } from "react";
 
-// Layout Components
+// Layout Components - eagerly loaded (always visible)
 import WebsiteNavbar from "../../components/WebsiteNavbar";
 import Footer from "../../components/Footer";
 
-// Home Sections
-
-// import SectionOption from "../../components/HomePage/SectionOption";
+// Above-the-fold: eagerly loaded for fast LCP
 import Hero from "../../components/HomePage/Hero";
-import BrowseCategories from "../../components/HomePage/BrowseCategories";
-import TrendingProducts from "../../components/HomePage/TrendingProducts"; // New Component Added
-import VerifiedStores from "../../components/HomePage/VerifiedStores";
-import TrustSection from "../../components/HomePage/TrustSection";
-import RecentlyViewed from "../../components/HomePage/RecentlyViewed";
-import Testimonials from "../../components/HomePage/Testimonials";
 
-const Home = () => {
+// Below-the-fold: lazy loaded for performance
+const BrowseCategories = lazy(() => import("../../components/HomePage/BrowseCategories"));
+const TrendingProducts = lazy(() => import("../../components/HomePage/TrendingProducts"));
+const VerifiedStores = lazy(() => import("../../components/HomePage/VerifiedStores"));
+const RecentlyViewed = lazy(() => import("../../components/HomePage/RecentlyViewed"));
+const TrustSection = lazy(() => import("../../components/HomePage/TrustSection"));
+const Testimonials = lazy(() => import("../../components/HomePage/Testimonials"));
+
+// Lightweight section fallback
+const SectionLoader = () => (
+  <div className="py-20 flex items-center justify-center" role="status" aria-label="Loading section">
+    <div className="w-6 h-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+  </div>
+);
+
+const Home = memo(() => {
   return (
     <>
-      {/* Top Navigation - Fixed at top [cite: 91] */}
+      {/* Top Navigation */}
       <WebsiteNavbar />
 
       <main className="overflow-hidden">
-        {/* Dynamic visual introduction [cite: 9, 91] */}
+        {/* Hero: eagerly loaded for fast LCP */}
         <Hero />
-        
 
-        {/* Sector-based discovery [cite: 10, 44] */}
-        <BrowseCategories />
-        {/* Displays high-velocity items across the 3 verticals [cite: 14, 19] */}
-        <TrendingProducts />
+        {/* Below-fold sections: lazy loaded */}
+        <Suspense fallback={<SectionLoader />}>
+          <BrowseCategories />
+        </Suspense>
 
-        {/* Trusted local sellers [cite: 5, 28] */}
-        <VerifiedStores />
+        <Suspense fallback={<SectionLoader />}>
+          <TrendingProducts />
+        </Suspense>
 
+        <Suspense fallback={<SectionLoader />}>
+          <VerifiedStores />
+        </Suspense>
 
-        {/* --------------------------------- */}
-        <RecentlyViewed />
-        {/* Operational discipline & Anti-fraud info [cite: 31, 52] */}
-        <TrustSection />
-        {/* Phase 6: Social Proof (Community Trust) */}
-        <Testimonials />
+        <Suspense fallback={<SectionLoader />}>
+          <RecentlyViewed />
+        </Suspense>
+
+        <Suspense fallback={<SectionLoader />}>
+          <TrustSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionLoader />}>
+          <Testimonials />
+        </Suspense>
       </main>
 
-      {/* Financial & Support information [cite: 40, 70] */}
       <Footer />
     </>
   );
-};
+});
+
+Home.displayName = 'Home';
 
 export default Home;
