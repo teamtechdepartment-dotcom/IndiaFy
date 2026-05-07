@@ -23,14 +23,25 @@ import customerProfileRoutes from "./routers/customer/profile.route.js";
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://india-fy.vercel.app",
+  "https://indiafy.vercel.app",
+];
+
+if (process.env.CORS_ORIGIN) {
+  process.env.CORS_ORIGIN.split(",").forEach(origin => {
+    const trimmed = origin.trim();
+    if (trimmed && !allowedOrigins.includes(trimmed)) {
+      allowedOrigins.push(trimmed);
+    }
+  });
+}
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "https://india-fy.vercel.app",
-      "https://indiafy.vercel.app",
-    ],
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
