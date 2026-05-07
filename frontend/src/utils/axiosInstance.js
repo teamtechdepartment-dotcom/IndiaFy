@@ -5,9 +5,9 @@ const getBaseURL = () => {
     if (import.meta.env.VITE_API_URL) {
         return import.meta.env.VITE_API_URL;
     }
-    // If running in production (not localhost), dynamically target the current host's backend
+    // If running in production (not localhost), fallback to your Render production backend
     if (typeof window !== "undefined" && !window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1")) {
-        return `${window.location.origin}/api/v1/indiafy`;
+        return "https://indiafy-1.onrender.com/api/v1/indiafy";
     }
     // Fallback for local development
     return "http://localhost:8000/api/v1/indiafy";
