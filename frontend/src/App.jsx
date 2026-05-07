@@ -28,6 +28,9 @@ import QuickCommerce from "./pages/public/QuickCommerce";
 
 // 🔥 NAYA PAGE IMPORT KIYA YAHAN 🔥
 import Storepage from "./pages/public/StorePage";
+import PrivacyPolicy from "./pages/public/PrivacyPolicy";
+import TermsAndConditions from "./pages/public/TermsAndConditions";
+import NotFound from "./pages/public/NotFound";
 
 // User Auth
 import UserAuth from "./pages/auth/UserSignup";
@@ -279,6 +282,13 @@ export default function App() {
             element={<PendingApplications />}
           />
         </Route>
+
+        {/* Legal & Static standalone pages */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+
+        {/* Global 404 Fallback */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
