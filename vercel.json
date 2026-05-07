@@ -2,10 +2,6 @@
   "version": 2,
   "builds": [
     {
-      "src": "backend/app.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -15,16 +11,16 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "backend/app.js"
+      "src": "/assets/(.*)",
+      "dest": "frontend/dist/assets/$1"
     },
     {
-      "src": "/health",
-      "dest": "backend/app.js"
+      "src": "/Images/(.*)",
+      "dest": "frontend/dist/Images/$1"
     },
     {
-      "src": "/(assets|Images|favicon.ico)(.*)",
-      "dest": "frontend/dist/$1$2"
+      "src": "/favicon.ico",
+      "dest": "frontend/dist/favicon.ico"
     },
     {
       "handle": "filesystem"
@@ -38,7 +34,7 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://placehold.co https://res.cloudinary.com; connect-src 'self' https://api.razorpay.com *.vercel.app http://localhost:8000; frame-src https://api.razorpay.com; object-src 'none'; upgrade-insecure-requests;" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://placehold.co https://res.cloudinary.com; connect-src 'self' https://api.razorpay.com https://indiafy-1.onrender.com http://localhost:8000; frame-src https://api.razorpay.com; object-src 'none'; upgrade-insecure-requests;" },
         { "key": "Referrer-Policy", "value": "no-referrer" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
