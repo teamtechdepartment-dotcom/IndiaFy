@@ -23,11 +23,15 @@
       "dest": "backend/app.js"
     },
     {
+      "src": "/(assets|Images|favicon.ico)(.*)",
+      "dest": "frontend/dist/$1$2"
+    },
+    {
       "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "frontend/dist/index.html"
     }
   ],
   "headers": [
