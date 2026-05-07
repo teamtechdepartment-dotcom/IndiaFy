@@ -1,8 +1,21 @@
 import axios from "axios";
 
+// Dynamic resolution of backend API URL
+const getBaseURL = () => {
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+    // If running in production (not localhost), dynamically target the current host's backend
+    if (typeof window !== "undefined" && !window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1")) {
+        return `${window.location.origin}/api/v1/indiafy`;
+    }
+    // Fallback for local development
+    return "http://localhost:8000/api/v1/indiafy";
+};
+
 // Base instance
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1/indiafy",
+    baseURL: getBaseURL(),
     withCredentials: true, // Important for cookies (JWT)
     headers: {
         "Content-Type": "application/json",
