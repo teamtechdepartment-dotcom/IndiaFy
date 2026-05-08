@@ -21,14 +21,18 @@ const userCookies = async (res, user) => {
       await AdminModel.findByIdAndUpdate(user._id, { refreshToken });
     }
 
-    res.cookie("AccessToken", accessToken, {
+    const rolePrefix = user.role ? user.role : "";
+    const accessCookieName = `${rolePrefix}AccessToken`;
+    const refreshCookieName = `${rolePrefix}RefreshToken`;
+
+    res.cookie(accessCookieName, accessToken, {
       httpOnly: true,
       secure: true, // Required for cross-site cookies
       sameSite: "None", // Required for cross-site cookies
       maxAge: 15 * 60 * 1000,
     });
 
-    res.cookie("RefreshToken", refreshToken, {
+    res.cookie(refreshCookieName, refreshToken, {
       httpOnly: true,
       secure: true, // Required for cross-site cookies
       sameSite: "None", // Required for cross-site cookies

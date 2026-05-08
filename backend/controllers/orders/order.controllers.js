@@ -4,7 +4,8 @@ import SellerModel from "../../models/sellers/auth.model.js";
 import ApiError from "../../utils/apiError.js";
 import ApiResponse from "../../utils/apiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-///new change
+import { getIO } from "../../utils/socket.js";
+
 // @desc    Create new order
 // @route   POST /api/v1/indiafy/orders
 // @access  Private (Customer)
@@ -29,7 +30,8 @@ export const createOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Incomplete shipping address. Please provide address, city, state, and postal code.");
     }
 
-    // Validation and Stock check
+    // Validation and Stock check, plus attaching node data
+    const enrichedOrderItems = [];
     for (const item of orderItems) {
         const product = await ProductModel.findById(item.product);
         if (!product) {
@@ -40,11 +42,17 @@ export const createOrder = asyncHandler(async (req, res) => {
         if (currentStock < item.quantity) {
             throw new ApiError(400, `Insufficient stock for ${product.productName}. Available: ${currentStock}`);
         }
+
+        enrichedOrderItems.push({
+            ...item,
+            nodeId: product.nodeId,
+            nodeType: product.nodeType
+        });
     }
 
     const order = new OrderModel({
         customer: req.user._id,
-        orderItems,
+        orderItems: enrichedOrderItems,
         shippingAddress,
         paymentMethod,
         itemsPrice: itemsPrice || 0,
@@ -66,12 +74,34 @@ export const createOrder = asyncHandler(async (req, res) => {
 
     const createdOrder = await order.save();
 
-    // Reduce stock after successful order save
-    for (const item of orderItems) {
-        const product = await ProductModel.findById(item.product);
-        const newQty = parseInt(product.attribute.quantity) - item.quantity;
-        product.attribute.quantity = newQty.toString();
-        await product.save();
+    // Only reduce stock and emit socket if it's COD or already paid
+    if (paymentMethod === "COD" || !!paymentResult) {
+        for (const item of orderItems) {
+            const product = await ProductModel.findById(item.product);
+            const newQty = parseInt(product.attribute.quantity) - item.quantity;
+            product.attribute.quantity = newQty.toString();
+            await product.save();
+        }
+
+        // Emit Socket.IO Event to Seller Nodes
+        try {
+            const io = getIO();
+            enrichedOrderItems.forEach(item => {
+                const sellerId = item.seller.toString();
+                const nodeType = item.nodeType || "local";
+                const roomName = `seller_${sellerId}_node_${nodeType}`;
+                
+                console.log(`[Socket] Emitting NEW_ORDER to room: ${roomName}`);
+                io.to(roomName).emit("NEW_ORDER", {
+                    orderId: createdOrder._id,
+                    totalPrice: createdOrder.totalPrice,
+                    status: createdOrder.status,
+                    createdAt: createdOrder.createdAt
+                });
+            });
+        } catch (err) {
+            console.error("Socket emission failed:", err.message);
+        }
     }
 
     return res.status(201).json(new ApiResponse(201, createdOrder, "Order placed successfully"));
@@ -129,10 +159,19 @@ export const getCustomerOrders = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/indiafy/orders/sellerorders
 // @access  Private (Seller)
 export const getSellerOrders = asyncHandler(async (req, res) => {
-    const orders = await OrderModel.find({ "orderItems.seller": req.user._id })
+    const { nodeType } = req.query;
+    
+    let query = { "orderItems.seller": req.user._id };
+    
+    if (nodeType) {
+        query["orderItems.nodeType"] = nodeType;
+    }
+
+    const orders = await OrderModel.find(query)
         .populate('customer', 'firstName lastName email')
-        .populate('orderItems.product', 'productName productImage')
+        .populate('orderItems.product', 'productName productImage nodeType nodeId')
         .sort({ createdAt: -1 });
+        
     return res.status(200).json(new ApiResponse(200, orders, "Seller orders fetched successfully"));
 });
 

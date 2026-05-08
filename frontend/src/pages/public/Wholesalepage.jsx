@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Landmark,
@@ -199,7 +199,7 @@ export default function WholesalePage() {
                   Request Bulk Quote <ArrowRight size={16} />
                 </button>
                 <button
-                  onClick={() => navigate("/auth")}
+                  onClick={() => navigate("/seller-auth")}
                   className="px-10 py-5 border border-zinc-800 rounded-full font-black uppercase tracking-widest text-[11px] text-zinc-300 hover:bg-zinc-900 transition-all"
                 >
                   Register Business
@@ -434,7 +434,7 @@ export default function WholesalePage() {
                   mapping.
                 </p>
                 <button
-                  onClick={() => navigate("/auth")}
+                  onClick={() => navigate("/seller-auth")}
                   className="w-full py-5 bg-zinc-950 text-white rounded-full font-black uppercase tracking-widest text-[10px] hover:bg-amber-500 hover:text-black transition-all shadow-xl"
                 >
                   Register Business

@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
-import { useAuthStore } from "../../store/authStore";
+import { useSellerAuthStore } from "../../store/sellerAuthStore";
 
 // Reusable Input Component
 const InputGroup = ({ label, type = "text", value, onChange, placeholder, icon: Icon, multiline, disabled }) => (
@@ -111,8 +111,10 @@ export default function Settings({ storeDetails, setStoreDetails }) {
       const res = await axiosInstance.put("/seller/auth/settings", formData);
       if (res.data.success || res.status === 200) {
         // Sync with global auth store
-        const authStore = useAuthStore.getState();
-        if (authStore.fetchMe) await authStore.fetchMe('seller');
+        const authStore = useSellerAuthStore.getState();
+        if (authStore && authStore.fetchMe) {
+          await authStore.fetchMe("seller");
+        }
 
         const words = formData.name.trim().split(" ");
         let newInitials = "S";

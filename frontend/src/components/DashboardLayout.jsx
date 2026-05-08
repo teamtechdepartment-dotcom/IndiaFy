@@ -2,16 +2,20 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+import { useSocket } from "../hooks/useSocket";
 
-// 1. Accept storeDetails here
-export default function DashboardLayout({ children, storeDetails }) {
+// 1. Accept storeDetails and activeNode here
+export default function DashboardLayout({ children, storeDetails, activeNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Initialize Socket.io connection for this node
+  useSocket(activeNode);
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
       
       {/* Sidebar - Pass setSidebarOpen to close it on mobile after click */}
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} activeNode={activeNode} />
 
       <div className="flex-1 flex flex-col min-w-0">
         
@@ -19,6 +23,7 @@ export default function DashboardLayout({ children, storeDetails }) {
         <Navbar 
           setSidebarOpen={setSidebarOpen} 
           storeDetails={storeDetails} 
+          activeNode={activeNode}
         />
 
         {/* Dynamic Page Content */}

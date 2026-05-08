@@ -77,7 +77,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     const order = await OrderModel.findById(orderId);
     
     if (order) {
-        // Check if order was already paid to prevent double decrement
+        // Check if order was already paid to prevent double decrement (Idempotency Lock)
         if (order.isPaid) {
             return res.status(200).json(new ApiResponse(200, { verified: true }, "Payment already verified"));
         }
@@ -94,6 +94,36 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         order.status = "Processing";
 
         await order.save();
+
+        // 1. Deduct Stock safely now that payment is confirmed
+        for (const item of order.orderItems) {
+            const product = await ProductModel.findById(item.product);
+            if (product) {
+                const newQty = parseInt(product.attribute.quantity) - item.quantity;
+                product.attribute.quantity = newQty.toString();
+                await product.save();
+            }
+        }
+
+        // 2. Emit Socket.IO Event to Seller Nodes
+        try {
+            const io = await import("../../utils/socket.js").then(m => m.getIO());
+            order.orderItems.forEach(item => {
+                const sellerId = item.seller.toString();
+                const nodeType = item.nodeType || "local";
+                const roomName = `seller_${sellerId}_node_${nodeType}`;
+                
+                console.log(`[Socket] Emitting NEW_ORDER to room: ${roomName}`);
+                io.to(roomName).emit("NEW_ORDER", {
+                    orderId: order._id,
+                    totalPrice: order.totalPrice,
+                    status: order.status,
+                    createdAt: order.createdAt
+                });
+            });
+        } catch (err) {
+            console.error("Socket emission failed in payment verify:", err.message);
+        }
     }
 
     return res.status(200).json(new ApiResponse(200, { verified: true }, "Payment verified & Stock synced"));

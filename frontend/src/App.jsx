@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuthStore } from "./store/authStore";
+import { useSellerAuthStore } from "./store/sellerAuthStore";
 import { useCartStore } from "./store/cartStore";
 import { useProfileStore } from "./store/profileStore";
 import { useProductStore } from "./store/productStore";
@@ -54,6 +55,7 @@ const SellerAuth = lazy(() => import("./pages/auth/SellerAuth"));
 const AdminLogin = lazy(() => import("./pages/auth/AdminLogin"));
 
 // ================= LAZY-LOADED SELLER DASHBOARD =================
+const SellerHub = lazy(() => import("./pages/seller/SellerHub"));
 const Dashboard = lazy(() => import("./pages/seller/Dashboard"));
 const Orders = lazy(() => import("./pages/seller/Orders"));
 const LiveOrders = lazy(() => import("./pages/seller/LiveOrders"));
@@ -81,69 +83,99 @@ const PendingApplications = lazy(() => import("./pages/admin/PendingApplications
 const ActiveSellers = lazy(() => import("./pages/admin/ActiveSellers"));
 
 export default function App() {
-  const { user, fetchMe, isAuthenticated } = useAuthStore();
+  const { user: customerUser, fetchMe: fetchCustomer, isAuthenticated: isCustomerAuthenticated } = useAuthStore();
+  const { user: sellerUser, fetchMe: fetchSeller, isAuthenticated: isSellerAuthenticated } = useSellerAuthStore();
   const { fetchCart } = useCartStore();
   const { fetchProfile } = useProfileStore();
   const { fetchProducts } = useProductStore();
   
-  // --- GLOBAL STORE PROFILE STATE ---
-  const [storeDetails, setStoreDetails] = useState({
-    name: "Jai Store",
-    initials: "JS",
+  // --- ISOLATED NODE SETTINGS STATE ---
+  const defaultSettings = {
+    initials: "S",
     logo: null,
-    email: "contact@jaistore.com",
-    phone: "+91 98765 43210",
-    address: "Street 10, Sector 22\nChandigarh, 160022",
-    gstin: "04AABCU9603R1ZM",
-    accountName: "Jai Store Official",
-    accountNumber: "50100234567890",
-    ifsc: "HDFC0001234",
-    bankName: "HDFC Bank",
+    email: "",
+    phone: "",
+    address: "",
+    gstin: "",
+    accountName: "",
+    accountNumber: "",
+    ifsc: "",
+    bankName: "",
     orderAlerts: true,
     autoAccept: false,
     promotionalEmails: true,
     isStoreOpen: true,
     isDeactivated: false,
+  };
+
+  const [nodeSettings, setNodeSettings] = useState({
+    local: { ...defaultSettings, name: "Local Retail Store" },
+    wholesale: { ...defaultSettings, name: "Wholesale B2B Store" },
+    "quick-commerce": { ...defaultSettings, name: "Quick Commerce Store" },
+    "home-essentials": { ...defaultSettings, name: "Home Essentials Store" },
+    electronics: { ...defaultSettings, name: "Electronics Store" },
+    "personal-care": { ...defaultSettings, name: "Personal Care Store" },
   });
 
+  const updateNodeSettings = (nodeType, newSettings) => {
+    setNodeSettings(prev => ({
+      ...prev,
+      [nodeType]: typeof newSettings === 'function' ? newSettings(prev[nodeType]) : newSettings
+    }));
+  };
+
   // Memoized init function to avoid re-creation on every render
-  const initializeApp = useCallback(() => {
-    if (user?.role) {
-      fetchMe(user.role);
-      const userRole = user.role.toLowerCase();
-      if (userRole === 'customer') {
-        fetchCart();
-        fetchProfile();
-      } else if (userRole === 'seller') {
-        fetchProducts('', '', user._id);
-      }
+  const initializeCustomer = useCallback(() => {
+    if (customerUser?.role?.toLowerCase() === 'customer') {
+      fetchCart();
+      fetchProfile();
     }
-  }, [user?.role, user?._id, fetchMe, fetchCart, fetchProfile, fetchProducts]);
+  }, [customerUser?.role, fetchCart, fetchProfile]);
+
+  const initializeSeller = useCallback(() => {
+    if (sellerUser?.role?.toLowerCase() === 'seller' && sellerUser?._id) {
+      fetchProducts('', '', sellerUser._id);
+    }
+  }, [sellerUser?.role, sellerUser?._id, fetchProducts]);
 
   useEffect(() => {
-    initializeApp();
-  }, [initializeApp]);
+    fetchCustomer("customer");
+    fetchSeller("seller");
+  }, []);
 
-  // Update storeDetails when user changes
   useEffect(() => {
-    if (user && user.role?.toLowerCase() === 'seller') {
-      setStoreDetails(prev => ({
-        ...prev,
-        ...user,
-        name: user.businessName || `${user.firstName} ${user.lastName || ''} Store`,
-        initials: user.businessName ? user.businessName[0] : user.firstName?.[0] || 'S',
-        email: user.email,
-        logo: user.logo || prev.logo,
-        address: user.address || prev.address,
-        city: user.city || prev.city,
-        gstin: user.gstin || prev.gstin,
-        accountName: user.accountName || prev.accountName,
-        accountNumber: user.accountNumber || prev.accountNumber,
-        ifsc: user.ifsc || prev.ifsc,
-        bankName: user.bankName || prev.bankName
+    initializeCustomer();
+  }, [initializeCustomer]);
+
+  useEffect(() => {
+    initializeSeller();
+  }, [initializeSeller]);
+
+  // Update isolated node details when user changes
+  useEffect(() => {
+    if (sellerUser && sellerUser.role?.toLowerCase() === 'seller') {
+      const baseDetails = {
+        email: sellerUser.email,
+        logo: sellerUser.logo,
+        address: sellerUser.address,
+        city: sellerUser.city,
+        gstin: sellerUser.gstin,
+        accountName: sellerUser.accountName,
+        accountNumber: sellerUser.accountNumber,
+        ifsc: sellerUser.ifsc,
+        bankName: sellerUser.bankName
+      };
+
+      setNodeSettings(prev => ({
+        local: { ...prev.local, ...baseDetails, name: sellerUser.businessName ? `${sellerUser.businessName} (Retail)` : "Local Retail Store" },
+        wholesale: { ...prev.wholesale, ...baseDetails, name: sellerUser.businessName ? `${sellerUser.businessName} (B2B)` : "Wholesale B2B Store" },
+        "quick-commerce": { ...prev["quick-commerce"], ...baseDetails, name: sellerUser.businessName ? `${sellerUser.businessName} (Quick)` : "Quick Commerce Store" },
+        "home-essentials": { ...prev["home-essentials"], ...baseDetails, name: sellerUser.businessName ? `${sellerUser.businessName} (Home)` : "Home Essentials Store" },
+        electronics: { ...prev.electronics, ...baseDetails, name: sellerUser.businessName ? `${sellerUser.businessName} (Tech)` : "Electronics Store" },
+        "personal-care": { ...prev["personal-care"], ...baseDetails, name: sellerUser.businessName ? `${sellerUser.businessName} (Care)` : "Personal Care Store" }
       }));
     }
-  }, [user]);
+  }, [sellerUser]);
 
   return (
     <BrowserRouter>
@@ -177,14 +209,17 @@ export default function App() {
           </Route>
 
           {/* ================= STANDALONE AUTH ROUTE ================= */}
-          <Route path="/seller-auth" element={<SellerAuth />} />
+          <Route path="/seller-auth" element={
+            isSellerAuthenticated ? <Navigate to="/seller-hub" replace /> : <SellerAuth />
+          } />
 
           {/* ================= SELLER DASHBOARD ROUTES ================= */}
           <Route element={<ProtectedRoute allowedRoles={["seller"]} />}>
-            <Route
-              path="/*"
-              element={
-                <DashboardLayout storeDetails={storeDetails}>
+            <Route path="/seller-hub" element={<SellerHub />} />
+            
+            {/* --- LOCAL RETAIL NODE --- */}
+            <Route path="/seller/local/*" element={
+                <DashboardLayout storeDetails={nodeSettings.local} activeNode="local">
                   <Routes>
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="orders" element={<Orders />} />
@@ -193,19 +228,94 @@ export default function App() {
                     <Route path="inventory" element={<Inventory />} />
                     <Route path="history" element={<History />} />
                     <Route path="finance" element={<Finance />} />
-                    <Route path="settings" element={<Settings storeDetails={storeDetails} setStoreDetails={setStoreDetails} />} />
+                    <Route path="settings" element={<Settings storeDetails={nodeSettings.local} setStoreDetails={(s) => updateNodeSettings('local', s)} />} />
                     <Route path="notifications" element={<Notifications />} />
                     <Route path="video-verification/:id" element={<VideoVerification />} />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="*" element={<Navigate to="/seller/local/dashboard" replace />} />
                   </Routes>
                 </DashboardLayout>
-              }
-            />
+            } />
+
+            {/* --- WHOLESALE NODE --- */}
+            <Route path="/seller/wholesale/*" element={
+                <DashboardLayout storeDetails={nodeSettings.wholesale} activeNode="wholesale">
+                  <Routes>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="inventory" element={<Inventory />} />
+                    <Route path="settings" element={<Settings storeDetails={nodeSettings.wholesale} setStoreDetails={(s) => updateNodeSettings('wholesale', s)} />} />
+                    <Route path="*" element={<Navigate to="/seller/wholesale/dashboard" replace />} />
+                  </Routes>
+                </DashboardLayout>
+            } />
+
+            {/* --- QUICK COMMERCE NODE --- */}
+            <Route path="/quick/*" element={
+                <DashboardLayout storeDetails={nodeSettings["quick-commerce"]} activeNode="quick-commerce">
+                  <Routes>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="inventory" element={<Inventory />} />
+                    <Route path="settings" element={<Settings storeDetails={nodeSettings["quick-commerce"]} setStoreDetails={(s) => updateNodeSettings('quick-commerce', s)} />} />
+                    <Route path="*" element={<Navigate to="/quick/dashboard" replace />} />
+                  </Routes>
+                </DashboardLayout>
+            } />
+
+            {/* --- HOME ESSENTIALS NODE --- */}
+            <Route path="/seller/home/*" element={
+                <DashboardLayout storeDetails={nodeSettings["home-essentials"]} activeNode="home-essentials">
+                  <Routes>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="inventory" element={<Inventory />} />
+                    <Route path="settings" element={<Settings storeDetails={nodeSettings["home-essentials"]} setStoreDetails={(s) => updateNodeSettings('home-essentials', s)} />} />
+                    <Route path="*" element={<Navigate to="/seller/home/dashboard" replace />} />
+                  </Routes>
+                </DashboardLayout>
+            } />
+
+            {/* --- ELECTRONICS NODE --- */}
+            <Route path="/seller/electronics/*" element={
+                <DashboardLayout storeDetails={nodeSettings.electronics} activeNode="electronics">
+                  <Routes>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="inventory" element={<Inventory />} />
+                    <Route path="settings" element={<Settings storeDetails={nodeSettings.electronics} setStoreDetails={(s) => updateNodeSettings('electronics', s)} />} />
+                    <Route path="*" element={<Navigate to="/seller/electronics/dashboard" replace />} />
+                  </Routes>
+                </DashboardLayout>
+            } />
+
+            {/* --- PERSONAL CARE NODE --- */}
+            <Route path="/seller/personal-care/*" element={
+                <DashboardLayout storeDetails={nodeSettings["personal-care"]} activeNode="personal-care">
+                  <Routes>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="inventory" element={<Inventory />} />
+                    <Route path="settings" element={<Settings storeDetails={nodeSettings["personal-care"]} setStoreDetails={(s) => updateNodeSettings('personal-care', s)} />} />
+                    <Route path="*" element={<Navigate to="/seller/personal-care/dashboard" replace />} />
+                  </Routes>
+                </DashboardLayout>
+            } />
+
+            <Route path="*" element={<Navigate to="/seller-hub" replace />} />
           </Route>
 
           {/* User Auth */}
-          <Route path="/signup" element={<UserAuth />} />
-          <Route path="/login" element={<UserLogin />} />
+          <Route path="/signup" element={
+            isCustomerAuthenticated ? <Navigate to="/" replace /> : <UserAuth />
+          } />
+          <Route path="/login" element={
+            isCustomerAuthenticated ? <Navigate to="/" replace /> : <UserLogin />
+          } />
 
           {/* Admin Auth */}
           <Route path="/admin/login" element={<AdminLogin />} />

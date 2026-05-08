@@ -4,11 +4,17 @@ import { databaseConfig } from "./config/db.config.js";
 import app from "./app.js";
 import https from 'https';
 import http from 'http';
+import { initSocket } from './utils/socket.js';
 
 const PORT = process.env.PORT || 8000;
 
+const server = http.createServer(app);
+
+// Initialize Socket.io
+initSocket(server);
+
 // Start listening FIRST so the process stays alive
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server run on Port: ${PORT}`);
     // Then attempt DB connection with retry
     connectWithRetry();

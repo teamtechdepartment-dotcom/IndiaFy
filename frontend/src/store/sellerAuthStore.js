@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axiosInstance from '../utils/axiosInstance';
 
-export const useAuthStore = create(
+export const useSellerAuthStore = create(
   persist(
     (set) => ({
       user: null, // { id, role, name, email, etc. }
@@ -12,7 +12,7 @@ export const useAuthStore = create(
       login: (userData, token) => set({
         user: {
           ...userData,
-          role: userData?.role?.toLowerCase() || 'customer'
+          role: userData?.role?.toLowerCase() || 'seller'
         },
         token: token,
         isAuthenticated: true
@@ -20,9 +20,9 @@ export const useAuthStore = create(
 
       logout: async () => {
         try {
-          await axiosInstance.post('/customer/auth/logout');
+          await axiosInstance.post('/seller/auth/logout');
         } catch (err) {
-          console.error("Customer logout failed on backend:", err);
+          console.error("Seller logout failed on backend:", err);
         }
         set({
           user: null,
@@ -34,18 +34,16 @@ export const useAuthStore = create(
       fetchMe: async (role) => {
         try {
           const res = await axiosInstance.get(`/${role.toLowerCase()}/auth/me`);
-          // res = { statusCode, data: userData, message }
           const userData = res.data || res;
           set({
             user: {
               ...userData,
-              role: userData?.role?.toLowerCase() || role.toLowerCase()
+              role: userData?.role?.toLowerCase() || 'seller'
             },
             isAuthenticated: true
           });
         } catch (err) {
-          console.error("fetchMe failed:", err);
-          // Only clear state if it's a 401 Unauthorized (meaning session is actually dead)
+          console.error("fetchMe seller failed:", err);
           if (err.response?.status === 401) {
             set({ user: null, isAuthenticated: false });
           }
@@ -53,7 +51,7 @@ export const useAuthStore = create(
       }
     }),
     {
-      name: 'indiafy-auth-storage',
+      name: 'indiafy-seller-auth-storage',
     }
   )
 );

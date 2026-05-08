@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
+import { useSellerAuthStore } from "../store/sellerAuthStore";
 import { useCartStore } from "../store/cartStore";
 import { toast } from "react-toastify";
 
@@ -78,8 +79,12 @@ function WebsiteNavbar() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user: customerUser, isAuthenticated: isCustomerAuthenticated, logout: logoutCustomer } = useAuthStore();
+  const { user: sellerUser, isAuthenticated: isSellerAuthenticated, logout: logoutSeller } = useSellerAuthStore();
   const { cartItems } = useCartStore();
+
+  const isAuthenticated = isCustomerAuthenticated || isSellerAuthenticated;
+  const user = isSellerAuthenticated ? sellerUser : customerUser;
 
   const isHomePage = location.pathname === "/";
   const isLightTheme = !isHomePage || scrolled;
@@ -103,12 +108,19 @@ function WebsiteNavbar() {
   }, [location.pathname]);
 
   const handleLogout = useCallback(() => {
-    logout();
     setUserMenuOpen(false);
     setMenuOpen(false);
     toast.success("Logged out successfully");
+    
+    if (isSellerAuthenticated) {
+      logoutSeller();
+    } else {
+      logoutCustomer();
+    }
+    
+    // Redirect all users to home page on logout
     navigate("/", { replace: true });
-  }, [logout, navigate]);
+  }, [logoutCustomer, logoutSeller, isSellerAuthenticated, navigate]);
 
   return (
     <>
@@ -283,35 +295,49 @@ function WebsiteNavbar() {
                           role="menu"
                           aria-label="User menu"
                         >
-                          <Link
-                            to="/profile"
-                            role="menuitem"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="group flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 transition"
-                          >
-                            <User size={16} aria-hidden="true" />
-                            My Profile
-                          </Link>
+                          {user?.role?.toLowerCase() === 'seller' ? (
+                            <Link
+                              to="/seller-hub"
+                              role="menuitem"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="group flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 transition"
+                            >
+                              <Store size={16} aria-hidden="true" />
+                              Seller Hub
+                            </Link>
+                          ) : (
+                            <>
+                              <Link
+                                to="/profile"
+                                role="menuitem"
+                                onClick={() => setUserMenuOpen(false)}
+                                className="group flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 transition"
+                              >
+                                <User size={16} aria-hidden="true" />
+                                My Profile
+                              </Link>
 
-                          <Link
-                            to="/order-history"
-                            role="menuitem"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="group flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 transition"
-                          >
-                            <Package size={16} aria-hidden="true" />
-                            Orders
-                          </Link>
+                              <Link
+                                to="/order-history"
+                                role="menuitem"
+                                onClick={() => setUserMenuOpen(false)}
+                                className="group flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 transition"
+                              >
+                                <Package size={16} aria-hidden="true" />
+                                Orders
+                              </Link>
 
-                          <Link
-                            to="/addresses"
-                            role="menuitem"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="group flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 transition"
-                          >
-                            <Home size={16} aria-hidden="true" />
-                            Addresses
-                          </Link>
+                              <Link
+                                to="/addresses"
+                                role="menuitem"
+                                onClick={() => setUserMenuOpen(false)}
+                                className="group flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 transition"
+                              >
+                                <Home size={16} aria-hidden="true" />
+                                Addresses
+                              </Link>
+                            </>
+                          )}
 
                           <div className="border-t my-2" role="separator" />
 
@@ -473,11 +499,12 @@ function WebsiteNavbar() {
                 {isAuthenticated && user ? (
                   <>
                     <button
-                      onClick={() => { navigate("/profile"); setMenuOpen(false); }}
+                      onClick={() => { navigate(user?.role?.toLowerCase() === 'seller' ? "/seller-hub" : "/profile"); setMenuOpen(false); }}
                       aria-label={`Go to ${user.firstName || 'your'} profile`}
                       className="w-full py-3.5 text-xs font-black uppercase tracking-widest bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
                     >
-                      <User size={16} aria-hidden="true" /> {user.firstName || "Profile"}
+                      {user?.role?.toLowerCase() === 'seller' ? <Store size={16} aria-hidden="true" /> : <User size={16} aria-hidden="true" />} 
+                      {user.firstName || "Dashboard"}
                     </button>
                     <button
                       onClick={handleLogout}

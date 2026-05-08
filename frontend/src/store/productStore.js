@@ -16,11 +16,11 @@ export const useProductStore = create((set) => ({
     }
   },
 
-  fetchProducts: async (search = '', subCategory = '', sellerId = '') => {
+  fetchProducts: async (search = '', subCategory = '', sellerId = '', nodeType = '') => {
     set({ isLoading: true, error: null });
     try {
       const res = await axiosInstance.get('/products', {
-        params: { search, subCategory, sellerId }
+        params: { search, subCategory, sellerId, nodeType }
       });
       set({ products: res.data || res || [] });
     } catch (err) {

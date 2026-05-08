@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Search, 
   Filter, 
@@ -15,18 +15,35 @@ import {
   MapPin,
   ShoppingBag
 } from 'lucide-react';
+import { useOrderStore } from '../../store/orderStore';
 
 export default function History() {
-  const [historyData] = useState([
-    { id: "ORD-150", customer: "Vikas M.", phone: "+91 98765 43210", location: "Sector 22, Chandigarh", date: "Feb 18, 2026, 04:30 PM", amount: "₹1,850", items: "3 Items", status: "Delivered", video: true },
-    { id: "ORD-149", customer: "Suresh K.", phone: "+91 98765 43211", location: "Sector 21, Chandigarh", date: "Feb 17, 2026, 01:15 PM", amount: "₹2,100", items: "1 Item", status: "Delivered", video: true },
-    { id: "ORD-148", customer: "Priya Sharma", phone: "+91 98765 43212", location: "Sector 17, Chandigarh", date: "Feb 16, 2026, 11:20 AM", amount: "₹950", items: "2 Items", status: "Returned", video: true },
-    { id: "ORD-147", customer: "Amit Patel", phone: "+91 98765 43213", location: "Sector 34, Chandigarh", date: "Feb 15, 2026, 06:45 PM", amount: "₹4,200", items: "5 Items", status: "Delivered", video: false },
-    { id: "ORD-146", customer: "Neha Kapoor", phone: "+91 98765 43214", location: "Sector 15, Chandigarh", date: "Feb 15, 2026, 09:10 AM", amount: "₹350", items: "1 Item", status: "Cancelled", video: false },
-    { id: "ORD-145", customer: "Rahul Singh", phone: "+91 98765 43215", location: "Phase 3B2, Mohali", date: "Feb 14, 2026, 02:20 PM", amount: "₹1,200", items: "2 Items", status: "Delivered", video: true },
-    { id: "ORD-144", customer: "Anjali Verma", phone: "+91 98765 43216", location: "Sector 8, Panchkula", date: "Feb 13, 2026, 10:05 AM", amount: "₹5,600", items: "8 Items", status: "Delivered", video: true },
-    { id: "ORD-143", customer: "Karan Gupta", phone: "+91 98765 43217", location: "Sector 43, Chandigarh", date: "Feb 12, 2026, 05:50 PM", amount: "₹780", items: "1 Item", status: "Returned", video: false },
-  ]);
+  const location = useLocation();
+  const pathParts = location.pathname.split('/');
+  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+
+  const { sellerOrders, fetchSellerOrders } = useOrderStore();
+
+  useEffect(() => {
+    fetchSellerOrders(activeNode);
+  }, [fetchSellerOrders, activeNode]);
+
+  // Transform real orders into the format expected by the UI
+  // Only show orders that are Shipped, Delivered, Cancelled, or Returned
+  const historyData = sellerOrders
+    .filter(o => ["Shipped", "Delivered", "Cancelled", "Returned"].includes(o.status))
+    .map(o => ({
+      id: o._id.substring(o._id.length - 8).toUpperCase(),
+      customer: o.customer?.firstName + " " + o.customer?.lastName || "Customer",
+      phone: "N/A", // We might not have phone in customer populate yet
+      location: o.shippingAddress?.city || "Unknown",
+      date: new Date(o.createdAt).toLocaleString(),
+      amount: "₹" + o.totalPrice,
+      items: o.orderItems.length + " Items",
+      status: o.status,
+      video: !!o.packingVideoUrl,
+      _original: o
+    }));
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");

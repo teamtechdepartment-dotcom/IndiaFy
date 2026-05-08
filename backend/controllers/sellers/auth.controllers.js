@@ -317,20 +317,36 @@ const getSellerProfile = async (req, res) => {
 
 const getAllSellers = async (req, res) => {
   try {
-    const sellers = await SellerModel.find({}).select(
-      "-password -refreshToken -otp -otpExpires",
-    );
+    const sellers = await SellerModel.find({}, { password: 0, securityKeyId: 0 });
     return res
       .status(200)
-      .json(new ApiResponse(200, sellers, "Sellers fetched successfully"));
+      .json(new ApiResponse(200, sellers, "Fetched all sellers successfully"));
   } catch (err) {
     return res
       .status(500)
-      .json(
-        new ApiError(500, err.message, [
-          { message: err.message, name: err.name },
-        ]),
-      );
+      .json(new ApiError(500, err.message, [{ message: err.message, name: err.name }]));
+  }
+};
+
+const Logout = async (req, res) => {
+  try {
+    res.clearCookie("SellerAccessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    });
+    res.clearCookie("SellerRefreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Seller logged out successfully"));
+  } catch (err) {
+    return res
+      .status(500)
+      .json(new ApiError(500, err.message, [{ message: err.message, name: err.name }]));
   }
 };
 
@@ -343,4 +359,5 @@ export {
   updateSettings,
   getSellerProfile,
   getAllSellers,
+  Logout
 };

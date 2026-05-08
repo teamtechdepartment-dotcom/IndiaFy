@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Card } from "../../components/SharedUI";
 import { 
   Video, 
@@ -16,12 +16,16 @@ import { useOrderStore } from "../../store/orderStore";
 import { toast } from "react-toastify";
 
 export default function LiveOrders() {
+  const location = useLocation();
+  const pathParts = location.pathname.split('/');
+  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+
   const { sellerOrders, fetchSellerOrders, updateOrderStatus } = useOrderStore();
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetchSellerOrders();
-  }, [fetchSellerOrders]);
+    fetchSellerOrders(activeNode);
+  }, [fetchSellerOrders, activeNode]);
 
   // Show only "Processing" orders
   const liveOrders = sellerOrders.filter(o => o.status === "Processing" || o.status === "Shipped").map(o => {

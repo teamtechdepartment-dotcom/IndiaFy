@@ -14,22 +14,30 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
-const menus = [
-  { id: "dashboard", label: "Dashboard", icon: BarChart3, path: "/dashboard" },
-  { id: "orders", label: "Orders Inbox", icon: Package, path: "/orders" },
-  { id: "live", label: "Live Orders", icon: Clock, path: "/live" },
+const LOCAL_MENUS = [
+  { id: "dashboard", label: "Local Dashboard", icon: BarChart3, path: "/dashboard" },
+  { id: "orders", label: "Retail Orders", icon: Package, path: "/orders" },
+  { id: "live", label: "Live Delivery", icon: Clock, path: "/live" },
   { id: "video", label: "Video Verification", icon: Video, path: "/video-verification" },
   { id: "history", label: "Order History", icon: Boxes, path: "/history" },
   { id: "products", label: "Products", icon: Package, path: "/products" },
-  { id: "inventory", label: "Inventory", icon: Boxes, path: "/inventory" },
+  { id: "inventory", label: "Local Inventory", icon: Boxes, path: "/inventory" },
   { id: "finance", label: "Finance", icon: Wallet, path: "/finance" },
-  { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
+  { id: "settings", label: "Node Settings", icon: Settings, path: "/settings" },
 ];
-import { useAuthStore } from "../store/authStore";
 
-export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
+const WHOLESALE_MENUS = [
+  { id: "dashboard", label: "B2B Dashboard", icon: BarChart3, path: "/dashboard" },
+  { id: "orders", label: "Bulk POs", icon: Package, path: "/orders" },
+  { id: "products", label: "Bulk Catalog", icon: Package, path: "/products" },
+  { id: "inventory", label: "Warehouse Stock", icon: Boxes, path: "/inventory" },
+  { id: "settings", label: "B2B Settings", icon: Settings, path: "/settings" },
+];
+import { useSellerAuthStore } from "../store/sellerAuthStore";
+
+export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
   const navigate = useNavigate();
-  const logout = useAuthStore((state) => state.logout);
+  const logout = useSellerAuthStore((state) => state.logout);
 
   const handleLogout = () => {
     logout();
@@ -38,19 +46,22 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
     if (sidebarOpen) setSidebarOpen(false);
   };
 
+  const basePath = activeNode === 'wholesale' ? '/seller/wholesale' : '/seller/local';
+  const currentMenus = activeNode === 'wholesale' ? WHOLESALE_MENUS : LOCAL_MENUS;
+
   const NavItems = ({ closeMobile }) => (
     <nav className="flex-1 space-y-1">
-      {menus.map((menu) => (
+      {currentMenus.map((menu) => (
         <NavLink
           key={menu.id}
-          to={menu.path}
+          to={`${basePath}${menu.path}`}
           onClick={() => {
             if (closeMobile) setSidebarOpen(false);
           }}
           className={({ isActive }) => `
             w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
             ${isActive 
-              ? "bg-slate-900 text-white shadow-lg shadow-slate-300/50 scale-[1.02]" 
+              ? (activeNode === 'wholesale' ? "bg-amber-900 text-amber-50 shadow-lg shadow-amber-900/50 scale-[1.02]" : "bg-slate-900 text-white shadow-lg shadow-slate-300/50 scale-[1.02]") 
               : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05)]"
             }
           `}
@@ -77,7 +88,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
               className="h-10 w-auto object-contain drop-shadow-sm" 
             />
             <div>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Seller Portal</p>
+              <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${activeNode === 'wholesale' ? 'text-amber-600' : 'text-slate-500'}`}>
+                {activeNode === 'wholesale' ? 'Wholesale Node' : 'Local Node'}
+              </p>
             </div>
           </div>
         </div>

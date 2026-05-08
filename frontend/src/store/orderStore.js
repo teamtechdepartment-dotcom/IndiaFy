@@ -31,10 +31,12 @@ export const useOrderStore = create((set) => ({
     }
   },
 
-  fetchSellerOrders: async () => {
+  fetchSellerOrders: async (nodeType = '') => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axiosInstance.get('/orders/sellerorders');
+      const res = await axiosInstance.get('/orders/sellerorders', {
+        params: { nodeType }
+      });
       const orders = res.data || res || [];
       set({ sellerOrders: Array.isArray(orders) ? orders : [] });
     } catch (err) {

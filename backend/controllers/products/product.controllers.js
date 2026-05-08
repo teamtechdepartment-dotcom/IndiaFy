@@ -7,7 +7,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 // @route   POST /api/v1/indiafy/products
 // @access  Private (Seller only)
 export const createProduct = asyncHandler(async (req, res) => {
-    const { subCategoryId, categoryName, productName, productSkuId, attribute, shortDescription, description } = req.body;
+    const { subCategoryId, categoryName, productName, productSkuId, attribute, shortDescription, description, nodeType, nodeId } = req.body;
 
     // Ensure user is a seller
     const userRole = req.user.role?.toLowerCase();
@@ -36,7 +36,9 @@ export const createProduct = asyncHandler(async (req, res) => {
         productImage,
         attribute: typeof attribute === "string" ? JSON.parse(attribute) : attribute, // Handle FormData parsing
         shortDescription,
-        description
+        description,
+        nodeType: nodeType || "local",
+        nodeId: nodeId || null
     });
 
     const savedProduct = await product.save();
@@ -47,7 +49,7 @@ export const createProduct = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/indiafy/products
 // @access  Public / Customer
 export const getAllProducts = asyncHandler(async (req, res) => {
-    const { subCategory, search, sellerId } = req.query;
+    const { subCategory, search, sellerId, nodeType, nodeId } = req.query;
     let query = {};
 
     if (subCategory) {
@@ -56,6 +58,14 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 
     if (sellerId) {
         query.sellerId = sellerId;
+    }
+
+    if (nodeType) {
+        query.nodeType = nodeType;
+    }
+
+    if (nodeId) {
+        query.nodeId = nodeId;
     }
 
     if (search) {

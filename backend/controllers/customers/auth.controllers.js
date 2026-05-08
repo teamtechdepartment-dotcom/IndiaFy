@@ -231,4 +231,26 @@ const getMe = async (req, res) => {
   }
 };
 
-export { Signup, Login, forgetPassword, authOtp, getMe };
+const Logout = async (req, res) => {
+  try {
+    res.clearCookie("CustomerAccessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    });
+    res.clearCookie("CustomerRefreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Customer logged out successfully"));
+  } catch (err) {
+    return res
+      .status(500)
+      .json(new ApiError(500, err.message, [{ message: err.message, name: err.name }]));
+  }
+};
+
+export { Signup, Login, forgetPassword, authOtp, getMe, Logout };

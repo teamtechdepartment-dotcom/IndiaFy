@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Card } from "../../components/SharedUI";
 import { 
   MapPin, 
@@ -14,12 +14,16 @@ import { useOrderStore } from "../../store/orderStore";
 import { toast } from "react-toastify";
 
 export default function Orders() {
+  const location = useLocation();
+  const pathParts = location.pathname.split('/');
+  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+
   const { sellerOrders, fetchSellerOrders, updateOrderStatus } = useOrderStore();
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetchSellerOrders();
-  }, [fetchSellerOrders]);
+    fetchSellerOrders(activeNode);
+  }, [fetchSellerOrders, activeNode]);
 
   // Filter out orders that are already processed or cancelled. Show only "Pending" or similar in inbox.
   // Wait, the status is "Pending".

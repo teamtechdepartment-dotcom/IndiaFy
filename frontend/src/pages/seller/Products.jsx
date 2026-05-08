@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, X, Boxes, ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import { useProductStore } from '../../store/productStore';
-import { useAuthStore } from '../../store/authStore';
+import { useSellerAuthStore } from '../../store/sellerAuthStore';
 import { toast } from 'react-toastify';
+import { useLocation } from 'react-router-dom';
 
 export default function Products() {
+  const location = useLocation();
+  const pathParts = location.pathname.split('/');
+  // Usually /seller/local/products or /seller/wholesale/products or /quick/products
+  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+
   const { products, fetchProducts, createProduct, isLoading } = useProductStore();
-  const { user } = useAuthStore();
+  const { user } = useSellerAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -34,15 +40,15 @@ export default function Products() {
   // Fetch products on mount and every 30s for inventory updates
   useEffect(() => {
     if (user?._id) {
-      fetchProducts('', '', user._id);
+      fetchProducts('', '', user._id, activeNode);
       
       const interval = setInterval(() => {
-        fetchProducts('', '', user._id);
+        fetchProducts('', '', user._id, activeNode);
       }, 30000); // 30s refresh
       
       return () => clearInterval(interval);
     }
-  }, [user?._id, fetchProducts]);
+  }, [user?._id, activeNode, fetchProducts]);
 
   // Reset to page 1 when searching
   useEffect(() => { setCurrentPage(1); }, [searchTerm]);
@@ -92,6 +98,7 @@ export default function Products() {
       formData.append('categoryName', newProduct.category);
       formData.append('shortDescription', newProduct.shortDescription || newProduct.name);
       formData.append('description', newProduct.description || newProduct.name);
+      formData.append('nodeType', activeNode);
       
       const attribute = {
         salePrice: newProduct.salePrice,
@@ -100,6 +107,14 @@ export default function Products() {
         quantity: newProduct.stock
       };
       formData.append('attribute', JSON.stringify(attribute));
+
+      if (activeNode === 'wholesale') {
+        formData.append('isWholesale', 'true');
+        formData.append('minimumOrderQty', newProduct.minimumOrderQty);
+        formData.append('cartonQuantity', newProduct.cartonQuantity);
+        formData.append('dispatchSLA', newProduct.dispatchSLA);
+        formData.append('gstPercentage', newProduct.gstPercentage);
+      }
 
       // Append all images
       newImageFiles.forEach(file => {
@@ -112,14 +127,15 @@ export default function Products() {
       // Reset Everything
       setNewProduct({ 
         name: "", sku: "", category: "General", salePrice: "", 
-        mrpPrice: "", stock: "", shortDescription: "", description: "", weight: "500g" 
+        mrpPrice: "", stock: "", shortDescription: "", description: "", weight: "500g",
+        minimumOrderQty: "10", cartonQuantity: "1", dispatchSLA: "24 Hours", gstPercentage: "18"
       });
       setNewImageFiles([]);
       setImagePreviews([]);
       setIsModalOpen(false);
       
       // Refresh list
-      fetchProducts('', '', user._id);
+      fetchProducts('', '', user._id, activeNode);
     } catch (err) {
       toast.error(err.message || "Failed to create product");
     }
@@ -389,6 +405,39 @@ export default function Products() {
                     <input required type="text" value={newProduct.weight} onChange={(e) => setNewProduct({...newProduct, weight: e.target.value})} className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-medium transition-all shadow-sm" placeholder="500g"/>
                   </div>
                 </div>
+
+                {activeNode === 'wholesale' && (
+                  <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-xl space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Boxes className="text-amber-500" size={16} />
+                      <h4 className="font-bold text-amber-700 text-sm">Wholesale B2B Settings</h4>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-amber-700/70 uppercase tracking-wider mb-1.5">Min Order Qty (MOQ)</label>
+                        <input required type="number" min="1" value={newProduct.minimumOrderQty} onChange={(e) => setNewProduct({...newProduct, minimumOrderQty: e.target.value})} className="w-full px-4 py-3 bg-white border border-amber-500/20 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-bold transition-all shadow-sm" placeholder="10"/>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-amber-700/70 uppercase tracking-wider mb-1.5">Carton Size (Units/Box)</label>
+                        <input required type="number" min="1" value={newProduct.cartonQuantity} onChange={(e) => setNewProduct({...newProduct, cartonQuantity: e.target.value})} className="w-full px-4 py-3 bg-white border border-amber-500/20 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-bold transition-all shadow-sm" placeholder="1"/>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-amber-700/70 uppercase tracking-wider mb-1.5">Dispatch SLA</label>
+                        <select value={newProduct.dispatchSLA} onChange={(e) => setNewProduct({...newProduct, dispatchSLA: e.target.value})} className="w-full px-4 py-3 bg-white border border-amber-500/20 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-bold cursor-pointer transition-all shadow-sm">
+                          <option>Same Day</option><option>24 Hours</option><option>48 Hours</option><option>7 Days</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-amber-700/70 uppercase tracking-wider mb-1.5">GST %</label>
+                        <select value={newProduct.gstPercentage} onChange={(e) => setNewProduct({...newProduct, gstPercentage: e.target.value})} className="w-full px-4 py-3 bg-white border border-amber-500/20 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-bold cursor-pointer transition-all shadow-sm">
+                          <option value="0">0% (Exempt)</option><option value="5">5%</option><option value="12">12%</option><option value="18">18%</option><option value="28">28%</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Full Description</label>

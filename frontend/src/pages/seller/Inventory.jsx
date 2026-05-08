@@ -4,20 +4,26 @@ import {
   ArrowRight, Save, Trash2, CheckCircle2, Boxes, Edit2, X, ImagePlus, Plus, FileSpreadsheet, AlertCircle, CheckCircle, Loader2
 } from 'lucide-react';
 import { useProductStore } from '../../store/productStore';
-import { useAuthStore } from '../../store/authStore';
+import { useSellerAuthStore } from '../../store/sellerAuthStore';
+
+import { useLocation } from 'react-router-dom';
 
 export default function Inventory({ search: globalSearch = "" }) {
+  const location = useLocation();
+  const pathParts = location.pathname.split('/');
+  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+
   const { products, fetchProducts, isLoading, deleteProduct, updateProduct } = useProductStore();
-  const { user } = useAuthStore();
+  const { user } = useSellerAuthStore();
   const [localSearch, setLocalSearch] = useState("");
   const activeSearch = globalSearch || localSearch;
 
   // Fetch products on mount
   useEffect(() => {
     if (user?._id) {
-      fetchProducts('', '', user._id);
+      fetchProducts('', '', user._id, activeNode);
     }
-  }, [user?._id, fetchProducts]);
+  }, [user?._id, fetchProducts, activeNode]);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);

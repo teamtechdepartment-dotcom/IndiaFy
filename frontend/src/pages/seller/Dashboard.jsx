@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Card, StatCard, Button, DataTable } from '../../components/SharedUI';
 import { 
   ArrowRight, 
@@ -15,14 +15,18 @@ import {
 import { useOrderStore } from '../../store/orderStore';
 
 export default function Dashboard() {
+  const location = useLocation();
+  const pathParts = location.pathname.split('/');
+  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+
   // Local state for the dashboard snapshot search
   const [searchTerm, setSearchTerm] = useState("");
 
   const { sellerOrders, fetchSellerOrders } = useOrderStore();
 
   useEffect(() => {
-    fetchSellerOrders();
-  }, [fetchSellerOrders]);
+    fetchSellerOrders(activeNode);
+  }, [fetchSellerOrders, activeNode]);
 
   // Format orders for the snapshot
   const recentOrders = sellerOrders.slice(0, 5).map(o => ({

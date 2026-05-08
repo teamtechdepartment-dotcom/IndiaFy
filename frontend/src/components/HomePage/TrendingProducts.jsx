@@ -197,7 +197,17 @@ export default function TrendingProducts() {
               const price = isReal ? (product.attribute?.salePrice || "0") : product.price;
               const oldPrice = isReal ? (product.attribute?.mrpPrice || "0") : product.oldPrice;
               const image = isReal ? (product.productImage?.[0]) : product.image;
-              const tag = isReal ? "E-Commerce" : product.tag;
+              
+              // Map backend nodeType to readable tag
+              let realTag = "E-Commerce";
+              if (isReal && product.nodeType) {
+                if (product.nodeType === "quick-commerce") realTag = "Quick Commerce";
+                else if (product.nodeType === "wholesale") realTag = "Wholesale";
+                else if (product.nodeType === "local") realTag = "Local Retail";
+                else realTag = product.nodeType;
+              }
+              const tag = isReal ? realTag : product.tag;
+              
               const rating = product.rating || 4.5;
               const distance = product.distance || "1.2 km";
 

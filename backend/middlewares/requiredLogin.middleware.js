@@ -5,9 +5,16 @@ import userCookies from "../utils/userCookies.js";
 const requiredLogin = async (req, res, next) => {
   const securityKey = process.env.SecurityKey;
   try {
+    const isSellerRoute = req.originalUrl.includes('/seller') || req.originalUrl.includes('/wholesale') || req.originalUrl.includes('/local');
+    const isAdminRoute = req.originalUrl.includes('/admin');
+    
+    let rolePrefix = "Customer"; // default
+    if (isSellerRoute) rolePrefix = "Seller";
+    if (isAdminRoute) rolePrefix = "Admin";
+
     let accessToken =
-      req?.cookies?.AccessToken || req.headers.authorization?.split(" ")[1];
-    const refreshToken = req?.cookies?.RefreshToken;
+      req?.cookies?.[`${rolePrefix}AccessToken`] || req.headers.authorization?.split(" ")[1];
+    const refreshToken = req?.cookies?.[`${rolePrefix}RefreshToken`];
 
     if (accessToken) {
       try {

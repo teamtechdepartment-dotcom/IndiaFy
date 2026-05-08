@@ -20,6 +20,16 @@ const orderItemSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    nodeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "sellerNode",
+        required: false
+    },
+    nodeType: {
+        type: String,
+        enum: ["local", "wholesale", "quick-commerce", "home-essentials", "electronics", "personal-care"],
+        default: "local"
+    },
     isWholesale: {
         type: Boolean,
         default: false

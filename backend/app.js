@@ -181,6 +181,21 @@ app.use("/customer/profile", customerProfileRoutes);
 app.use("/api/v1/indiafy/wholesale", wholesaleRoutes);
 app.use("/wholesale", wholesaleRoutes);
 
+// DEV WIPE ROUTE
+app.get("/api/v1/dev/wipe", async (req, res) => {
+  try {
+    const mongoose = await import("mongoose");
+    const db = mongoose.connection.db;
+    const collections = ["sellers", "products", "sellernodes", "localstores", "wholesalestores", "orders"];
+    for (const name of collections) {
+      try { await db.collection(name).deleteMany({}); } catch (e) {}
+    }
+    res.json({ message: "Seller data wiped successfully!" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {
   // Log the error for internal debugging

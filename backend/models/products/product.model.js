@@ -16,6 +16,16 @@ const productSchema = new Schema({
         ref: "seller",
         required: true
     },
+    nodeId: {
+        type: ObjectId,
+        ref: "sellerNode",
+        required: false // Optional for backward compatibility with older products
+    },
+    nodeType: {
+        type: String,
+        enum: ["local", "wholesale", "quick-commerce", "home-essentials", "electronics", "personal-care"],
+        default: "local"
+    },
     productName:{
         type: "String",
         required: true

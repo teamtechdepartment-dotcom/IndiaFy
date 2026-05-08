@@ -6,7 +6,7 @@ import customerProfile from "../../models/sellers/profile.model.js";
 export const getWholesaleProducts = async (req, res) => {
     try {
         const { category, minQty, maxPrice, search } = req.query;
-        let query = { isWholesale: true };
+        let query = { nodeType: "wholesale" };
 
         if (category) {
             query.businessCategory = category;
@@ -60,7 +60,7 @@ export const getWholesaleDistributors = async (req, res) => {
 // @route   GET /api/wholesale/products/:id
 export const getWholesaleProductById = async (req, res) => {
     try {
-        const product = await productModel.findOne({ _id: req.params.id, isWholesale: true })
+        const product = await productModel.findOne({ _id: req.params.id, nodeType: "wholesale" })
             .populate('sellerId', 'firstName lastName contact address');
 
         if (!product) {
