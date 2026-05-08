@@ -17,8 +17,8 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
     }
 
     // Safety check for test accounts: amounts > 10 Lakhs might fail
-    const key_id = process.env.Razorpay_Key_Id || "rzp_test_SjMJZDAKmy4Dz9";
-    const key_secret = process.env.Razorpay_Key_Secret || "test_secret_key_override";
+    const key_id = process.env.Razorpay_Key_Id || "rzp_test_Sm5HFLdh2qH4N1";
+    const key_secret = process.env.Razorpay_Key_Secret || "CIXwT8ZWQYU6j19hIqzmgeX1";
 
     if (amount > 1000000 && key_id.includes("test")) {
         console.warn("Test Amount Warning: Amount is very high for a test account. This might be blocked by Razorpay.");
@@ -58,8 +58,8 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
 export const verifyPayment = asyncHandler(async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
 
-    const key_secret = process.env.Razorpay_Key_Secret || "test_secret_key_override";
-    const key_id = process.env.Razorpay_Key_Id || "rzp_test_SjMJZDAKmy4Dz9";
+    const key_secret = process.env.Razorpay_Key_Secret || "CIXwT8ZWQYU6j19hIqzmgeX1";
+    const key_id = process.env.Razorpay_Key_Id || "rzp_test_Sm5HFLdh2qH4N1";
 
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSign = crypto
@@ -97,4 +97,12 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     }
 
     return res.status(200).json(new ApiResponse(200, { verified: true }, "Payment verified & Stock synced"));
+});
+
+// @desc    Get Razorpay Key ID
+// @route   GET /api/v1/indiafy/payments/get-key
+// @access  Private (Customer/Seller)
+export const getRazorpayKey = asyncHandler(async (req, res) => {
+    const key_id = process.env.Razorpay_Key_Id || "rzp_test_Sm5HFLdh2qH4N1";
+    return res.status(200).json(new ApiResponse(200, { key: key_id }, "Razorpay Key ID fetched successfully"));
 });

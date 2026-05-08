@@ -179,9 +179,19 @@ export default function CheckoutPage() {
       }
 
       const rpOrder = rpRes.data || rpRes;
+
+      let rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_Sm5HFLdh2qH4N1";
+      try {
+        const keyRes = await axiosInstance.get("/payments/get-key");
+        if (keyRes && (keyRes.key || keyRes.data?.key)) {
+          rzpKey = keyRes.key || keyRes.data.key;
+        }
+      } catch (keyErr) {
+        console.warn("Failed to dynamically fetch Razorpay key, using env/fallback:", keyErr);
+      }
       
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_SjMJZDAKmy4Dz9",
+        key: rzpKey,
         amount: rpOrder.amount,
         currency: "INR",
         name: "Indiafy",
