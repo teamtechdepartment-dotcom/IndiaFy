@@ -54,6 +54,60 @@ const productSchema = new Schema({
     description:{
         type: "String",
         required: true
+    },
+    // --- WHOLESALE B2B EXTENSION ---
+    isWholesale: {
+        type: Boolean,
+        default: false
+    },
+    minimumOrderQty: {
+        type: Number,
+        default: 1
+    },
+    minimumOrderValue: {
+        type: Number,
+        default: 0
+    },
+    bulkPricing: [{
+        minQty: { type: Number, required: true },
+        maxQty: { type: Number, required: true },
+        pricePerUnit: { type: Number, required: true }
+    }],
+    gstPercentage: {
+        type: Number,
+        default: 0
+    },
+    cartonQuantity: {
+        type: Number,
+        default: 1
+    },
+    dispatchSLA: {
+        type: String, // e.g. "Same Day", "24 Hours", "48 Hours"
+        default: "24 Hours"
+    },
+    warehouseLocation: {
+        type: String,
+        default: "Primary Warehouse"
+    },
+    transportCategory: {
+        type: String, // e.g. "Bike", "Mini Truck", "Tempo", "Heavy Load"
+        default: "Bike"
+    },
+    packagingType: {
+        type: String, // e.g. "Box", "Pallet", "Crate", "Bag"
+        default: "Box"
+    },
+    stockBuffer: {
+        type: Number,
+        default: 0
+    },
+    businessCategory: {
+        type: String,
+        default: "General"
+    },
+    dispatchTiming: {
+        type: String, // e.g. "10:00 AM - 6:00 PM"
+        default: "10:00 AM - 6:00 PM"
     }
 },
 {timestamps: true}

@@ -20,6 +20,7 @@ import orderRoutes from "./routers/order/order.route.js";
 import paymentRoutes from "./routers/payment/payment.route.js";
 import customerCartRoutes from "./routers/customer/cart.route.js";
 import customerProfileRoutes from "./routers/customer/profile.route.js";
+import wholesaleRoutes from "./routers/wholesale/wholesale.routes.js";
 
 const app = express();
 
@@ -175,6 +176,10 @@ app.use("/customer/cart", customerCartRoutes);
 
 app.use("/api/v1/indiafy/customer/profile", customerProfileRoutes);
 app.use("/customer/profile", customerProfileRoutes);
+
+// Wholesale Routes
+app.use("/api/v1/indiafy/wholesale", wholesaleRoutes);
+app.use("/wholesale", wholesaleRoutes);
 
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {
