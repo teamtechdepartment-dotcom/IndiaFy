@@ -107,17 +107,17 @@ function WebsiteNavbar() {
     setMenuOpen(false);
   }, [location.pathname]);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     setUserMenuOpen(false);
     setMenuOpen(false);
-    toast.success("Logged out successfully");
     
     if (isSellerAuthenticated) {
-      logoutSeller();
+      await logoutSeller();
     } else {
-      logoutCustomer();
+      await logoutCustomer();
     }
     
+    toast.success("Logged out successfully");
     // Redirect all users to home page on logout
     navigate("/", { replace: true });
   }, [logoutCustomer, logoutSeller, isSellerAuthenticated, navigate]);

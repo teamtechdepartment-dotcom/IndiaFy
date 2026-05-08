@@ -39,8 +39,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
   const navigate = useNavigate();
   const logout = useSellerAuthStore((state) => state.logout);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast.success("Logged out from Seller Portal");
     navigate("/", { replace: true }); 
     if (sidebarOpen) setSidebarOpen(false);
