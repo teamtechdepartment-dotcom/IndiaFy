@@ -26,11 +26,11 @@ export default function Dashboard() {
 
   // Format orders for the snapshot
   const recentOrders = sellerOrders.slice(0, 5).map(o => ({
-    id: o._id.substring(o._id.length - 8).toUpperCase(),
-    items: `${o.orderItems.length} Item(s)`,
-    amount: `₹${o.totalPrice}`,
+    id: (o._id || "").toString().substring((o._id || "").toString().length - 8).toUpperCase() || "UNKNOWN",
+    items: `${o.orderItems?.length || 0} Item(s)`,
+    amount: `₹${o.totalPrice || 0}`,
     status: o.status || "Pending",
-    time: new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    time: o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Unknown"
   }));
 
   // Filtering logic for the search bar
@@ -60,7 +60,7 @@ export default function Dashboard() {
         <StatCard label="Total Orders" value={sellerOrders.length.toString()} />
         <StatCard label="Pending Action" value={sellerOrders.filter(o => o.status === "Pending").length.toString()} />
         <StatCard label="Acceptance Rate" value="98%" />
-        <StatCard label="Revenue" value={`₹${sellerOrders.reduce((acc, curr) => acc + curr.totalPrice, 0)}`} />
+        <StatCard label="Revenue" value={`₹${sellerOrders.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0)}`} />
       </div>
 
       {/* Main Grid Content */}
