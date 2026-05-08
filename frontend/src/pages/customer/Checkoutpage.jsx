@@ -32,7 +32,7 @@ export default function CheckoutPage() {
   const location = useLocation();
   const [step, setStep] = useState(1); // 1: Address, 2: Payment
   const [selectedAddr, setSelectedAddr] = useState(1);
-  const [payMethod, setPayMethod] = useState("upi");
+  const [payMethod, setPayMethod] = useState("test");
   const [isPlacing, setIsPlacing] = useState(false);
 
   const { cartItems, fetchCart, clearCartStore } = useCartStore();
@@ -154,6 +154,23 @@ export default function CheckoutPage() {
         toast.success("Order placed successfully (COD)!");
         clearCartStore();
         navigate("/order-success", { state: { orderId: newOrder._id } });
+        return;
+      }
+
+      if (payMethod === "test") {
+        try {
+          await axiosInstance.post("/payments/verify", {
+            razorpay_order_id: "manual",
+            razorpay_payment_id: "test_simulator_" + Date.now(),
+            razorpay_signature: "test_manual_override",
+            orderId: newOrder._id
+          });
+          toast.success("Order placed successfully (Simulator Payment)!");
+          clearCartStore();
+          navigate("/order-success", { state: { orderId: newOrder._id } });
+        } catch (simErr) {
+          toast.error("Failed to process simulator payment");
+        }
         return;
       }
 
@@ -404,6 +421,31 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-4">
+                {/* Simulator Payment Method */}
+                <label
+                  className={`block p-6 rounded-3xl border-2 cursor-pointer transition-all ${payMethod === "test" ? "border-zinc-900 bg-zinc-50 font-black" : "border-zinc-100"}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="radio"
+                        checked={payMethod === "test"}
+                        onChange={() => setPayMethod("test")}
+                        className="w-4 h-4 accent-zinc-900"
+                      />
+                      <div>
+                        <p className="font-bold text-zinc-900">
+                          ⚡ Test Simulator / Mock Pay (Highly Recommended)
+                        </p>
+                        <p className="text-xs text-zinc-400 font-medium">
+                          Bypass Razorpay API entirely for instant successful test checkout
+                        </p>
+                      </div>
+                    </div>
+                    <CheckCircle2 size={24} className="text-emerald-500 animate-pulse" />
+                  </div>
+                </label>
+
                 {/* UPI - Indiafy Preference */}
                 <label
                   className={`block p-6 rounded-3xl border-2 cursor-pointer transition-all ${payMethod === "upi" ? "border-zinc-900 bg-zinc-50" : "border-zinc-100"}`}
