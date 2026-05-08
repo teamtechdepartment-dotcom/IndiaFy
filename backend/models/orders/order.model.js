@@ -19,6 +19,14 @@ const orderItemSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: true,
+    },
+    isWholesale: {
+        type: Boolean,
+        default: false
+    },
+    gstAmount: {
+        type: Number,
+        default: 0
     }
 });
 
@@ -89,6 +97,30 @@ const orderSchema = new mongoose.Schema({
         default: "Pending"
     },
     packingVideoUrl: {
+        type: String
+    },
+    // --- WHOLESALE B2B EXTENSION ---
+    isWholesaleOrder: {
+        type: Boolean,
+        default: false
+    },
+    billingDetails: {
+        companyName: { type: String },
+        gstNumber: { type: String },
+        billingAddress: { type: String }
+    },
+    poNotes: {
+        type: String
+    },
+    deliverySlot: {
+        type: String,
+        enum: ["Standard", "Same-Day Bulk", "Next-Day Dispatch", "Scheduled"],
+        default: "Standard"
+    },
+    scheduledDispatchDate: {
+        type: Date
+    },
+    warehouseDispatch: {
         type: String
     }
 }, { timestamps: true });

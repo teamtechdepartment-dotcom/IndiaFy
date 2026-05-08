@@ -52,6 +52,8 @@ export default function CartPage() {
 
   const subtotal = totalPrice;
   const totalSavings = 0;
+  const gstEstimate = cartItems.reduce((acc, item) => acc + (item.gstAmount || 0), 0);
+  const totalPayable = subtotal + gstEstimate;
 
   return (
     <div className="bg-white min-h-screen">
@@ -146,18 +148,28 @@ export default function CartPage() {
                               {item.productId?.name}
                             </h3>
 
-                            <div className="flex items-center gap-2 mt-2">
-                              <button
-                                onClick={() => navigate(`/store/${item.productId?.sellerId}`)}
-                                className="flex items-center gap-1 text-[10px] font-black text-emerald-600 uppercase bg-emerald-50 px-2 py-0.5 rounded hover:bg-emerald-100 transition-colors"
-                              >
-                                <BadgeCheck size={12} /> {item.productId?.seller || "Indiafy Seller"}
-                              </button>
-                              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">
-                                {item.productId?.sector || "Local"}
-                              </span>
+                              <div className="flex items-center gap-2 mt-2">
+                                <button
+                                  onClick={() => navigate(`/store/${item.productId?.sellerId}`)}
+                                  className="flex items-center gap-1 text-[10px] font-black text-emerald-600 uppercase bg-emerald-50 px-2 py-0.5 rounded hover:bg-emerald-100 transition-colors"
+                                >
+                                  <BadgeCheck size={12} /> {item.productId?.seller || "Indiafy Seller"}
+                                </button>
+                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">
+                                  {item.productId?.sector || "Local"}
+                                </span>
+                                {item.isWholesale && (
+                                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-tighter bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                    Wholesale Node
+                                  </span>
+                                )}
+                              </div>
+                              {item.isWholesale && item.productId?.minimumOrderQty > 1 && (
+                                <p className="text-[9px] font-bold text-zinc-500 uppercase mt-1">
+                                  MOQ: {item.productId.minimumOrderQty} Units • GST: {item.productId.gstPercentage || 0}%
+                                </p>
+                              )}
                             </div>
-                          </div>
 
                           <div className="flex items-end justify-between mt-6">
                             <div className="space-y-1">
@@ -252,10 +264,16 @@ export default function CartPage() {
                       <span>Subtotal</span>
                       <span className="text-white font-bold">{fmt(subtotal)}</span>
                     </div>
+                    {gstEstimate > 0 && (
+                      <div className="flex justify-between text-zinc-400 font-medium">
+                        <span>GST (Est.)</span>
+                        <span className="text-white font-bold">{fmt(gstEstimate)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-zinc-400 font-medium">
                       <span>Delivery Fee</span>
                       <span className="text-emerald-400 font-bold uppercase text-xs tracking-widest pt-1">
-                        Free
+                        Calculated Next
                       </span>
                     </div>
                     <div className="flex justify-between text-emerald-400 font-medium">
@@ -269,7 +287,7 @@ export default function CartPage() {
                       <p className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em]">
                         Total Payable
                       </p>
-                      <p className="text-4xl font-black">{fmt(subtotal)}</p>
+                      <p className="text-4xl font-black">{fmt(totalPayable)}</p>
                     </div>
                   </div>
 

@@ -20,9 +20,14 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-// ✅ 100% CORRECT IMPORTS: Going one level UP to the 'components' folder
+// Store
+import { useWholesaleStore } from "../../store/wholesaleStore";
+import { useCartStore } from "../../store/cartStore";
+
+// Components
 import WebsiteNavbar from "../../components/WebsiteNavbar";
 import Footer from "../../components/Footer";
+import { toast } from "react-toastify";
 
 const fmt = (n) => "₹" + Number(n).toLocaleString("en-IN");
 
@@ -82,12 +87,53 @@ const heroMovingImages = [
 
 export default function WholesalePage() {
   const navigate = useNavigate();
+  const { wholesaleProducts, fetchWholesaleProducts, isLoading } = useWholesaleStore();
+  const { addToCart } = useCartStore();
+
+  useEffect(() => {
+    fetchWholesaleProducts();
+  }, [fetchWholesaleProducts]);
+
+  // State for quantity selection per product
+  const [quantities, setQuantities] = useState({});
 
   // Handle Search Execution
   const handleSearch = (e) => {
     if (e.key === "Enter" && e.target.value.trim()) {
-      navigate(`/search?query=${encodeURIComponent(e.target.value.trim())}`);
+      fetchWholesaleProducts({ search: e.target.value.trim() });
     }
+  };
+
+  // Helper to calculate current tier price
+  const getTierPrice = (product, currentQty) => {
+    if (!product.bulkPricing || product.bulkPricing.length === 0) {
+      return parseFloat(product.attribute?.salePrice || 0);
+    }
+    const qty = currentQty || product.minimumOrderQty || 1;
+    // Sort tiers by minQty descending to find highest applicable tier
+    const sortedTiers = [...product.bulkPricing].sort((a, b) => b.minQty - a.minQty);
+    const applicableTier = sortedTiers.find(t => qty >= t.minQty);
+    return applicableTier ? applicableTier.pricePerUnit : parseFloat(product.attribute?.salePrice || 0);
+  };
+
+  const handleBulkAddToCart = (product, e) => {
+    e.stopPropagation();
+    const qty = quantities[product._id] || product.minimumOrderQty || 1;
+    if (qty < (product.minimumOrderQty || 1)) {
+       toast.error(`Minimum Order Quantity is ${product.minimumOrderQty}`);
+       return;
+    }
+    const price = getTierPrice(product, qty);
+    
+    addToCart({
+      _id: product._id,
+      productName: product.productName,
+      productImage: product.productImage,
+      price: price,
+      sellerId: product.sellerId,
+      isWholesale: true
+    }, qty);
+    toast.success(`Added ${qty} units to Bulk Cart`);
   };
 
   return (
@@ -237,8 +283,8 @@ export default function WholesalePage() {
           </div>
         </section>
 
-        {/* 🏷️ 3. DEALS (MOQ FOCUS) */}
-        <section className="py-32 bg-white">
+        {/* 🏷️ 3. LIVE WHOLESALE CATALOG */}
+        <section className="py-32 bg-white min-h-[600px]">
           <div className="max-w-7xl mx-auto px-6 text-zinc-900">
             <div className="flex flex-col md:flex-row items-center justify-between mb-20 gap-8">
               <h2 className="text-6xl font-black tracking-tighter uppercase leading-none text-center md:text-left">
@@ -246,64 +292,104 @@ export default function WholesalePage() {
                 <span className="text-zinc-200 italic">Contracts</span>
               </h2>
               <p className="max-w-xs text-zinc-500 font-bold text-sm uppercase tracking-tighter leading-relaxed text-center md:text-left">
-                Mandatory video packaging verification ensures bulk lot
-                accuracy.
+                Direct factory supply with tiered volume pricing and mandatory packaging verification.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-10">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  onClick={() => navigate(`/product/${i}`)}
-                  className="group cursor-pointer border border-zinc-100 rounded-[3rem] p-8 hover:border-zinc-300 hover:bg-zinc-50 transition-all duration-700 shadow-sm hover:shadow-2xl"
-                >
-                  <div className="aspect-[4/3] bg-zinc-50 rounded-[2rem] mb-8 border border-zinc-100 overflow-hidden relative">
-                    <img
-                      src={
-                        i === 1
-                          ? "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600"
-                          : i === 2
-                          ? "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600"
-                          : "https://images.unsplash.com/photo-1593121925328-369cc8459c08?w=600"
-                      }
-                      alt="Product Bulk Lot"
-                      className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                    />
-                    <div className="absolute top-6 left-6 px-4 py-1.5 bg-zinc-950 text-emerald-400 text-[10px] font-black uppercase rounded-full border border-zinc-800 backdrop-blur-sm">
-                      Verified Seller
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-start mb-5">
-                    <h3 className="text-xl font-black uppercase tracking-tighter text-zinc-950">
-                      {i === 1
-                        ? "Cotton Tees #20"
-                        : i === 2
-                        ? "Grocery Sack"
-                        : "Wireless Buds OEM"}
-                    </h3>
-                    <div className="text-right font-black text-2xl tracking-tighter text-zinc-950">
-                      {i === 1 ? "₹120" : i === 2 ? "₹42" : "₹350"}{" "}
-                      <span className="text-xs text-zinc-400">/u</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-5 border-t border-zinc-100 text-[10px] font-black uppercase text-zinc-500 tracking-widest">
-                    <span>
-                      MOQ: {i === 1 ? "500" : i === 2 ? "100" : "200"} Units
-                    </span>
+            {isLoading ? (
+               <div className="flex justify-center items-center h-40">
+                  <div className="animate-spin w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full"></div>
+               </div>
+            ) : wholesaleProducts.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {wholesaleProducts.map((p) => {
+                  const minQty = p.minimumOrderQty || 1;
+                  const currentQty = quantities[p._id] || minQty;
+                  const currentPrice = getTierPrice(p, currentQty);
+
+                  return (
                     <div
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevents routing to product page when clicking plus
-                        // Add to cart logic here
-                      }}
-                      className="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:bg-zinc-950 group-hover:text-white transition-colors cursor-pointer"
+                      key={p._id}
+                      onClick={() => navigate(`/product/${p._id}`)}
+                      className="group cursor-pointer border border-zinc-200 rounded-[3rem] p-6 hover:border-zinc-300 hover:bg-zinc-50 transition-all duration-500 shadow-sm hover:shadow-xl flex flex-col"
                     >
-                      <Plus size={16} />
+                      <div className="aspect-[4/3] bg-zinc-100 rounded-[2rem] mb-6 border border-zinc-200 overflow-hidden relative">
+                        <img
+                          src={p.productImage?.[0] || "https://placehold.co/600x400?text=B2B"}
+                          alt={p.productName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
+                        />
+                        <div className="absolute top-4 left-4 px-3 py-1 bg-zinc-950 text-amber-400 text-[10px] font-black uppercase rounded-full border border-zinc-800 backdrop-blur-sm shadow-lg flex items-center gap-1">
+                          <ShieldCheck size={12}/> Verified
+                        </div>
+                        {p.dispatchSLA && (
+                          <div className="absolute bottom-4 left-4 px-3 py-1 bg-white/90 text-zinc-900 text-[10px] font-black uppercase rounded-full border border-zinc-200 backdrop-blur-sm shadow-lg flex items-center gap-1">
+                            <Truck size={12}/> {p.dispatchSLA}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-xl font-black tracking-tighter text-zinc-950 line-clamp-2 pr-2">
+                            {p.productName}
+                          </h3>
+                          <div className="text-right shrink-0">
+                            <p className="font-black text-2xl tracking-tighter text-amber-600">
+                              {fmt(currentPrice)} <span className="text-xs text-zinc-400 text-black">/u</span>
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4">
+                          SKU: {p.productSkuId} • {p.businessCategory || 'General'}
+                        </p>
+
+                        {/* Tier Pricing Table */}
+                        {p.bulkPricing && p.bulkPricing.length > 0 && (
+                          <div className="mb-6 p-3 bg-zinc-100 rounded-2xl border border-zinc-200">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Volume Pricing</p>
+                            <div className="space-y-1">
+                              {p.bulkPricing.map((tier, idx) => (
+                                <div key={idx} className={`flex justify-between text-xs font-bold px-2 py-1 rounded-md ${currentQty >= tier.minQty && (!p.bulkPricing[idx+1] || currentQty < p.bulkPricing[idx+1].minQty) ? 'bg-amber-100 text-amber-800' : 'text-zinc-600'}`}>
+                                  <span>{tier.minQty}{tier.maxQty ? ` - ${tier.maxQty}` : '+'} units</span>
+                                  <span>{fmt(tier.pricePerUnit)}/u</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Bar */}
+                      <div className="flex flex-col sm:flex-row items-center justify-between pt-5 border-t border-zinc-200 gap-4 mt-auto" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-2 w-full sm:w-auto bg-zinc-100 rounded-xl p-1 border border-zinc-200">
+                           <button onClick={() => setQuantities(prev => ({...prev, [p._id]: Math.max(minQty, (prev[p._id] || minQty) - 10)}))} className="w-8 h-8 flex items-center justify-center text-zinc-500 hover:bg-white hover:shadow-sm rounded-lg font-bold transition-all">-</button>
+                           <input type="number" value={currentQty} onChange={e => setQuantities(prev => ({...prev, [p._id]: Math.max(minQty, parseInt(e.target.value) || minQty)}))} className="w-14 text-center bg-transparent font-black text-zinc-900 text-sm focus:outline-none appearance-none"/>
+                           <button onClick={() => setQuantities(prev => ({...prev, [p._id]: (prev[p._id] || minQty) + 10}))} className="w-8 h-8 flex items-center justify-center text-zinc-500 hover:bg-white hover:shadow-sm rounded-lg font-bold transition-all">+</button>
+                        </div>
+                        
+                        <button
+                          onClick={(e) => handleBulkAddToCart(p, e)}
+                          className="w-full sm:w-auto flex-1 px-4 py-3 rounded-xl bg-zinc-950 text-white font-black uppercase tracking-widest text-[10px] hover:bg-amber-500 hover:text-black transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Plus size={14} /> Add to Bulk
+                        </button>
+                      </div>
+                      
+                      <p className="text-center mt-3 text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                        MOQ: {minQty} units • GST {p.gstPercentage || 0}% extra
+                      </p>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-zinc-50 border border-zinc-200 rounded-[3rem] shadow-inner">
+                 <Boxes size={64} className="mx-auto text-zinc-300 mb-6"/>
+                 <h3 className="text-2xl font-black uppercase tracking-tighter text-zinc-800 mb-2">No Bulk Contracts Available</h3>
+                 <p className="text-zinc-500 font-medium">Currently there are no wholesale products active in your region.</p>
+              </div>
+            )}
           </div>
         </section>
 

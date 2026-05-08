@@ -16,6 +16,14 @@ const cartItemSchema = new Schema({
     price: {
         type: Number,
         required: true
+    },
+    isWholesale: {
+        type: Boolean,
+        default: false
+    },
+    gstAmount: {
+        type: Number,
+        default: 0
     }
 });
 

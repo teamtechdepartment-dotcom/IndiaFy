@@ -17,12 +17,30 @@ export const addToCart = async (req, res) => {
             return res.status(404).json(new ApiError(404, "Product not found"));
         }
 
-        const price = Number(product.attribute?.salePrice) || 0; 
         const parsedQuantity = quantity ? parseInt(quantity) : 1;
         const availableStock = parseInt(product.attribute?.quantity || "0");
 
         if (availableStock < parsedQuantity) {
             return res.status(400).json(new ApiError(400, `Insufficient stock. Only ${availableStock} units available.`));
+        }
+
+        // --- WHOLESALE CALCULATION ---
+        let finalPrice = Number(product.attribute?.salePrice) || 0;
+        let isWholesale = product.isWholesale || false;
+        let gstAmount = 0;
+
+        if (isWholesale) {
+            if (parsedQuantity < (product.minimumOrderQty || 1)) {
+                return res.status(400).json(new ApiError(400, `Minimum order quantity is ${product.minimumOrderQty || 1}`));
+            }
+            if (product.bulkPricing && product.bulkPricing.length > 0) {
+                const sortedTiers = [...product.bulkPricing].sort((a, b) => b.minQty - a.minQty);
+                const tier = sortedTiers.find(t => parsedQuantity >= t.minQty);
+                if (tier) {
+                    finalPrice = tier.pricePerUnit;
+                }
+            }
+            gstAmount = (finalPrice * parsedQuantity) * ((product.gstPercentage || 0) / 100);
         }
 
         let cart = await Cart.findOne({ customerId });
@@ -44,31 +62,46 @@ export const addToCart = async (req, res) => {
                 if (productItem.quantity + parsedQuantity <= 0) {
                     actualChange = -productItem.quantity; // We can only remove up to what we have
                     cart.items.splice(itemIndex, 1);
+                    cart.totalPrice -= productItem.price * productItem.quantity; // Revert old price
                 } else {
-                    productItem.quantity += parsedQuantity;
+                    // Recalculate price if wholesale tier changed due to new quantity
+                    let newQty = productItem.quantity + parsedQuantity;
+                    if (isWholesale && product.bulkPricing && product.bulkPricing.length > 0) {
+                        const sortedTiers = [...product.bulkPricing].sort((a, b) => b.minQty - a.minQty);
+                        const tier = sortedTiers.find(t => newQty >= t.minQty);
+                        if (tier) finalPrice = tier.pricePerUnit;
+                    }
+                    
+                    // Remove old item total, add new item total
+                    cart.totalPrice -= productItem.price * productItem.quantity;
+                    productItem.quantity = newQty;
+                    productItem.price = finalPrice;
+                    if (isWholesale) {
+                        productItem.gstAmount = (finalPrice * newQty) * ((product.gstPercentage || 0) / 100);
+                    }
+                    cart.totalPrice += finalPrice * newQty;
                     cart.items[itemIndex] = productItem;
                 }
-                cart.totalPrice += actualChange * price;
             } else {
                 // Add new item
                 if (parsedQuantity > 0) {
-                    cart.items.push({ productId, quantity: parsedQuantity, price });
-                    cart.totalPrice += parsedQuantity * price;
+                    cart.items.push({ productId, quantity: parsedQuantity, price: finalPrice, isWholesale, gstAmount });
+                    cart.totalPrice += parsedQuantity * finalPrice;
                 }
             }
             await cart.save();
         } else {
             // New cart
-            const totalPrice = parsedQuantity * price;
+            const totalPrice = parsedQuantity * finalPrice;
             cart = await Cart.create({
                 customerId,
-                items: [{ productId, quantity: parsedQuantity, price }],
+                items: [{ productId, quantity: parsedQuantity, price: finalPrice, isWholesale, gstAmount }],
                 totalPrice
             });
         }
 
         // Populate before returning
-        await cart.populate("items.productId", "productName attribute productImage sellerId");
+        await cart.populate("items.productId", "productName attribute productImage sellerId isWholesale minimumOrderQty gstPercentage");
 
         return res.status(200).json(new ApiResponse(200, cart, "Item added to cart"));
     } catch (error) {
@@ -79,7 +112,7 @@ export const addToCart = async (req, res) => {
 export const getCart = async (req, res) => {
     try {
         const customerId = req.user._id;
-        const cart = await Cart.findOne({ customerId }).populate("items.productId", "productName attribute productImage sellerId");
+        const cart = await Cart.findOne({ customerId }).populate("items.productId", "productName attribute productImage sellerId isWholesale minimumOrderQty gstPercentage");
         
         if (!cart) {
             return res.status(200).json(new ApiResponse(200, { items: [], totalPrice: 0 }, "Cart is empty"));

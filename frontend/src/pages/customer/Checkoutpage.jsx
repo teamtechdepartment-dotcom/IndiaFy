@@ -40,6 +40,7 @@ export default function CheckoutPage() {
   const { isAuthenticated, user } = useAuthStore();
 
   const [quickAddr, setQuickAddr] = useState({ street: "", city: "", pincode: "" });
+  const [b2bDetails, setB2bDetails] = useState({ companyName: "", gstNumber: "", poNotes: "", deliverySlot: "Standard" });
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -76,9 +77,11 @@ export default function CheckoutPage() {
   }, [cartItems, location.state]);
 
   const subtotal = displayItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const gstEstimate = displayItems.reduce((acc, item) => acc + (item.gstAmount || 0), 0);
   const deliveryFee = 0;
   const codFee = payMethod === "cod" ? 40 : 0;
-  const total = subtotal + deliveryFee + codFee;
+  const total = subtotal + gstEstimate + deliveryFee + codFee;
+  const hasWholesaleItems = displayItems.some(item => item.isWholesale);
 
   // Track if Razorpay failed so we can show manual fallback
   const [showManualConfirm, setShowManualConfirm] = useState(false);
@@ -138,10 +141,19 @@ export default function CheckoutPage() {
         },
         paymentMethod: payMethod.toUpperCase(),
         itemsPrice: subtotal,
-        taxPrice: 0,
+        taxPrice: gstEstimate,
         shippingPrice: deliveryFee,
         totalPrice: total,
-        status: "Pending"
+        status: "Pending",
+        // Wholesale Ext
+        isWholesaleOrder: hasWholesaleItems,
+        billingDetails: {
+          companyName: b2bDetails.companyName,
+          gstNumber: b2bDetails.gstNumber,
+          billingAddress: activeAddress?.street || "No Address"
+        },
+        poNotes: b2bDetails.poNotes,
+        deliverySlot: b2bDetails.deliverySlot
       };
 
       const orderRes = await axiosInstance.post("/orders", payload);
@@ -378,6 +390,56 @@ export default function CheckoutPage() {
                 )}
               </div>
 
+              {/* WHOLESALE B2B DETAILS (ONLY VISIBLE IF WHOLESALE ITEMS PRESENT) */}
+              {hasWholesaleItems && (
+                <div className="mt-8 pt-8 border-t border-zinc-100">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+                      <Truck size={16} />
+                    </div>
+                    <h3 className="text-sm font-black uppercase tracking-tight text-amber-600">
+                      B2B Wholesale Dispatch Details
+                    </h3>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <input 
+                      type="text" 
+                      placeholder="Company / Business Name"
+                      className="w-full p-4 rounded-2xl border border-zinc-200 text-sm font-bold bg-zinc-50 focus:bg-white focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
+                      value={b2bDetails.companyName}
+                      onChange={(e) => setB2bDetails({...b2bDetails, companyName: e.target.value})}
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="GST Number (Optional)"
+                      className="w-full p-4 rounded-2xl border border-zinc-200 text-sm font-bold bg-zinc-50 focus:bg-white focus:ring-2 focus:ring-amber-500/20 outline-none transition-all uppercase"
+                      value={b2bDetails.gstNumber}
+                      onChange={(e) => setB2bDetails({...b2bDetails, gstNumber: e.target.value.toUpperCase()})}
+                    />
+                    <div className="col-span-2">
+                      <select 
+                        className="w-full p-4 rounded-2xl border border-zinc-200 text-sm font-bold bg-zinc-50 focus:bg-white focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
+                        value={b2bDetails.deliverySlot}
+                        onChange={(e) => setB2bDetails({...b2bDetails, deliverySlot: e.target.value})}
+                      >
+                        <option value="Standard">Standard Dispatch (2-3 Days)</option>
+                        <option value="Same-Day Bulk">Same-Day Bulk Logistics</option>
+                        <option value="Next-Day Dispatch">Next-Day Hub Dispatch</option>
+                        <option value="Scheduled">Scheduled Future Delivery</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                       <textarea 
+                          placeholder="Purchase Order (PO) Notes or Transport Instructions..."
+                          className="w-full p-4 rounded-2xl border border-zinc-200 text-sm font-bold bg-zinc-50 focus:bg-white focus:ring-2 focus:ring-amber-500/20 outline-none transition-all resize-none h-24"
+                          value={b2bDetails.poNotes}
+                          onChange={(e) => setB2bDetails({...b2bDetails, poNotes: e.target.value})}
+                       />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {step === 1 && (
                 <button
                   onClick={() => {
@@ -549,6 +611,12 @@ export default function CheckoutPage() {
                     <span>Subtotal</span>
                     <span className="text-white font-bold">{fmt(subtotal)}</span>
                   </div>
+                  {gstEstimate > 0 && (
+                    <div className="flex justify-between text-zinc-500 font-medium text-sm">
+                      <span>GST</span>
+                      <span className="text-white font-bold">{fmt(gstEstimate)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-zinc-500 font-medium text-sm">
                     <span>Delivery Fee</span>
                     <span className="text-emerald-400 font-bold uppercase text-[10px] pt-1 tracking-widest">

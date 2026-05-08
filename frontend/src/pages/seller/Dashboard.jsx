@@ -45,8 +45,8 @@ export default function Dashboard() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Dashboard Overview</h1>
-          <p className="text-slate-500 mt-1">Welcome back, Jai Store. Here is your store's current status.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Node Command Center</h1>
+          <p className="text-slate-500 mt-1 flex items-center gap-2">Welcome back. Monitoring Wholesale & Retail Dispatches.</p>
         </div>
         <div className="flex gap-3">
           <Link to="/live">
@@ -110,6 +110,11 @@ export default function Dashboard() {
                       }`}>
                         {order.status}
                       </span>
+                      {order.isWholesaleOrder && (
+                        <span className="ml-2 px-2 py-0.5 text-[9px] font-black rounded-md uppercase tracking-wide bg-amber-100 text-amber-700">
+                          B2B Bulk
+                        </span>
+                      )}
                     </td>
                     <td className="py-4 px-2 text-slate-400 text-sm font-medium">{order.time}</td>
                   </tr>

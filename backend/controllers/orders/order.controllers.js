@@ -9,7 +9,11 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 // @route   POST /api/v1/indiafy/orders
 // @access  Private (Customer)
 export const createOrder = asyncHandler(async (req, res) => {
-    const { orderItems, shippingAddress, paymentMethod, itemsPrice, taxPrice, shippingPrice, totalPrice, paymentResult } = req.body;
+    const { 
+        orderItems, shippingAddress, paymentMethod, itemsPrice, 
+        taxPrice, shippingPrice, totalPrice, paymentResult,
+        isWholesaleOrder, billingDetails, poNotes, deliverySlot, scheduledDispatchDate, warehouseDispatch
+    } = req.body;
 
     const userRole = req.user.role?.toLowerCase();
     if (userRole !== "customer" && userRole !== "seller") {
@@ -50,7 +54,14 @@ export const createOrder = asyncHandler(async (req, res) => {
         paymentResult,
         isPaid: !!paymentResult,
         paidAt: paymentResult ? Date.now() : undefined,
-        status: paymentResult ? "Processing" : "Pending"
+        status: paymentResult ? "Processing" : "Pending",
+        // Wholesale B2B fields
+        isWholesaleOrder: isWholesaleOrder || false,
+        billingDetails,
+        poNotes,
+        deliverySlot,
+        scheduledDispatchDate,
+        warehouseDispatch
     });
 
     const createdOrder = await order.save();
