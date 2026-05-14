@@ -45,6 +45,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
         enrichedOrderItems.push({
             ...item,
+            seller: product.sellerId, // Securely override with backend database record
             nodeId: product.nodeId,
             nodeType: product.nodeType
         });
@@ -159,11 +160,13 @@ export const getCustomerOrders = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/indiafy/orders/sellerorders
 // @access  Private (Seller)
 export const getSellerOrders = asyncHandler(async (req, res) => {
-    const { nodeType } = req.query;
+    const { nodeType, nodeId } = req.query;
     
     let query = { "orderItems.seller": req.user._id };
     
-    if (nodeType) {
+    if (nodeId) {
+        query["orderItems.nodeId"] = nodeId;
+    } else if (nodeType) {
         query["orderItems.nodeType"] = nodeType;
     }
 

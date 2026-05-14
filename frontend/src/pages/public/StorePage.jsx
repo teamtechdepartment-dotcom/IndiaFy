@@ -40,22 +40,29 @@ export default function StorePage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // 1. Fetch Store Details
-        const storeRes = await axiosInstance.get(`/seller/auth/profile/${id}`);
-        // axiosInstance returns the response.data directly
-        const storeData = storeRes?.data || storeRes;
+        // 1. Fetch Store Node from public endpoint (no auth required)
+        const storeRes = await axiosInstance.get(`/public/stores?limit=1`);
+        // Try to find the specific store by ID from all stores
+        // Better: fetch single store from seller nodes endpoint (public-safe read)
+        const nodeRes = await axiosInstance.get(`/seller/nodes/${id}`).catch(() => null);
         
-        if (storeData && (storeData._id || storeData.id)) {
-          setStoreInfo(storeData);
-        } else {
-          console.error("Invalid store data received", storeRes);
+        let storeData = nodeRes?.node || null;
+        
+        if (!storeData) {
+          // Fallback: search in all public stores
+          const allRes = await axiosInstance.get(`/public/stores?limit=100`);
+          storeData = (allRes?.stores || []).find((s) => s._id === id) || null;
         }
 
-        // 2. Fetch Store Products
-        const prodRes = await axiosInstance.get(`/products?sellerId=${id}`);
-        const productsData = prodRes?.data || prodRes || [];
-        
-        // Ensure productsData is an array
+        if (storeData) {
+          setStoreInfo(storeData);
+        } else {
+          console.error("Store not found for id:", id);
+        }
+
+        // 2. Fetch Store Products (by nodeId)
+        const prodRes = await axiosInstance.get(`/products?nodeId=${id}`).catch(() => null);
+        const productsData = prodRes?.data || prodRes?.products || prodRes || [];
         const productsArray = Array.isArray(productsData) ? productsData : [];
 
         setProducts(productsArray.map(p => ({
@@ -70,7 +77,6 @@ export default function StorePage() {
         })));
       } catch (err) {
         console.error("Fetch store data failed", err);
-        toast.error("Failed to load store information");
       } finally {
         setLoading(false);
       }
@@ -126,18 +132,17 @@ export default function StorePage() {
       <WebsiteNavbar />
 
       <main className="pt-16 md:pt-20">
-        {/* 🏬 STORE HEADER (Cover + Details) */}
+        {/* 🏬 STORE HEADER */}
         <section className="relative w-full">
-          {/* Cover Image */}
+          {/* Banner */}
           <div className="relative w-full h-48 md:h-64 bg-zinc-200">
             <img
-              src={storeInfo.coverImg || "https://images.unsplash.com/photo-1604719312566-8912e9c8a213?q=80&w=1600"}
-              alt="Cover"
+              src={storeInfo.banner || "https://images.unsplash.com/photo-1604719312566-8912e9c8a213?q=80&w=1600"}
+              alt="Banner"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-            {/* Back Button */}
             <button
               onClick={() => navigate(-1)}
               className="absolute top-4 left-4 md:top-6 md:left-6 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white hover:text-black transition-colors"
@@ -149,7 +154,7 @@ export default function StorePage() {
           {/* Overlapping Store Info Card */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 md:-mt-20 z-10">
             <div className="bg-white rounded-[2rem] p-5 md:p-8 shadow-xl shadow-zinc-200/50 border border-zinc-100 flex flex-col md:flex-row gap-5 md:gap-8 items-start md:items-center">
-              {/* Store Logo */}
+              {/* Logo */}
               <div className="w-20 h-20 md:w-28 md:h-28 rounded-[1.5rem] overflow-hidden border-4 border-white shadow-lg shrink-0 bg-zinc-100">
                 <img
                   src={storeInfo.logo || "https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?q=80&w=200"}
@@ -163,44 +168,49 @@ export default function StorePage() {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h1 className="text-2xl md:text-4xl font-black text-zinc-900 tracking-tight flex items-center gap-2">
-                      {storeInfo.businessName || (storeInfo.firstName ? `${storeInfo.firstName}'s Store` : "Verified Local Store")}
-                      <BadgeCheck size={24} className="text-emerald-500" />
+                      {storeInfo.storeName || storeInfo.businessName || "Verified Store"}
+                      {storeInfo.isVerified && <BadgeCheck size={24} className="text-emerald-500" />}
                     </h1>
                     <p className="text-zinc-500 font-bold text-xs md:text-sm uppercase tracking-widest mt-1">
-                      Verified Seller Node
+                      {storeInfo.storeCategory || "Local Store"} · {storeInfo.nodeType?.replace(/_/g, " ")}
                     </p>
                   </div>
 
-                  <div className="bg-emerald-500/10 text-emerald-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
-                    Live
+                  <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5
+                    ${storeInfo.isStoreOpen !== false ? "bg-emerald-500/10 text-emerald-600" : "bg-zinc-100 text-zinc-500"}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${storeInfo.isStoreOpen !== false ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
+                    {storeInfo.isStoreOpen !== false ? "Open Now" : "Closed"}
                   </div>
                 </div>
 
+                {storeInfo.description && (
+                  <p className="text-zinc-500 text-sm mb-3 max-w-xl">{storeInfo.description}</p>
+                )}
+
                 {/* Info Pills */}
-                <div className="flex flex-wrap gap-2 md:gap-4 mt-4">
+                <div className="flex flex-wrap gap-2 md:gap-3 mt-2">
                   <div className="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-100">
-                    <Star
-                      size={14}
-                      className="text-amber-400"
-                      fill="currentColor"
-                    />
-                    <span className="text-xs font-bold text-zinc-700">
-                      4.8 Rating
-                    </span>
+                    <Star size={14} className="text-amber-400" fill="currentColor" />
+                    <span className="text-xs font-bold text-zinc-700">{(storeInfo.rating || 4.5).toFixed(1)} Rating</span>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-100">
-                    <Clock size={14} className="text-blue-500" />
-                    <span className="text-xs font-bold text-zinc-700">
-                      15 mins Delivery
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-100">
-                    <MapPin size={14} className="text-zinc-400" />
-                    <span className="text-xs font-bold text-zinc-700">
-                      0.8 km
-                    </span>
-                  </div>
+                  {storeInfo.dispatchSpeed && (
+                    <div className="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-100">
+                      <Clock size={14} className="text-blue-500" />
+                      <span className="text-xs font-bold text-zinc-700">{storeInfo.dispatchSpeed} Delivery</span>
+                    </div>
+                  )}
+                  {storeInfo.city && (
+                    <div className="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-100">
+                      <MapPin size={14} className="text-zinc-400" />
+                      <span className="text-xs font-bold text-zinc-700">{storeInfo.city}</span>
+                    </div>
+                  )}
+                  {storeInfo.deliveryRadius && (
+                    <div className="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-100">
+                      <Info size={14} className="text-zinc-400" />
+                      <span className="text-xs font-bold text-zinc-700">{storeInfo.deliveryRadius} km radius</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -87,6 +87,12 @@ export default function CheckoutPage() {
   const [showManualConfirm, setShowManualConfirm] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState(null);
 
+  const handlePayMethodSelect = (method) => {
+    setPayMethod(method);
+    setPendingOrderId(null); // Invalidate legacy pending order configuration
+    setShowManualConfirm(false);
+  };
+
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       if (window.Razorpay) return resolve(true);
@@ -109,7 +115,7 @@ export default function CheckoutPage() {
         orderId: pendingOrderId
       });
       toast.success("Order placed successfully!");
-      clearCartStore();
+      await clearCartStore();
       navigate("/order-success", { state: { orderId: pendingOrderId } });
     } catch (err) {
       toast.error("Failed to complete order");
@@ -124,47 +130,53 @@ export default function CheckoutPage() {
     setIsPlacing(true);
     setShowManualConfirm(false);
     try {
-      // 1. Create the Order first (Status: Pending)
-      const payload = {
-        orderItems: displayItems.map(it => ({
-          product: it.productId?._id || it.productId,
-          seller: it.productId?.sellerId || it.sellerId || "67a304e6727284f6760b7410",
-          quantity: it.quantity,
-          price: it.price
-        })),
-        shippingAddress: {
-          address: activeAddress?.street || activeAddress?.address || "No Address",
-          city: activeAddress?.city || "Unknown",
-          state: activeAddress?.state || "Local",
-          postalCode: activeAddress?.pincode || activeAddress?.postalCode || "000000",
-          country: activeAddress?.country || "India"
-        },
-        paymentMethod: payMethod.toUpperCase(),
-        itemsPrice: subtotal,
-        taxPrice: gstEstimate,
-        shippingPrice: deliveryFee,
-        totalPrice: total,
-        status: "Pending",
-        // Wholesale Ext
-        isWholesaleOrder: hasWholesaleItems,
-        billingDetails: {
-          companyName: b2bDetails.companyName,
-          gstNumber: b2bDetails.gstNumber,
-          billingAddress: activeAddress?.street || "No Address"
-        },
-        poNotes: b2bDetails.poNotes,
-        deliverySlot: b2bDetails.deliverySlot
-      };
+      let newOrder = null;
 
-      const orderRes = await axiosInstance.post("/orders", payload);
-      const newOrder = orderRes.data || orderRes;
+      if (pendingOrderId) {
+        // Reuse existing Pending Order to avoid duplicate ghost order entries in database
+        newOrder = { _id: pendingOrderId };
+      } else {
+        // 1. Create the Order first (Status: Pending)
+        const payload = {
+          orderItems: displayItems.map(it => ({
+            product: it.productId?._id || it.productId,
+            seller: it.productId?.sellerId || it.sellerId || "67a304e6727284f6760b7410",
+            quantity: it.quantity,
+            price: it.price
+          })),
+          shippingAddress: {
+            address: activeAddress?.street || activeAddress?.address || "No Address",
+            city: activeAddress?.city || "Unknown",
+            state: activeAddress?.state || "Local",
+            postalCode: activeAddress?.pincode || activeAddress?.postalCode || "000000",
+            country: activeAddress?.country || "India"
+          },
+          paymentMethod: payMethod.toUpperCase(),
+          itemsPrice: subtotal,
+          taxPrice: gstEstimate,
+          shippingPrice: deliveryFee,
+          totalPrice: total,
+          status: "Pending",
+          // Wholesale Ext
+          isWholesaleOrder: hasWholesaleItems,
+          billingDetails: {
+            companyName: b2bDetails.companyName,
+            gstNumber: b2bDetails.gstNumber,
+            billingAddress: activeAddress?.street || "No Address"
+          },
+          poNotes: b2bDetails.poNotes,
+          deliverySlot: b2bDetails.deliverySlot
+        };
 
-      setPendingOrderId(newOrder._id);
+        const orderRes = await axiosInstance.post("/orders", payload);
+        newOrder = orderRes.data || orderRes;
+        setPendingOrderId(newOrder._id);
+      }
 
       // 2. If COD, we are done
       if (payMethod === "cod") {
         toast.success("Order placed successfully (COD)!");
-        clearCartStore();
+        await clearCartStore();
         navigate("/order-success", { state: { orderId: newOrder._id } });
         return;
       }
@@ -178,10 +190,11 @@ export default function CheckoutPage() {
             orderId: newOrder._id
           });
           toast.success("Order placed successfully (Simulator Payment)!");
-          clearCartStore();
+          await clearCartStore();
           navigate("/order-success", { state: { orderId: newOrder._id } });
         } catch (simErr) {
           toast.error("Failed to process simulator payment");
+          setIsPlacing(false);
         }
         return;
       }
@@ -233,7 +246,7 @@ export default function CheckoutPage() {
               orderId: newOrder._id
             });
             toast.success("Payment successful!");
-            clearCartStore();
+            await clearCartStore();
             navigate("/order-success", { state: { orderId: newOrder._id } });
           } catch (err) {
             toast.error("Payment verification failed. Use manual confirm.");
@@ -474,7 +487,10 @@ export default function CheckoutPage() {
                 </div>
                 {step === 2 && (
                   <button
-                    onClick={() => setStep(1)}
+                    onClick={() => {
+                      setStep(1);
+                      setPendingOrderId(null); // Force new order calculation if address changes
+                    }}
                     className="text-[10px] font-black uppercase text-zinc-400 hover:text-zinc-900 border-b border-zinc-200"
                   >
                     Change Address
@@ -492,7 +508,7 @@ export default function CheckoutPage() {
                       <input
                         type="radio"
                         checked={payMethod === "test"}
-                        onChange={() => setPayMethod("test")}
+                        onChange={() => handlePayMethodSelect("test")}
                         className="w-4 h-4 accent-zinc-900"
                       />
                       <div>
@@ -517,7 +533,7 @@ export default function CheckoutPage() {
                       <input
                         type="radio"
                         checked={payMethod === "upi"}
-                        onChange={() => setPayMethod("upi")}
+                        onChange={() => handlePayMethodSelect("upi")}
                         className="w-4 h-4 accent-zinc-900"
                       />
                       <div>
@@ -551,7 +567,7 @@ export default function CheckoutPage() {
                       <input
                         type="radio"
                         checked={payMethod === "cod"}
-                        onChange={() => setPayMethod("cod")}
+                        onChange={() => handlePayMethodSelect("cod")}
                         className="w-4 h-4 accent-zinc-900"
                       />
                       <div>

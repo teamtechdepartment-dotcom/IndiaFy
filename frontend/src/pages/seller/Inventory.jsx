@@ -5,13 +5,13 @@ import {
 } from 'lucide-react';
 import { useProductStore } from '../../store/productStore';
 import { useSellerAuthStore } from '../../store/sellerAuthStore';
+import { useNodeStore } from '../../store/nodeStore';
 
 import { useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function Inventory({ search: globalSearch = "" }) {
-  const location = useLocation();
-  const pathParts = location.pathname.split('/');
-  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+  const { activeNode } = useNodeStore();
 
   const { products, fetchProducts, isLoading, deleteProduct, updateProduct } = useProductStore();
   const { user } = useSellerAuthStore();
@@ -20,10 +20,10 @@ export default function Inventory({ search: globalSearch = "" }) {
 
   // Fetch products on mount
   useEffect(() => {
-    if (user?._id) {
-      fetchProducts('', '', user._id, activeNode);
+    if (user?._id && activeNode?._id) {
+      fetchProducts('', '', user._id, activeNode.nodeType, activeNode._id);
     }
-  }, [user?._id, fetchProducts, activeNode]);
+  }, [user?._id, activeNode?._id, activeNode?.nodeType, fetchProducts]);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +48,7 @@ export default function Inventory({ search: globalSearch = "" }) {
        try {
          await deleteProduct(idToRemove);
        } catch (err) {
-         alert("Failed to delete product: " + err.message);
+         toast.error("Failed to delete product: " + err.message);
        }
     }
   };
@@ -189,7 +189,7 @@ export default function Inventory({ search: globalSearch = "" }) {
   const handleEditImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(f => f.size <= 2 * 1024 * 1024);
-    if (validFiles.length < files.length) alert("Some files were skipped (Max 2MB).");
+    if (validFiles.length < files.length) toast.warning("Some files were skipped (Max 2MB).");
     Promise.all(validFiles.map(file => new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);
@@ -220,9 +220,11 @@ export default function Inventory({ search: globalSearch = "" }) {
       
       await updateProduct(editingProduct._id || editingProduct.id, formData);
       setEditingProduct(null);
-      fetchProducts('', '', user._id); // Refresh
+      if (user?._id && activeNode?._id) {
+        fetchProducts('', '', user._id, activeNode.nodeType, activeNode._id); // Refresh
+      }
     } catch (err) {
-      alert("Failed to update product: " + err.message);
+      toast.error("Failed to update product: " + err.message);
     }
   };
 

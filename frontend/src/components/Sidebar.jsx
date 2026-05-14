@@ -34,13 +34,22 @@ const WHOLESALE_MENUS = [
   { id: "settings", label: "B2B Settings", icon: Settings, path: "/settings" },
 ];
 import { useSellerAuthStore } from "../store/sellerAuthStore";
+import { useAuthStore } from "../store/authStore";
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
   const navigate = useNavigate();
   const logout = useSellerAuthStore((state) => state.logout);
+  const logoutCustomer = useAuthStore((state) => state.logout);
 
   const handleLogout = async () => {
-    await logout();
+    try {
+      await Promise.allSettled([
+        logout(),
+        logoutCustomer()
+      ]);
+    } catch (err) {
+      console.error("Session termination failure:", err);
+    }
     toast.success("Logged out from Seller Portal");
     navigate("/", { replace: true }); 
     if (sidebarOpen) setSidebarOpen(false);

@@ -81,13 +81,20 @@ function WebsiteNavbar() {
   const location = useLocation();
   const { user: customerUser, isAuthenticated: isCustomerAuthenticated, logout: logoutCustomer } = useAuthStore();
   const { user: sellerUser, isAuthenticated: isSellerAuthenticated, logout: logoutSeller } = useSellerAuthStore();
-  const { cartItems } = useCartStore();
+  const { cartItems, fetchCart } = useCartStore();
 
   const isAuthenticated = isCustomerAuthenticated || isSellerAuthenticated;
   const user = isSellerAuthenticated ? sellerUser : customerUser;
 
   const isHomePage = location.pathname === "/";
   const isLightTheme = !isHomePage || scrolled;
+
+  // Optimistically sync Cart context to enable persistent UI counters across refreshes
+  useEffect(() => {
+    if (isCustomerAuthenticated) {
+      fetchCart();
+    }
+  }, [isCustomerAuthenticated, fetchCart]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -111,16 +118,20 @@ function WebsiteNavbar() {
     setUserMenuOpen(false);
     setMenuOpen(false);
     
-    if (isSellerAuthenticated) {
-      await logoutSeller();
-    } else {
-      await logoutCustomer();
+    // Cleanse ALL scopes (seller & customer) simultaneously to prevent dangling states
+    try {
+      await Promise.allSettled([
+        logoutSeller(),
+        logoutCustomer()
+      ]);
+    } catch (err) {
+      console.error("Logout clearing issues:", err);
     }
     
     toast.success("Logged out successfully");
     // Redirect all users to home page on logout
     navigate("/", { replace: true });
-  }, [logoutCustomer, logoutSeller, isSellerAuthenticated, navigate]);
+  }, [logoutCustomer, logoutSeller, navigate]);
 
   return (
     <>

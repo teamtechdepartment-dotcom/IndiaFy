@@ -15,17 +15,50 @@ import {
   FileText,
   Banknote
 } from "lucide-react";
+import { useOrderStore } from "../../store/orderStore";
+import { useNodeStore } from "../../store/nodeStore";
+import { toast } from "react-toastify";
 
 export default function Finance() {
-  // 1. Mock Data for Transactions & Settlements
-  const [transactions] = useState([
-    { id: "SETL-99210", date: "20 Feb 2026", amount: "₹4,200", type: "Settlement", status: "Paid", bank: "HDFC ****1234" },
-    { id: "SETL-99209", date: "18 Feb 2026", amount: "₹8,500", type: "Settlement", status: "Paid", bank: "HDFC ****1234" },
-    { id: "REF-44321",  date: "17 Feb 2026", amount: "-₹350", type: "Refund Deduction", status: "Deducted", bank: "Store Wallet" },
-    { id: "SETL-99208", date: "15 Feb 2026", amount: "₹12,400", type: "Settlement", status: "Paid", bank: "HDFC ****1234" },
-    { id: "SETL-99207", date: "12 Feb 2026", amount: "₹6,100", type: "Settlement", status: "Processing", bank: "HDFC ****1234" },
-    { id: "SETL-99206", date: "10 Feb 2026", amount: "₹3,200", type: "Settlement", status: "Paid", bank: "HDFC ****1234" },
-  ]);
+  const { activeNode } = useNodeStore();
+  const { sellerOrders = [], fetchSellerOrders } = useOrderStore();
+
+  useEffect(() => {
+    if (activeNode?._id) {
+      fetchSellerOrders(activeNode.nodeType, activeNode._id);
+    }
+  }, [fetchSellerOrders, activeNode?._id, activeNode?.nodeType]);
+
+  // Real total net sales
+  const totalSales = sellerOrders
+    .filter(o => o.status !== "Cancelled")
+    .reduce((acc, curr) => acc + (curr?.totalPrice || 0), 0);
+
+  // Real available payout (e.g. 80% of delivered/completed orders, or just standard share)
+  const payoutAmount = sellerOrders
+    .filter(o => o.status === "Delivered")
+    .reduce((acc, curr) => acc + (curr?.totalPrice || 0), 0);
+
+  // 1. Dynamic generation of Transactions & Settlements from recent orders
+  const realTransactions = sellerOrders
+    .slice(0, 10)
+    .map(o => {
+      const isPaid = o.status === "Delivered" || o.status === "Shipped";
+      return {
+        id: `SETL-${o._id.substring(o._id.length - 6).toUpperCase()}`,
+        date: new Date(o.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        amount: `₹${o.totalPrice}`,
+        type: "Settlement",
+        status: isPaid ? "Paid" : o.status === "Pending" ? "Processing" : "Deducted",
+        bank: activeNode?.bankName ? `${activeNode.bankName} ****${(activeNode.accountNumber || "").slice(-4)}` : "HDFC Bank"
+      };
+    });
+
+  const [transactions, setTransactions] = useState([]);
+  
+  useEffect(() => {
+    setTransactions(realTransactions);
+  }, [sellerOrders]);
 
   // 2. State Management
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,11 +71,11 @@ export default function Finance() {
 
   // 3. Action Handlers
   const handleWithdraw = () => {
-    alert("Withdrawal request for ₹12,850 submitted successfully! It will reflect in your account within 24 hours.");
+    toast.success("Withdrawal request for ₹12,850 submitted successfully! It will reflect in your account within 24 hours.");
   };
 
   const handleDownloadStatement = () => {
-    alert("Generating your tax and settlement statement for this month...");
+    toast.info("Generating your tax and settlement statement for this month...");
   };
 
   const handleDownloadReceipt = (id) => {
@@ -106,12 +139,12 @@ export default function Finance() {
               <Landmark size={20} />
             </div>
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md flex items-center gap-1">
-              <ArrowUpRight size={14}/> 12%
+              <ArrowUpRight size={14}/> +12%
             </span>
           </div>
           <div>
             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Total Net Sales</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">₹45,200</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mt-1">₹{totalSales.toFixed(2)}</h3>
           </div>
         </div>
 
@@ -128,11 +161,12 @@ export default function Finance() {
           <div className="flex items-end justify-between relative z-10">
             <div>
               <p className="text-sm font-bold text-slate-300 uppercase tracking-wider">Available for Payout</p>
-              <h3 className="text-2xl font-bold text-white mt-1">₹12,850</h3>
+              <h3 className="text-2xl font-bold text-white mt-1">₹{payoutAmount.toFixed(2)}</h3>
             </div>
             <button 
-              onClick={handleWithdraw}
+              onClick={() => toast.success(`Withdrawal request for ₹${payoutAmount.toFixed(2)} submitted successfully! It will reflect in your account within 24 hours.`)}
               className="px-4 py-2 bg-white text-slate-900 font-bold text-sm rounded-lg hover:bg-slate-100 transition-colors shadow-sm"
+              disabled={payoutAmount <= 0}
             >
               Withdraw
             </button>
@@ -152,8 +186,10 @@ export default function Finance() {
           <div>
             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Next Settlement</p>
             <div className="flex items-end gap-2 mt-1">
-              <h3 className="text-2xl font-bold text-slate-900">Feb 22</h3>
-              <p className="text-sm font-bold text-slate-400 mb-1">(Est. ₹4,200)</p>
+              <h3 className="text-2xl font-bold text-slate-900">Rolling</h3>
+              <p className="text-sm font-bold text-slate-400 mb-1">
+                (Est. ₹{(totalSales - payoutAmount).toFixed(2)})
+              </p>
             </div>
           </div>
         </div>

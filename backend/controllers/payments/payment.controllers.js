@@ -67,10 +67,14 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         .update(sign.toString())
         .digest("hex");
 
-    const isTestMode = !process.env.Razorpay_Key_Secret || key_id.includes("test") || razorpay_signature === "test_manual_override" || razorpay_order_id === "manual";
+    // 🔒 STRICT PRODUCTION SECURITY LOCK: Only allow simulator bypass if active key is genuinely a TEST key.
+    const isKeyInTestMode = !process.env.Razorpay_Key_Secret || key_id.includes("test") || key_id.startsWith("rzp_test");
+    const hasOverrideParameters = razorpay_signature === "test_manual_override" || razorpay_order_id === "manual";
+    
+    const isTestSimulatorVerified = isKeyInTestMode && hasOverrideParameters;
 
-    if (razorpay_signature !== expectedSign && !isTestMode) {
-        throw new ApiError(400, "Invalid payment signature");
+    if (razorpay_signature !== expectedSign && !isTestSimulatorVerified) {
+        throw new ApiError(400, "Invalid payment signature. Live transaction verification failed.");
     }
 
     // If verification passes, update the Order in the database

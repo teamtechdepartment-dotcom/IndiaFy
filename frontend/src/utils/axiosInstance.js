@@ -27,12 +27,25 @@ axiosInstance.interceptors.request.use(
     (config) => {
         // Fallback for mobile/cross-domain cookie issues: use Bearer token from localStorage
         try {
+            // 1. Try customer auth storage
+            let token = null;
             const authStorage = localStorage.getItem('indiafy-auth-storage');
             if (authStorage) {
                 const { state } = JSON.parse(authStorage);
-                if (state.token) {
-                    config.headers.Authorization = `Bearer ${state.token}`;
+                if (state.token) token = state.token;
+            }
+
+            // 2. Fallback to seller auth storage if not found
+            if (!token) {
+                const sellerStorage = localStorage.getItem('indiafy-seller-auth-storage');
+                if (sellerStorage) {
+                    const { state } = JSON.parse(sellerStorage);
+                    if (state.token) token = state.token;
                 }
+            }
+
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
             }
         } catch (err) {
             // Silently fail if storage is corrupted or missing
@@ -54,20 +67,22 @@ axiosInstance.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             console.error("Unauthorized! Session expired.");
             
-            // 1. Don't redirect for 'me' calls (handled by authStore)
+            // 1. Don't redirect for auth/me calls (handled by authStore)
             const isMeCall = error.config.url.includes('/auth/me');
             if (isMeCall) return Promise.reject(error);
 
-            // 2. Only redirect if NOT on a public page
-            const publicPaths = ['/', '/about', '/product/', '/category/', '/search', '/store/', '/cart'];
+            // 2. Only redirect if NOT on a public or auth page
+            const publicPaths = [
+                '/', '/about', '/product/', '/category/', '/search',
+                '/store/', '/cart', '/login', '/signup',
+                '/seller-auth', '/admin/login',
+            ];
             const currentPath = window.location.pathname;
-            const isPublicPage = publicPaths.some(path => 
+            const isPublicPage = publicPaths.some(path =>
                 path === '/' ? currentPath === '/' : currentPath.startsWith(path)
             );
 
             if (!isPublicPage) {
-                // Clear any pending purchase if session expired during checkout
-                // localStorage.removeItem("pending_purchase");
                 window.location.href = '/';
             }
         }

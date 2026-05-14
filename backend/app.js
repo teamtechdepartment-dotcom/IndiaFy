@@ -6,7 +6,7 @@ import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import hpp from "hpp";
 import { databaseConfig } from "./config/db.config.js";
-
+ 
 // Initialize database connection
 databaseConfig().catch((err) => {
   console.error("❌ Database connection failed on startup:", err);
@@ -15,6 +15,8 @@ databaseConfig().catch((err) => {
 import adminAuthRoutes from "./routers/admin/auth.route.js";
 import customerAuthRoutes from "./routers/customer/auth.route.js";
 import sellerAuthRoutes from "./routers/seller/auth.route.js";
+import sellerNodeRoutes from "./routers/seller/node.route.js";
+import publicStoreRoutes from "./routers/seller/public.route.js";
 import productRoutes from "./routers/product/product.route.js";
 import orderRoutes from "./routers/order/order.route.js";
 import paymentRoutes from "./routers/payment/payment.route.js";
@@ -26,7 +28,10 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
   "https://india-fy.vercel.app",
   "https://indiafy.vercel.app",
 ];
@@ -161,6 +166,13 @@ app.use("/customer/auth", customerAuthRoutes);
 
 app.use("/api/v1/indiafy/seller/auth", sellerAuthRoutes);
 app.use("/seller/auth", sellerAuthRoutes);
+
+app.use("/api/v1/indiafy/seller/nodes", sellerNodeRoutes);
+app.use("/seller/nodes", sellerNodeRoutes);
+
+// Public marketplace routes (no auth required)
+app.use("/api/v1/indiafy/public", publicStoreRoutes);
+app.use("/public", publicStoreRoutes);
 
 app.use("/api/v1/indiafy/products", productRoutes);
 app.use("/products", productRoutes);

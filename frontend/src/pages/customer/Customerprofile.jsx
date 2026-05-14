@@ -125,6 +125,17 @@ export default function CustomerProfile() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      navigate("/", { replace: true });
+    } catch (err) {
+      console.error("Logout issue:", err);
+      navigate("/", { replace: true });
+    }
+  };
+
   if (isLoading && !profile) {
     return (
       <div className="bg-[#050505] min-h-screen flex items-center justify-center">
@@ -213,7 +224,7 @@ export default function CustomerProfile() {
                  <Edit3 size={16} /> Edit Profile
                </button>
                <button 
-                onClick={() => logout()}
+                onClick={handleLogout}
                 className="w-full py-4 bg-zinc-800 text-zinc-400 rounded-3xl font-black uppercase tracking-widest text-xs hover:bg-red-950/20 hover:text-red-500 transition-all flex items-center justify-center gap-2 border border-transparent hover:border-red-500/20"
                >
                  <LogOut size={16} /> Logout Session

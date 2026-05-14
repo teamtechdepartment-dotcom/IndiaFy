@@ -16,17 +16,18 @@ import {
   ShoppingBag
 } from 'lucide-react';
 import { useOrderStore } from '../../store/orderStore';
+import { useNodeStore } from '../../store/nodeStore';
 
 export default function History() {
-  const location = useLocation();
-  const pathParts = location.pathname.split('/');
-  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+  const { activeNode } = useNodeStore();
 
   const { sellerOrders, fetchSellerOrders } = useOrderStore();
 
   useEffect(() => {
-    fetchSellerOrders(activeNode);
-  }, [fetchSellerOrders, activeNode]);
+    if (activeNode?._id) {
+      fetchSellerOrders(activeNode.nodeType, activeNode._id);
+    }
+  }, [fetchSellerOrders, activeNode?._id, activeNode?.nodeType]);
 
   // Transform real orders into the format expected by the UI
   // Only show orders that are Shipped, Delivered, Cancelled, or Returned

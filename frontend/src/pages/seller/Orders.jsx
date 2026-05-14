@@ -11,19 +11,20 @@ import {
   Inbox
 } from "lucide-react";
 import { useOrderStore } from "../../store/orderStore";
+import { useNodeStore } from "../../store/nodeStore";
 import { toast } from "react-toastify";
 
 export default function Orders() {
-  const location = useLocation();
-  const pathParts = location.pathname.split('/');
-  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+  const { activeNode } = useNodeStore();
 
   const { sellerOrders, fetchSellerOrders, updateOrderStatus } = useOrderStore();
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetchSellerOrders(activeNode);
-  }, [fetchSellerOrders, activeNode]);
+    if (activeNode?._id) {
+      fetchSellerOrders(activeNode.nodeType, activeNode._id);
+    }
+  }, [fetchSellerOrders, activeNode?._id, activeNode?.nodeType]);
 
   // Filter out orders that are already processed or cancelled. Show only "Pending" or similar in inbox.
   // Wait, the status is "Pending".

@@ -23,6 +23,7 @@ const BrowseCategories = memo(function BrowseCategories() {
   }, [fetchCategories]);
 
   const getIcon = (name) => {
+    if (!name || typeof name !== 'string') return <Box size={24} />;
     const lower = name.toLowerCase();
     if (lower.includes('garment') || lower.includes('cloth')) return <ShoppingBag size={24} />;
     if (lower.includes('grocery') || lower.includes('food')) return <ShoppingBasket size={24} />;
@@ -33,8 +34,12 @@ const BrowseCategories = memo(function BrowseCategories() {
     return <Box size={24} />;
   };
 
-  const displayCategories = categories.length > 0 
-    ? categories.map(cat => ({
+  const validCategories = Array.isArray(categories) 
+    ? categories.filter(cat => cat && typeof cat === 'string')
+    : [];
+
+  const displayCategories = validCategories.length > 0 
+    ? validCategories.map(cat => ({
         name: cat,
         slug: cat.toLowerCase().replace(/\s+/g, '-'),
         stores: "Verified Node",

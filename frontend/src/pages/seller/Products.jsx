@@ -2,15 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, X, Boxes, ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import { useProductStore } from '../../store/productStore';
 import { useSellerAuthStore } from '../../store/sellerAuthStore';
+import { useNodeStore } from '../../store/nodeStore';
 import { toast } from 'react-toastify';
 import { useLocation } from 'react-router-dom';
 
 export default function Products() {
-  const location = useLocation();
-  const pathParts = location.pathname.split('/');
-  // Usually /seller/local/products or /seller/wholesale/products or /quick/products
-  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
-
+  const { activeNode } = useNodeStore();
   const { products, fetchProducts, createProduct, isLoading } = useProductStore();
   const { user } = useSellerAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,16 +36,16 @@ export default function Products() {
 
   // Fetch products on mount and every 30s for inventory updates
   useEffect(() => {
-    if (user?._id) {
-      fetchProducts('', '', user._id, activeNode);
+    if (user?._id && activeNode?._id) {
+      fetchProducts('', '', user._id, activeNode.nodeType, activeNode._id);
       
       const interval = setInterval(() => {
-        fetchProducts('', '', user._id, activeNode);
+        fetchProducts('', '', user._id, activeNode.nodeType, activeNode._id);
       }, 30000); // 30s refresh
       
       return () => clearInterval(interval);
     }
-  }, [user?._id, activeNode, fetchProducts]);
+  }, [user?._id, activeNode?._id, activeNode?.nodeType, fetchProducts]);
 
   // Reset to page 1 when searching
   useEffect(() => { setCurrentPage(1); }, [searchTerm]);
@@ -98,7 +95,11 @@ export default function Products() {
       formData.append('categoryName', newProduct.category);
       formData.append('shortDescription', newProduct.shortDescription || newProduct.name);
       formData.append('description', newProduct.description || newProduct.name);
-      formData.append('nodeType', activeNode);
+      
+      if (activeNode) {
+        formData.append('nodeType', activeNode.nodeType);
+        formData.append('nodeId', activeNode._id);
+      }
       
       const attribute = {
         salePrice: newProduct.salePrice,
@@ -108,7 +109,7 @@ export default function Products() {
       };
       formData.append('attribute', JSON.stringify(attribute));
 
-      if (activeNode === 'wholesale') {
+      if (activeNode?.nodeType === 'WHOLESALE_B2B') {
         formData.append('isWholesale', 'true');
         formData.append('minimumOrderQty', newProduct.minimumOrderQty);
         formData.append('cartonQuantity', newProduct.cartonQuantity);
@@ -135,7 +136,9 @@ export default function Products() {
       setIsModalOpen(false);
       
       // Refresh list
-      fetchProducts('', '', user._id, activeNode);
+      if (user?._id && activeNode?._id) {
+        fetchProducts('', '', user._id, activeNode.nodeType, activeNode._id);
+      }
     } catch (err) {
       toast.error(err.message || "Failed to create product");
     }

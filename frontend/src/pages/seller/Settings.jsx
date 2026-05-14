@@ -6,6 +6,8 @@ import {
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
 import { useSellerAuthStore } from "../../store/sellerAuthStore";
+import { useNodeStore } from "../../store/nodeStore";
+import { useEffect } from "react";
 
 // Reusable Input Component
 const InputGroup = ({ label, type = "text", value, onChange, placeholder, icon: Icon, multiline, disabled }) => (
@@ -52,17 +54,54 @@ const Toggle = ({ label, description, checked, onChange, disabled }) => (
 export default function Settings({ storeDetails, setStoreDetails }) {
   const fileInputRef = useRef(null);
   
-  const [formData, setFormData] = useState(storeDetails || {
-    name: "Jai Store", initials: "JS", email: "contact@jaistore.com", phone: "+91 98765 43210", 
-    address: "Street 10, Sector 22\nChandigarh, 160022", gstin: "04AABCU9603R1ZM",
-    accountName: "Jai Store Official", accountNumber: "50100234567890", ifsc: "HDFC0001234", bankName: "HDFC Bank",
+  const { activeNode, fetchNodeDetails, updateActiveNode } = useNodeStore();
+  
+  const [formData, setFormData] = useState({
+    name: "", initials: "", email: "", phone: "", 
+    address: "", gstin: "",
+    accountName: "", accountNumber: "", ifsc: "", bankName: "",
     orderAlerts: true, autoAccept: false, promotionalEmails: true,
     isStoreOpen: true, isDeactivated: false, logo: null
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Bind state from either storeDetails or activeNode
+  useEffect(() => {
+    const source = activeNode ? {
+      name: activeNode.storeName || "",
+      email: activeNode.email || "",
+      phone: activeNode.phone || "",
+      address: activeNode.address || "",
+      gstin: activeNode.gstin || "",
+      logo: activeNode.logo || null,
+      accountName: activeNode.accountName || "",
+      accountNumber: activeNode.accountNumber || "",
+      ifsc: activeNode.ifsc || "",
+      bankName: activeNode.bankName || "",
+      orderAlerts: activeNode.orderAlerts ?? true,
+      autoAccept: activeNode.autoAccept ?? false,
+      isStoreOpen: activeNode.isStoreOpen ?? true,
+      isDeactivated: activeNode.isDeactivated ?? false
+    } : storeDetails;
+
+    if (source) {
+      const words = (source.name || source.storeName || "").trim().split(" ");
+      let initials = "S";
+      if (words.length >= 2) initials = (words[0][0] + words[1][0]).toUpperCase();
+      else if (words.length === 1 && words[0].length > 0) initials = words[0].substring(0, 2).toUpperCase();
+
+      setFormData(prev => ({
+        ...prev,
+        ...source,
+        name: source.name || source.storeName || "",
+        initials
+      }));
+    }
+  }, [activeNode, storeDetails]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -90,7 +129,8 @@ export default function Settings({ storeDetails, setStoreDetails }) {
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`indiafy.com/${formData.name.toLowerCase().replace(/\s+/g, '-')}`);
+    const storeName = formData.name || "store";
+    navigator.clipboard.writeText(`indiafy.com/${storeName.toLowerCase().replace(/\s+/g, '-')}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -108,29 +148,100 @@ export default function Settings({ storeDetails, setStoreDetails }) {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await axiosInstance.put("/seller/auth/settings", formData);
-      if (res.data.success || res.status === 200) {
-        // Sync with global auth store
+      let res;
+      if (activeNode?._id) {
+        const nodePayload = {
+          storeName: formData.name,
+          logo: formData.logo,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          gstin: formData.gstin,
+          accountName: formData.accountName,
+          accountNumber: formData.accountNumber,
+          ifsc: formData.ifsc,
+          bankName: formData.bankName,
+          orderAlerts: formData.orderAlerts,
+          autoAccept: formData.autoAccept,
+          isStoreOpen: formData.isStoreOpen,
+          isDeactivated: formData.isDeactivated
+        };
+        // axiosInstance returns response.data directly
+        // res shape: { success: true, node: { ... } }
+        res = await axiosInstance.put(`/seller/nodes/${activeNode._id}`, nodePayload);
+
+        // Update nodeStore instantly so sidebar reflects changes
+        if (updateActiveNode) {
+          updateActiveNode({
+            storeName: formData.name,
+            logo: formData.logo,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            gstin: formData.gstin,
+            orderAlerts: formData.orderAlerts,
+            autoAccept: formData.autoAccept,
+            isStoreOpen: formData.isStoreOpen,
+            isDeactivated: formData.isDeactivated,
+          });
+        }
+      } else {
+        res = await axiosInstance.put("/seller/auth/settings", formData);
         const authStore = useSellerAuthStore.getState();
         if (authStore && authStore.fetchMe) {
           await authStore.fetchMe("seller");
         }
+      }
 
-        const words = formData.name.trim().split(" ");
+      // res is response.data already (axiosInstance interceptor)
+      if (res?.success || res?.node) {
+        const words = (formData.name || "").trim().split(" ");
         let newInitials = "S";
         if (words.length >= 2) newInitials = (words[0][0] + words[1][0]).toUpperCase();
         else if (words.length === 1 && words[0].length > 0) newInitials = words[0].substring(0, 2).toUpperCase();
 
         if (setStoreDetails) setStoreDetails({ ...formData, initials: newInitials });
-        
         setShowSuccess(true);
         toast.success("Settings updated successfully");
         setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update settings");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update settings");
     } finally {
       setIsSaving(false);
+    }
+  };
+  
+  const handleDeleteStore = async () => {
+    if (!activeNode?._id) {
+      toast.error("Cannot delete profile context store.");
+      return;
+    }
+
+    const confirmName = window.prompt(`🚨 DANGER ZONE 🚨\n\nThis action is PERMANENT and will completely delete your product catalog, order analytics, and store dashboard.\n\nTo confirm deletion, please type the exact store name: "${formData.name}"`);
+    
+    if (confirmName !== formData.name) {
+      toast.info("Confirmation mismatch. Deletion cancelled.");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      // Backend delete route: DELETE /seller/nodes/:nodeId
+      const res = await axiosInstance.delete(`/seller/nodes/${activeNode._id}`);
+      
+      // axiosInstance already passes .data directly
+      if (res?.success || res?.message) {
+        toast.success("Store successfully deleted! Redirecting to Hub...");
+        setTimeout(() => {
+          window.location.href = "/seller-hub";
+        }, 1500);
+      }
+    } catch (err) {
+      console.error("Delete store failed:", err);
+      toast.error(err?.response?.data?.message || err?.message || "Failed to delete store. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -308,31 +419,60 @@ export default function Settings({ storeDetails, setStoreDetails }) {
       </div>
 
       {/* --- DANGER ZONE --- */}
-      <div className={`mt-10 p-6 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-sm transition-colors duration-300 ${formData.isDeactivated ? 'border-emerald-200 bg-emerald-50/50' : 'border-red-200 bg-red-50/50'}`}>
-        <div className="flex items-start gap-3">
-          {formData.isDeactivated ? <Store className="text-emerald-500 shrink-0 mt-0.5" size={24} /> : <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={24} />}
-          <div>
-            <h3 className={`font-bold text-lg ${formData.isDeactivated ? 'text-emerald-800' : 'text-red-800'}`}>
-              {formData.isDeactivated ? 'Reactivate Store' : 'Deactivate Store'}
-            </h3>
-            <p className={`text-sm font-medium mt-1 max-w-lg leading-relaxed ${formData.isDeactivated ? 'text-emerald-700/80' : 'text-red-600/90'}`}>
-              {formData.isDeactivated 
-                ? "Your store is currently offline. Reactivate it now to start receiving orders and accepting payments immediately." 
-                : "Temporarily hide your store from customers. You will not receive any new orders. You can reactivate at any time."}
-            </p>
+      <div className="space-y-6">
+        <div className={`mt-10 p-6 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-sm transition-colors duration-300 ${formData.isDeactivated ? 'border-emerald-200 bg-emerald-50/50' : 'border-red-200 bg-red-50/50'}`}>
+          <div className="flex items-start gap-3">
+            {formData.isDeactivated ? <Store className="text-emerald-500 shrink-0 mt-0.5" size={24} /> : <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={24} />}
+            <div>
+              <h3 className={`font-bold text-lg ${formData.isDeactivated ? 'text-emerald-800' : 'text-red-800'}`}>
+                {formData.isDeactivated ? 'Reactivate Store' : 'Deactivate Store'}
+              </h3>
+              <p className={`text-sm font-medium mt-1 max-w-lg leading-relaxed ${formData.isDeactivated ? 'text-emerald-700/80' : 'text-red-600/90'}`}>
+                {formData.isDeactivated 
+                  ? "Your store is currently offline. Reactivate it now to start receiving orders and accepting payments immediately." 
+                  : "Temporarily hide your store from customers. You will not receive any new orders. You can reactivate at any time."}
+              </p>
+            </div>
           </div>
+          <button 
+            type="button" 
+            onClick={handleToggleDeactivation}
+            className={`px-6 py-3 font-bold text-sm rounded-xl transition-all shadow-sm shrink-0 border ${
+              formData.isDeactivated 
+                ? 'bg-emerald-500 text-white hover:bg-emerald-600 border-emerald-500' 
+                : 'bg-white border-red-200 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600'
+            }`}
+          >
+            {formData.isDeactivated ? 'Reactivate Store Now' : 'Deactivate Store'}
+          </button>
         </div>
-        <button 
-          type="button" 
-          onClick={handleToggleDeactivation}
-          className={`px-6 py-3 font-bold text-sm rounded-xl transition-all shadow-sm shrink-0 border ${
-            formData.isDeactivated 
-              ? 'bg-emerald-500 text-white hover:bg-emerald-600 border-emerald-500' 
-              : 'bg-white border-red-200 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600'
-          }`}
-        >
-          {formData.isDeactivated ? 'Reactivate Store Now' : 'Deactivate Store'}
-        </button>
+
+        {/* DELETE STORE SECTION */}
+        {activeNode?._id && (
+          <div className="p-6 rounded-2xl border border-red-200 bg-red-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <Trash2 className="text-red-600 shrink-0 mt-0.5" size={24} />
+              <div>
+                <h3 className="font-bold text-lg text-red-900">Delete Store Permanently</h3>
+                <p className="text-sm font-medium text-red-700 mt-1 max-w-lg leading-relaxed">
+                  This is an irreversible action. Once deleted, your store, custom product catalog, transaction ledger, and associated node profile cannot be retrieved.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleDeleteStore}
+              disabled={isDeleting}
+              className="px-6 py-3 font-bold text-sm rounded-xl bg-red-600 text-white hover:bg-red-700 active:scale-95 transition-all shadow-md shadow-red-600/10 disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
+            >
+              {isDeleting ? (
+                <><Loader2 size={16} className="animate-spin" /> Deleting...</>
+              ) : (
+                <><Trash2 size={16} /> Delete Store</>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
     </form>

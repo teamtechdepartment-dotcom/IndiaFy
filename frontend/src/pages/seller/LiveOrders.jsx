@@ -13,19 +13,20 @@ import {
   Clock
 } from "lucide-react";
 import { useOrderStore } from "../../store/orderStore";
+import { useNodeStore } from "../../store/nodeStore";
 import { toast } from "react-toastify";
 
 export default function LiveOrders() {
-  const location = useLocation();
-  const pathParts = location.pathname.split('/');
-  const activeNode = pathParts.includes('quick') ? 'quick-commerce' : pathParts[2] || 'local';
+  const { activeNode } = useNodeStore();
 
   const { sellerOrders, fetchSellerOrders, updateOrderStatus } = useOrderStore();
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetchSellerOrders(activeNode);
-  }, [fetchSellerOrders, activeNode]);
+    if (activeNode?._id) {
+      fetchSellerOrders(activeNode.nodeType, activeNode._id);
+    }
+  }, [fetchSellerOrders, activeNode?._id, activeNode?.nodeType]);
 
   // Show only "Processing" orders
   const liveOrders = sellerOrders.filter(o => o.status === "Processing" || o.status === "Shipped").map(o => {
@@ -123,7 +124,7 @@ export default function LiveOrders() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 border-t border-slate-100 pt-5">
                 {order.status === "Processing" ? (
                   <>
-                    <Link to={`/video-verification/${order.id}`} className="w-full">
+                    <Link to={`video-verification/${order.id}`} className="w-full">
                       <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-bold text-sm rounded-xl transition-colors">
                         <Video size={16}/> Record Packing
                       </button>

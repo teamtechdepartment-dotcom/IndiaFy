@@ -71,21 +71,31 @@ export default function SellerAuth() {
     if (isLogin) {
       setIsLoading(true);
       try {
+        // axiosInstance interceptor returns response.data directly
+        // Backend sends: { statusCode, data: { seller, accessToken }, message, success }
+        // So res = { statusCode, data: { seller, accessToken }, message, success }
         const res = await axiosInstance.post('/seller/auth/login', {
           email: formData.email,
           password: formData.password
         });
-        // axios interceptor already unwraps response.data
-        // so res = { statusCode, data, message, success }
-        const userData = res.data || res;
-        if (userData) {
-          loginAuth(userData, userData.accessToken);
-          toast.success("Seller Login Successful!");
+
+        // Backend ApiResponse shape:
+        // { statusCode: 200, data: { _id, email, role, accessToken, ...seller }, message, success }
+        // axiosInstance returns response.data directly, so:
+        // res = { statusCode, data: sellerObject, message, success }
+        const sellerData = res?.data; // The actual seller object
+        const accessToken = res?.data?.accessToken;
+
+        if (sellerData?._id) {
+          loginAuth(sellerData, accessToken);
+          toast.success("Login successful! Welcome back.");
           navigate('/seller-hub');
+        } else {
+          toast.error("Login failed — invalid response. Please try again.");
         }
       } catch(err) {
         console.error("Seller login error:", err);
-        const msg = err.response?.data?.message || err.message || "Login failed";
+        const msg = err?.response?.data?.message || err?.message || "Login failed. Check your credentials.";
         toast.error(msg);
       } finally {
         setIsLoading(false);

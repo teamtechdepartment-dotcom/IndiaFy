@@ -27,7 +27,10 @@ const orderItemSchema = new mongoose.Schema({
     },
     nodeType: {
         type: String,
-        enum: ["local", "wholesale", "quick-commerce", "home-essentials", "electronics", "personal-care"],
+        enum: [
+            "local", "wholesale", "quick-commerce", "home-essentials", "electronics", "personal-care",
+            "LOCAL_RETAIL", "WHOLESALE_B2B", "QUICK_COMMERCE", "HOME_ESSENTIALS", "ELECTRONICS", "PERSONAL_CARE"
+        ],
         default: "local"
     },
     isWholesale: {
@@ -57,7 +60,7 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ["Card", "UPI", "NetBanking", "COD"]
+        enum: ["Card", "UPI", "NetBanking", "COD", "TEST"]
     },
     paymentResult: {
         id: { type: String },
