@@ -27,21 +27,36 @@ axiosInstance.interceptors.request.use(
     (config) => {
         // Fallback for mobile/cross-domain cookie issues: use Bearer token from localStorage
         try {
-            // 1. Try customer auth storage
+            const url = config.url || "";
+            // Determine if request is intended for Seller or Wholesale routes
+            const isSellerRoute = url.includes("/seller") || url.includes("/wholesale") || url.includes("/local");
+            
             let token = null;
-            const authStorage = localStorage.getItem('indiafy-auth-storage');
-            if (authStorage) {
-                const { state } = JSON.parse(authStorage);
-                if (state.token) token = state.token;
-            }
 
-            // 2. Fallback to seller auth storage if not found
-            if (!token) {
+            const getSellerToken = () => {
                 const sellerStorage = localStorage.getItem('indiafy-seller-auth-storage');
                 if (sellerStorage) {
                     const { state } = JSON.parse(sellerStorage);
-                    if (state.token) token = state.token;
+                    return state?.token || null;
                 }
+                return null;
+            };
+
+            const getCustomerToken = () => {
+                const authStorage = localStorage.getItem('indiafy-auth-storage');
+                if (authStorage) {
+                    const { state } = JSON.parse(authStorage);
+                    return state?.token || null;
+                }
+                return null;
+            };
+
+            if (isSellerRoute) {
+                // Prefer seller token for seller endpoints
+                token = getSellerToken() || getCustomerToken();
+            } else {
+                // Prefer customer token for customer endpoints
+                token = getCustomerToken() || getSellerToken();
             }
 
             if (token) {
