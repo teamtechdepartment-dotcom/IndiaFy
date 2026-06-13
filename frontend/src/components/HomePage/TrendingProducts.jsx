@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useProductStore } from "../../store/productStore";
 import { useCartStore } from "../../store/cartStore";
 import { useProfileStore } from "../../store/profileStore";
+import { useAuthStore } from "../../store/authStore";
 import {
   ShoppingCart,
   Heart,
@@ -140,10 +141,13 @@ export default function TrendingProducts() {
   const { products, fetchProducts } = useProductStore();
   const addToCart = useCartStore((state) => state.addToCart);
   const { profile, fetchProfile } = useProfileStore();
+  const { isAuthenticated: isCustomerAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (isCustomerAuthenticated) {
+      fetchProfile();
+    }
+  }, [fetchProfile, isCustomerAuthenticated]);
 
   useEffect(() => {
     if (profile?.interests && profile.interests.length > 0) {

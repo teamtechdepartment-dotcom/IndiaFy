@@ -1,6 +1,6 @@
 import {Router} from "express";
 import {signupEmailPresent, admin} from "../../middlewares/emailPresent.middleware.js";
-import { Signup, Login, forgetPassword, authOtp, getMe, refreshTokenHandler } from "../../controllers/admins/auth.controllers.js";
+import { Signup, Login, forgetPassword, authOtp, getMe, Logout, refreshTokenHandler } from "../../controllers/admins/auth.controllers.js";
 import { validateResult } from "../../middlewares/validate.middleware.js";
 import { signupValidation, loginValidation, otpValidation } from "../../middlewares/validators/auth.validator.js";
 import requiredLogin from "../../middlewares/requiredLogin.middleware.js";
@@ -14,5 +14,6 @@ router.route("/forgetPassword").put(loginValidation, validateResult, forgetPassw
 router.route("/forgetpasswordOtp").post(otpValidation, validateResult, admin, authOtp);
 router.route("/me").get(requiredLogin, getMe);
 router.route("/refresh").post(refreshTokenHandler);
+router.route("/logout").post(requiredLogin, Logout);
 
 export default router;

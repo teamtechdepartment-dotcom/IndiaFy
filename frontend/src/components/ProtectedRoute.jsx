@@ -3,6 +3,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuthStore } from "../store/authStore";
 import { useSellerAuthStore } from "../store/sellerAuthStore";
+import { useAdminAuthStore } from "../store/adminAuthStore";
 
 /**
  * ProtectedRoute
@@ -16,6 +17,7 @@ import { useSellerAuthStore } from "../store/sellerAuthStore";
 const ProtectedRoute = ({ allowedRoles }) => {
   const customerAuth = useAuthStore();
   const sellerAuth = useSellerAuthStore();
+  const adminAuth = useAdminAuthStore();
 
   const isSellerAllowed = allowedRoles?.includes("seller");
   const isCustomerAllowed = allowedRoles?.includes("customer");
@@ -31,7 +33,11 @@ const ProtectedRoute = ({ allowedRoles }) => {
       customerAuth.clearSession();
       toast.error("Your session has expired. Please login again.", { toastId: 'session-expired' });
     }
-  }, [sellerAuth, customerAuth]);
+    if (adminAuth.isAuthenticated && adminAuth.expiresAt && now > adminAuth.expiresAt) {
+      adminAuth.clearSession();
+      toast.error("Your session has expired. Please login again.", { toastId: 'session-expired' });
+    }
+  }, [sellerAuth, customerAuth, adminAuth]);
 
   /* ----------------------------------------------------------
      Seller-only routes
@@ -58,8 +64,8 @@ const ProtectedRoute = ({ allowedRoles }) => {
   ---------------------------------------------------------- */
   if (isAdminAllowed) {
     if (
-      customerAuth.isAuthenticated &&
-      customerAuth.user?.role?.toLowerCase() === "admin"
+      adminAuth.isAuthenticated &&
+      adminAuth.user?.role?.toLowerCase() === "admin"
     ) {
       return <Outlet />;
     }

@@ -8,25 +8,63 @@ import {
   Settings,
   X,
   LogOut,
+  Store,
+  Layers,
+  Percent,
+  FolderOpen,
+  LifeBuoy,
+  FileSpreadsheet,
+  ShieldAlert,
+  ChevronDown,
+  Star,
 } from "lucide-react";
 import { useState } from "react";
-// import graphuraLogo from "../../assets/logo/logo.webp";
+import { useAdminAuthStore } from "../../store/adminAuthStore";
+import { ArrowLeft } from "lucide-react";
+import ExitAdminModal from "./ExitAdminModal";
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const logoutAdmin = useAdminAuthStore((state) => state.logout);
 
-  const menu = [
-    { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
-    { name: "Products", icon: Package, path: "/admin/products" },
-    { name: "Orders", icon: ShoppingBag, path: "/admin/orders" },
-    { name: "Customers", icon: Users, path: "/admin/customers" },
-    { name: "Analytics", icon: BarChart2, path: "/admin/analytics" },
-    { name: "Inventory", icon: Package, path: "/admin/inventory" },
-    { name: "Payments", icon: ShoppingBag, path: "/admin/payments" },
-    { name: "Applications", icon: ShoppingBag, path: "/admin/pending-applications" },
-    { name: "Our Sellers", icon: ShoppingBag, path: "/admin/active-sellers" },
+  // Group sections for enterprise structural hierarchy
+  const groups = [
+    {
+      title: "Marketplace",
+      items: [
+        { name: "Active Sellers", icon: Store, path: "/admin/active-sellers" },
+        { name: "Pending Review", icon: ShieldAlert, path: "/admin/pending-applications" },
+        { name: "Store Directory", icon: Store, path: "/admin/stores" },
+        { name: "Products List", icon: Package, path: "/admin/products" },
+        { name: "Nested Categories", icon: Layers, path: "/admin/categories" },
+      ],
+    },
+    {
+      title: "Commerce & Users",
+      items: [
+        { name: "Orders Manager", icon: ShoppingBag, path: "/admin/orders" },
+        { name: "Payments & Ledger", icon: FileSpreadsheet, path: "/admin/payments" },
+        { name: "Customer Directory", icon: Users, path: "/admin/customers" },
+      ],
+    },
+    {
+      title: "Support & Audit",
+      items: [
+        { name: "Help Desk Inbox", icon: LifeBuoy, path: "/admin/tickets" },
+        { name: "Role Policies", icon: Settings, path: "/admin/roles" },
+        { name: "Audit Trail logs", icon: FolderOpen, path: "/admin/audit-logs" },
+      ],
+    },
   ];
+
+  const handleLogout = async () => {
+    if (window.confirm("Are you sure you want to log out from the Admin Panel?")) {
+      await logoutAdmin();
+      navigate("/admin/login");
+    }
+  };
 
   return (
     <>
@@ -37,10 +75,9 @@ export default function Sidebar() {
           lg:hidden
           fixed top-3 left-3 sm:top-4 sm:left-4
           z-50
-          bg-white
-          p-2 sm:p-2.5
-          rounded-xl
-          shadow-md
+          bg-white text-[#10B981] border border-slate-200
+          p-2.5 rounded-xl
+          shadow-lg
         "
       >
         ☰
@@ -50,7 +87,7 @@ export default function Sidebar() {
       {open && (
         <div
           onClick={() => setOpen(false)}
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden"
         />
       )}
 
@@ -60,184 +97,142 @@ export default function Sidebar() {
           top-0 left-0
           z-50
           h-screen
-          w-64 sm:w-60
-          bg-white
-          border-r
+          w-64 sm:w-64
+          bg-white text-slate-700
+          border-r border-slate-200/80
           flex flex-col
-          px-4 sm:px-6
-          py-4 sm:py-6
+          px-4
+          py-5
           transition-transform duration-300
           ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* Mobile Header */}
-        <div className="flex items-center justify-between mb-6 lg:hidden">
-          {/* <img loading="lazy" decoding="async"
-            src={graphuraLogo}
-            alt="Graphura"
-            className="h-9 sm:h-10 cursor-pointer"
+        {/* Logo Header */}
+        <div className="flex items-center justify-between mb-6 px-2">
+          <div
             onClick={() => {
               navigate("/admin/dashboard");
               setOpen(false);
             }}
-          /> */}
-          <X
-            className="cursor-pointer"
-            size={20}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-400 to-[#10B981] flex items-center justify-center font-bold text-white text-sm">
+              I
+            </div>
+            <span className="font-display font-black text-slate-800 text-lg tracking-wider">
+              INDIAFY <span className="text-[#10B981] text-xs font-bold block -mt-1 tracking-widest">ENTERPRISE</span>
+            </span>
+          </div>
+          <button
+            className="lg:hidden text-gray-400 hover:text-gray-900"
             onClick={() => setOpen(false)}
-          />
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        {/* Desktop Logo */}
-        <div
-          onClick={() => navigate("/admin/dashboard")}
-          className="hidden lg:flex justify-center mb-6 cursor-pointer"
-        >
-          {/* <img loading="lazy" decoding="async"
-            src={graphuraLogo}
-            alt="Graphura"
-            className="h-14 object-contain"
-          /> */}
+        {/* Back to Website Button */}
+        <div className="mb-4 px-1">
+          <button
+            onClick={() => setShowExitModal(true)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-all duration-200"
+          >
+            <ArrowLeft size={16} />
+            Back to Website
+          </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex flex-col gap-1 sm:gap-2 flex-1 mt-2">
-          {menu.map((item) => {
-            const Icon = item.icon;
+        {/* Navigation scroll box */}
+        <nav className="flex-1 overflow-y-auto no-scrollbar space-y-5 px-1 pr-0 mt-2">
+          {/* Dashboard and Analytics (Standalones) */}
+          <div className="space-y-1">
+            <NavLink
+              to="/admin/dashboard"
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+                  isActive
+                    ? "bg-gradient-to-r from-emerald-500 to-[#10B981] text-white shadow-lg shadow-emerald-500/20"
+                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                }`
+              }
+            >
+              <LayoutDashboard size={18} />
+              Command Center
+            </NavLink>
+            <NavLink
+              to="/admin/analytics"
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+                  isActive
+                    ? "bg-gradient-to-r from-emerald-500 to-[#10B981] text-white shadow-lg shadow-emerald-500/20"
+                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                }`
+              }
+            >
+              <BarChart2 size={18} />
+              BI Analytics
+            </NavLink>
+          </div>
 
-            return (
-              <NavLink
-                key={item.name}
-                to={item.path}
-                onClick={() => setOpen(false)}
-                className={({ isActive }) =>
-                  `
-                    flex items-center gap-3
-                    px-3 sm:px-4
-                    py-2.5 sm:py-3
-                    rounded-xl
-                    font-semibold
-                    text-sm sm:text-base
-                    transition-all
-                    ${
-                      isActive
-                        ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-md"
-                        : "text-gray-600 hover:bg-gray-100"
+          {/* Grouped menus */}
+          {groups.map((group, idx) => (
+            <div key={idx} className="space-y-1">
+              <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase px-3 mb-1">
+                {group.title}
+              </p>
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.name}
+                    to={item.path}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                        isActive
+                          ? "bg-slate-100 text-[#10B981] border-l-4 border-[#10B981] pl-2"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                      }`
                     }
-                  `
-                }
-              >
-                <Icon size={18} />
-                {item.name}
-              </NavLink>
-            );
-          })}
+                  >
+                    <Icon size={16} />
+                    {item.name}
+                  </NavLink>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
-        {/* Divider */}
-        <div className="border-t my-4" />
-
-        {/* Settings */}
-        <NavLink
-          to="/admin/settings"
-          onClick={() => setOpen(false)}
-          className={({ isActive }) =>
-            `
-              flex items-center gap-3
-              px-3 sm:px-4
-              py-2.5 sm:py-3
-              rounded-xl
-              font-semibold
-              text-sm sm:text-base
-              transition-all
-              ${
+        {/* Footer actions */}
+        <div className="border-t border-slate-200 pt-4 mt-3">
+          <NavLink
+            to="/admin/settings"
+            onClick={() => setOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
                 isActive
-                  ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-md"
-                  : "text-gray-600 hover:bg-gray-100"
-              }
-            `
-          }
-        >
-          <Settings size={18} />
-          Settings
-        </NavLink>
+                  ? "bg-slate-100 text-[#10B981] border-l-4 border-[#10B981] pl-2"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              }`
+            }
+          >
+            <Settings size={18} />
+            System Settings
+          </NavLink>
 
-        {/* Logout Button */}
-        <button
-          onClick={() => {
-            // Assuming useAuthStore handles the state
-            // If not available in this scope, we use a simple redirect
-            localStorage.clear(); // Basic clear
-            window.location.href = '/';
-          }}
-          className="
-            flex items-center gap-3
-            px-3 sm:px-4
-            py-2.5 sm:py-3
-            rounded-xl
-            font-semibold
-            text-sm sm:text-base
-            text-red-600 hover:bg-red-50
-            transition-all
-            mt-1
-          "
-        >
-          <LogOut size={18} />
-          Logout
-        </button>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-red-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200 mt-1 text-left"
+          >
+            <LogOut size={18} />
+            Secure Logout
+          </button>
+        </div>
       </aside>
-
-      {/* ================= MEDIA QUERY ================= */}
-      <style>
-        {`
-       @media (max-width: 640px) {
-
-  aside {
-    width: 230px !important;
-    height: 100vh !important;
-    min-height: 100vh !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    padding: 16px !important;
-  }
-
-  aside nav {
-    overflow-y: auto !important;
-  }
-
-  aside nav a {
-    font-size: 14px !important;
-    padding: 10px 12px !important;
-  }
-
-  aside img {
-    height: 36px !important;
-  }
-
-  button {
-    top: 12px !important;
-    left: 12px !important;
-  }
-}
-
-        /* TABLET */
-        @media (min-width: 641px) and (max-width: 1024px) {
-          aside {
-            width: 220px !important;
-            padding: 20px !important;
-          }
-
-          aside nav a {
-            font-size: 15px !important;
-            padding: 12px 14px !important;
-          }
-
-          aside img {
-            height: 48px !important;
-          }
-        }
-        `}
-      </style>
+      <ExitAdminModal isOpen={showExitModal} onClose={() => setShowExitModal(false)} />
     </>
   );
 }

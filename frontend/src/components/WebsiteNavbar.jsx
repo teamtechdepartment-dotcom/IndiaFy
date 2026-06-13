@@ -25,6 +25,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
 import { useSellerAuthStore } from "../store/sellerAuthStore";
+import { useAdminAuthStore } from "../store/adminAuthStore";
 import { useCartStore } from "../store/cartStore";
 import { toast } from "react-toastify";
 
@@ -58,6 +59,7 @@ function WebsiteNavbar() {
   const { user: customerUser, isAuthenticated: isCustomerAuthenticated, logout: logoutCustomer } = useAuthStore();
   const { user: sellerUser, isAuthenticated: isSellerAuthenticated, logout: logoutSeller } = useSellerAuthStore();
   const { cartItems, fetchCart } = useCartStore();
+  const { isAuthenticated: isAdminAuthenticated } = useAdminAuthStore();
 
   const isAuthenticated = isCustomerAuthenticated || isSellerAuthenticated;
   const user = isSellerAuthenticated ? sellerUser : customerUser;
@@ -184,6 +186,14 @@ function WebsiteNavbar() {
                   Sell on Indiafy
                 </button>
               )}
+
+              {/* Admin Panel Link */}
+              <Link
+                to={isAdminAuthenticated ? "/admin/dashboard" : "/admin/login"}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-[#0F172A] text-white hover:bg-slate-800 rounded-full transition-all duration-200 border border-[#10B981]/20 shadow-sm"
+              >
+                Admin Panel
+              </Link>
 
               {/* Cart */}
               <button
@@ -509,6 +519,13 @@ function WebsiteNavbar() {
 
               {/* Footer Actions */}
               <div className="p-5 border-t border-brand-border bg-brand-background/50 flex flex-col gap-2.5">
+                <button
+                  onClick={() => { navigate(isAdminAuthenticated ? "/admin/dashboard" : "/admin/login"); setMenuOpen(false); }}
+                  className="w-full py-3 text-sm font-semibold bg-brand-accent text-white rounded-xl hover:bg-brand-accent-hover transition-colors flex items-center justify-center gap-2"
+                >
+                  Admin Panel
+                </button>
+
                 {isAuthenticated && user ? (
                   <>
                     <button

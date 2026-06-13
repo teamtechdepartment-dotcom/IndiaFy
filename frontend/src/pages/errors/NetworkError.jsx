@@ -51,30 +51,30 @@ export default function NetworkError() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans selection:bg-blue-500 selection:text-white">
-      <div className="w-full max-w-md bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-[2.5rem] p-10 sm:p-14 text-center relative overflow-hidden shadow-2xl">
+    <div className="min-h-screen bg-[#0B1528] flex items-center justify-center p-4 font-sans selection:bg-[#D4AF37] selection:text-black">
+      <div className="w-full max-w-md bg-[#0F1C36]/50 backdrop-blur-xl border border-[#D4AF37]/20 rounded-[2.5rem] p-10 sm:p-14 text-center relative overflow-hidden shadow-2xl">
         
         {/* Glow Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-[#D4AF37]/10 rounded-full blur-[80px] pointer-events-none" />
 
         <div className="relative z-10 flex flex-col items-center">
-          <div className="w-24 h-24 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center mb-8 relative">
-            <div className="absolute inset-0 rounded-full border border-blue-500/20 animate-ping opacity-20" />
-            <WifiOff size={40} className="text-slate-400" />
+          <div className="w-24 h-24 rounded-full bg-[#0B1528] border-2 border-[#D4AF37]/20 flex items-center justify-center mb-8 relative">
+            <div className="absolute inset-0 rounded-full border border-[#D4AF37]/20 animate-ping opacity-20" />
+            <WifiOff size={40} className="text-[#D4AF37]" />
           </div>
 
-          <h1 className="text-3xl font-black text-white tracking-tight mb-3">
-            Connection Lost
+          <h1 className="text-3xl font-display font-black text-white tracking-tight mb-3">
+            Connection <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#AA7C11] to-[#D4AF37]">Lost</span>
           </h1>
           
-          <p className="text-slate-400 font-medium text-sm leading-relaxed mb-10">
-            We're unable to connect to our servers. Please check your internet connection and try again.
+          <p className="text-gray-300 font-medium text-sm leading-relaxed mb-10">
+            We're unable to connect to Indiafy's administration servers. Please check your network connectivity.
           </p>
 
-          <div className="w-full bg-slate-900/50 rounded-2xl p-4 mb-8 flex items-center justify-between border border-slate-700/50">
+          <div className="w-full bg-[#0B1528]/80 rounded-2xl p-4 mb-8 flex items-center justify-between border border-[#D4AF37]/15">
             <div className="flex items-center gap-3">
-              <Activity size={18} className={isOnline ? "text-emerald-500" : "text-rose-500"} />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-300">
+              <Activity size={18} className={isOnline ? "text-emerald-400" : "text-rose-500"} />
+              <span className="text-xs font-bold uppercase tracking-widest text-gray-300">
                 Network Status
               </span>
             </div>
@@ -86,14 +86,14 @@ export default function NetworkError() {
           <button
             onClick={handleRetry}
             disabled={isChecking}
-            className="w-full flex items-center justify-center gap-3 py-4 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-slate-100 transition-all shadow-xl hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
+            className="w-full flex items-center justify-center gap-3 py-4 bg-gradient-to-r from-[#AA7C11] to-[#D4AF37] text-black rounded-2xl font-black uppercase tracking-widest text-[11px] hover:opacity-90 transition-all shadow-xl active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
           >
             {isChecking ? (
               <RefreshCw size={16} className="animate-spin" />
             ) : (
               <ArrowRight size={16} />
             )}
-            {isChecking ? "Checking..." : "Retry Connection"}
+            {isChecking ? "Checking Status..." : "Retry Connection"}
           </button>
         </div>
 

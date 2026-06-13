@@ -159,6 +159,11 @@ const Coupons = lazy(() => import("./pages/admin/Coupons"));
 const AdminInventory = lazy(() => import("./pages/admin/Inventory"));
 const ActiveSellers = lazy(() => import("./pages/admin/ActiveSellers"));
 const PendingApplications = lazy(() => import("./pages/admin/PendingApplications"));
+const StoreManagement = lazy(() => import("./pages/admin/StoreManagement"));
+const CategoryManagement = lazy(() => import("./pages/admin/CategoryManagement"));
+const SupportInbox = lazy(() => import("./pages/admin/SupportInbox"));
+const RoleManagement = lazy(() => import("./pages/admin/RoleManagement"));
+const AuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
 
 /* =========================================================
    APP
@@ -401,6 +406,7 @@ export default function App() {
           {/* =====================================================
               ADMIN
           ===================================================== */}
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
             <Route path="/admin/dashboard" element={<Suspense fallback={<div className="p-6"><DashboardSkeleton /></div>}><AdminDashboard /></Suspense>} />
@@ -416,6 +422,11 @@ export default function App() {
             <Route path="/admin/inventory" element={<AdminInventory />} />
             <Route path="/admin/active-sellers" element={<ActiveSellers />} />
             <Route path="/admin/pending-applications" element={<PendingApplications />} />
+            <Route path="/admin/stores" element={<StoreManagement />} />
+            <Route path="/admin/categories" element={<CategoryManagement />} />
+            <Route path="/admin/tickets" element={<SupportInbox />} />
+            <Route path="/admin/roles" element={<RoleManagement />} />
+            <Route path="/admin/audit-logs" element={<AuditLogs />} />
           </Route>
 
           {/* =====================================================

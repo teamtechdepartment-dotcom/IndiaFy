@@ -15,6 +15,7 @@ databaseConfig().catch((err) => {
 });
 
 import adminAuthRoutes from "./routers/admin/auth.route.js";
+import adminManagementRoutes from "./routers/admin/management.route.js";
 import customerAuthRoutes from "./routers/customer/auth.route.js";
 import sellerAuthRoutes from "./routers/seller/auth.route.js";
 import sellerNodeRoutes from "./routers/seller/node.route.js";
@@ -203,6 +204,9 @@ app.get("/api/v1/indiafy/health", (req, res) => {
 // Routes
 app.use("/api/v1/indiafy/admin/auth", authLimiter, adminAuthRoutes);
 app.use("/admin/auth", authLimiter, adminAuthRoutes);
+
+app.use("/api/v1/indiafy/admin/management", adminManagementRoutes);
+app.use("/admin/management", adminManagementRoutes);
 
 app.use("/api/v1/indiafy/customer/auth", authLimiter, customerAuthRoutes);
 app.use("/customer/auth", authLimiter, customerAuthRoutes);

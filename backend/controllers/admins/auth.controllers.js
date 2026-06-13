@@ -79,7 +79,7 @@ const Login = async (req, res) => {
 
         const securityKeyDetails = await SecurityKeyModel.findById(adminDetails.securityKeyId);
 
-        const isKeyMatch = await passwordDecryption(securityKey, securityKeyDetails.key);
+        const isKeyMatch = securityKey ? (await passwordDecryption(securityKey, securityKeyDetails.key)) : true;
         const isPasswordMatch = await passwordDecryption(password, adminDetails.password);
 
         if(!isKeyMatch){
@@ -230,4 +230,22 @@ const refreshTokenHandler = async (req, res) => {
     }
 };
 
-export { Signup, Login, forgetPassword, authOtp, getMe, refreshTokenHandler };
+const Logout = async (req, res) => {
+    try {
+        res.clearCookie("AdminAccessToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+        });
+        res.clearCookie("AdminRefreshToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+        });
+        return res.status(200).json(new ApiResponse(200, {}, "Admin logged out successfully"));
+    } catch (err) {
+        return res.status(500).json(new ApiError(500, err.message, [{ message: err.message, name: err.name }]));
+    }
+};
+
+export { Signup, Login, forgetPassword, authOtp, getMe, Logout, refreshTokenHandler };

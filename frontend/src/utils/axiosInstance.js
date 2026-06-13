@@ -69,8 +69,17 @@ axiosInstance.interceptors.request.use(
                 return null;
             };
 
+            const getAdminToken = () => {
+                const adminStorage = localStorage.getItem('indiafy-admin-auth-storage');
+                if (adminStorage) {
+                    const { state } = JSON.parse(adminStorage);
+                    return state?.token || null;
+                }
+                return null;
+            };
+
             if (isAdminRoute) {
-                token = getCustomerToken();
+                token = getAdminToken();
             } else if (isCustomerRoute) {
                 token = getCustomerToken();
             } else {
@@ -210,7 +219,7 @@ axiosInstance.interceptors.response.use(
                     } else if (isAdminReq) {
                         refreshUrl = '/admin/auth/refresh';
                         try {
-                            const storage = localStorage.getItem('indiafy-auth-storage');
+                            const storage = localStorage.getItem('indiafy-admin-auth-storage');
                             if (storage) currentRefreshToken = JSON.parse(storage).state?.refreshToken;
                         } catch(e){}
                     } else {
@@ -230,7 +239,7 @@ axiosInstance.interceptors.response.use(
                                     try {
                                         let storageKey = 'indiafy-auth-storage';
                                         if (isSellerReq) storageKey = 'indiafy-seller-auth-storage';
-                                        if (isAdminReq) storageKey = 'indiafy-auth-storage';
+                                        if (isAdminReq) storageKey = 'indiafy-admin-auth-storage';
                                         
                                         const storageData = localStorage.getItem(storageKey);
                                         if (storageData) {
@@ -266,7 +275,8 @@ axiosInstance.interceptors.response.use(
             
             // Handle 403 Forbidden
             else if (status === 403) {
-                if (window.location.pathname !== '/403') {
+                const isProtectedRoute = window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/seller') || window.location.pathname.startsWith('/seller-hub');
+                if (isProtectedRoute && window.location.pathname !== '/403') {
                     window.location.href = '/403';
                 }
             }
