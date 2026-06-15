@@ -37,7 +37,7 @@ export default function ProductManagement() {
       // res = { statusCode, data: products, message }
       const data = res.data || res;
       setProducts(data || []);
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to load products list");
     } finally {
       setLoading(false);
@@ -55,7 +55,7 @@ export default function ProductManagement() {
       });
       toast.success(!currentPublished ? "Product approved and published" : "Product archived");
       fetchProducts();
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to update product status");
     }
   };
@@ -67,7 +67,7 @@ export default function ProductManagement() {
       });
       toast.success(!currentActive ? "Product activated" : "Product suspended");
       fetchProducts();
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to update product status");
     }
   };

@@ -21,7 +21,7 @@ export default function PendingApplications() {
         (seller) => seller.verificationStatus === "Pending" || seller.verificationStatus === "Under Review"
       );
       setApplications(pendings);
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to load seller applications");
     } finally {
       setLoading(false);
@@ -39,7 +39,7 @@ export default function PendingApplications() {
       });
       toast.success("Merchant application approved!");
       fetchApplications();
-    } catch (err) {
+    } catch (_err) {
       toast.error("Approval action failed");
     }
   };
@@ -52,7 +52,7 @@ export default function PendingApplications() {
         });
         toast.success("Merchant application rejected");
         fetchApplications();
-      } catch (err) {
+      } catch (_err) {
         toast.error("Rejection action failed");
       }
     }

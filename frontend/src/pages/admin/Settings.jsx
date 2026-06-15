@@ -53,7 +53,7 @@ export default function Settings() {
         setSessionTimeout(data.security?.sessionTimeoutMinutes || 30);
         setIpWhitelist(data.security?.ipWhitelist?.join(", ") || "");
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to load global settings");
     } finally {
       setLoading(false);
@@ -95,7 +95,7 @@ export default function Settings() {
       });
       toast.success("System configurations saved successfully!");
       fetchSettings();
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to save settings");
     }
   };

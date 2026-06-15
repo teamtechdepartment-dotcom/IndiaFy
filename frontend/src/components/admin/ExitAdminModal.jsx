@@ -19,8 +19,8 @@ export default function ExitAdminModal({ isOpen, onClose }) {
         id: "admin-logout-success",
       });
       navigate("/", { replace: true });
-    } catch (err) {
-      toast.error(err.message || "Failed to exit securely. Please try again.");
+    } catch (_err) {
+      toast.error(_err?.message || "Failed to exit securely. Please try again.");
     } finally {
       setLoading(false);
       onClose();

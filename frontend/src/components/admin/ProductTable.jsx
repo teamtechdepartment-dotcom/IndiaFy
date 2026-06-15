@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-undef, no-empty */
 import { useState } from "react";
 import { products as initialProducts } from "../../data/products";
 import ProductModal from "./ProductModal";

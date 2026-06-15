@@ -17,7 +17,7 @@ export default function AuditLogs() {
       const res = await axiosInstance.get("/admin/management/audit-logs");
       const data = res.data || res;
       setLogs(data || []);
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to load audit trails");
     } finally {
       setLoading(false);

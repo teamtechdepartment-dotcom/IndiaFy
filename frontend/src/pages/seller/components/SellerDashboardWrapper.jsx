@@ -34,6 +34,7 @@ export default function SellerDashboardWrapper() {
       Promise.resolve().then(() => setHasLoaded(true));
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadNode();
   }, [nodeId, activeNode?._id, loadNode]);
 

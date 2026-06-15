@@ -28,7 +28,7 @@ export const useAuthStore = create(
         // Clear local cart store memory dynamically
         try {
           import('./cartStore.js').then(m => m.useCartStore.setState({ cartItems: [], totalPrice: 0 }));
-        } catch (e) {}
+        } catch (_e) { /* ignore */ }
         set({ 
           user: null, 
           token: null, 
@@ -41,13 +41,13 @@ export const useAuthStore = create(
       logout: async () => {
         try {
           await axiosInstance.post('/customer/auth/logout');
-        } catch (err) {
-          console.error("Customer logout failed on backend:", err);
+        } catch (_err) {
+          console.error("Customer logout failed on backend:", _err);
         }
         // Clear local cart store memory dynamically
         try {
           import('./cartStore.js').then(m => m.useCartStore.setState({ cartItems: [], totalPrice: 0 }));
-        } catch (e) {}
+        } catch (_e) { /* ignore */ }
         set({
           user: null,
           token: null,
@@ -76,8 +76,8 @@ export const useAuthStore = create(
             isAuthenticated: true,
             isBackendAvailable: true
           });
-        } catch (err) {
-          if (err.code === "ERR_NETWORK") {
+        } catch (_err) {
+          if ((_err).code === "ERR_NETWORK") {
             if (retries > 0) {
               console.log(`Retrying fetchMe... (${retries} attempts left)`);
               await new Promise(resolve => setTimeout(resolve, 1000));
@@ -87,13 +87,13 @@ export const useAuthStore = create(
             return;
           }
           
-          if (err.response?.status === 401) {
+          if (_err?.response?.status === 401) {
             get().clearSession();
             set({ isBackendAvailable: true });
             return;
           }
 
-          throw err;
+          throw _err;
         }
       }
     }),

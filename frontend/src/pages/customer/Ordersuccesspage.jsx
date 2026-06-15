@@ -37,8 +37,8 @@ export default function OrderSuccessPage() {
         try {
           const res = await axiosInstance.get(`/orders/${orderId}`);
           setOrder(res.data || res);
-        } catch (err) {
-          console.error("Fetch order success details failed", err);
+        } catch (_err) {
+          console.error("Fetch order success details failed", _err);
         } finally {
           setLoading(false);
         }

@@ -43,8 +43,8 @@ export const useSellerAuthStore = create(
       logout: async () => {
         try {
           await axiosInstance.post('/seller/auth/logout');
-        } catch (err) {
-          console.error('Seller logout failed on backend:', err);
+        } catch (_err) {
+          console.error('Seller logout failed on backend:', _err);
         }
         set({ user: null, token: null, refreshToken: null, isAuthenticated: false, expiresAt: null });
       },
@@ -86,8 +86,8 @@ export const useSellerAuthStore = create(
             // Response came back but no valid user object — clear auth
             set({ user: null, isAuthenticated: false, isBackendAvailable: true });
           }
-        } catch (err) {
-          if (err.code === "ERR_NETWORK") {
+        } catch (_err) {
+          if ((_err).code === "ERR_NETWORK") {
             if (retries > 0) {
               console.log(`Retrying seller fetchMe... (${retries} attempts left)`);
               await new Promise(resolve => setTimeout(resolve, 1000));
@@ -97,13 +97,13 @@ export const useSellerAuthStore = create(
             return;
           }
           
-          if (err.response?.status === 401) {
+          if (_err?.response?.status === 401) {
             get().clearSession();
             set({ isBackendAvailable: true });
             return;
           }
 
-          throw err;
+          throw _err;
         }
       },
     }),

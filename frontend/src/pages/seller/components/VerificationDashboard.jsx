@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ShieldAlert, ShieldCheck, FileText, CheckCircle2, AlertTriangle,
   X, Eye, Download, RefreshCw, Clock, Building2, MapPin,
@@ -140,7 +140,7 @@ export default function VerificationDashboard({ node }) {
           setShowCelebration(true);
         }
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to update verification status simulation");
     } finally {
       setIsLoading(false);
@@ -171,7 +171,7 @@ export default function VerificationDashboard({ node }) {
         toast.success("Congratulations! Store approved completely.");
         setShowCelebration(true);
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to simulate store approval");
     } finally {
       setIsLoading(false);
@@ -211,7 +211,7 @@ export default function VerificationDashboard({ node }) {
           addLog(`Replaced document: ${field}`);
           toast.success("Document updated. Resubmitted for compliance audit.");
         }
-      } catch (err) {
+      } catch (_err) {
         toast.error("Failed to replace document");
       } finally {
         setIsLoading(false);

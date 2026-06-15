@@ -12,9 +12,9 @@ export const useProfileStore = create((set, get) => ({
       const res = await axiosInstance.get('/customer/profile');
       // res = { statusCode, data: profileObj, message }
       set({ profile: res.data || null });
-    } catch (err) {
-      console.error("fetchProfile error:", err);
-      set({ error: err.response?.data?.message || 'Failed to fetch profile' });
+    } catch (_err) {
+      console.error("fetchProfile error:", _err);
+      set({ error: _err?.response?.data?.message || 'Failed to fetch profile' });
     } finally {
       set({ isLoading: false });
     }

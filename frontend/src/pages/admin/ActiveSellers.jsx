@@ -18,7 +18,7 @@ export default function ActiveSellers() {
       // res = { statusCode, data: sellers, message }
       const data = res.data || res;
       setSellers(data || []);
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to load platform sellers");
     } finally {
       setLoading(false);
@@ -35,7 +35,7 @@ export default function ActiveSellers() {
       toast.success(`Seller status updated to ${status}`);
       // Refresh
       fetchSellers();
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to modify seller status");
     }
   };
@@ -45,7 +45,7 @@ export default function ActiveSellers() {
       await axiosInstance.put(`/admin/management/sellers/${id}/status`, { commissionRate });
       toast.success("Seller commission rate updated successfully");
       fetchSellers();
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to adjust commission");
     }
   };

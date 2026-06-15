@@ -158,6 +158,7 @@ export default function SellerHub() {
       navigate("/seller/login", { replace: true });
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadNodes();
   }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 

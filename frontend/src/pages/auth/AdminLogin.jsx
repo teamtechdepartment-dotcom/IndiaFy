@@ -31,9 +31,9 @@ const AdminLogin = () => {
       } else {
         setError("Login failed: Invalid response");
       }
-    } catch (err) {
+    } catch (_err) {
       setError(
-        err.response?.data?.message || err.message || "Server error. Please try again."
+        _err?.response?.data?.message || _err?.message || "Server error. Please try again."
       );
     } finally {
       setLoading(false);

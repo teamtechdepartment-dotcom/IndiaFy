@@ -43,7 +43,7 @@ export default function Orders() {
     try {
       await updateOrderStatus(orderId, "Processing");
       toast.success("Order accepted and moved to Live Fulfillment");
-    } catch (e) {
+    } catch (_err) {
       toast.error("Failed to accept order");
     }
   };
@@ -52,7 +52,7 @@ export default function Orders() {
     try {
       await updateOrderStatus(orderId, "Cancelled");
       toast.info("Order rejected");
-    } catch (e) {
+    } catch (_err) {
       toast.error("Failed to reject order");
     }
   };

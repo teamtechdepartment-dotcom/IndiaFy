@@ -32,17 +32,17 @@ export const useNodeStore = create(
             set({ activeNode: node });
             try {
               localStorage.setItem('activeNode', JSON.stringify(node));
-            } catch (storageErr) {
+            } catch (_storageErr) {
               // ignore quota errors
             }
             return node;
           }
           set({ error: 'Node not found' });
           return null;
-        } catch (err) {
+        } catch (_err) {
           const errMsg =
-            err?.response?.data?.message ||
-            err?.message ||
+            _err?.response?.data?.message ||
+            _err?.message ||
             'Failed to load store node';
           set({ error: errMsg });
           return null;
@@ -62,10 +62,10 @@ export const useNodeStore = create(
           const nodes = Array.isArray(res?.nodes) ? res.nodes : [];
           set({ nodes });
           return nodes;
-        } catch (err) {
+        } catch (_err) {
           const errMsg =
-            err?.response?.data?.message ||
-            err?.message ||
+            _err?.response?.data?.message ||
+            _err?.message ||
             'Failed to load seller nodes';
           set({ error: errMsg, nodes: [] });
           return [];

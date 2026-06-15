@@ -75,8 +75,8 @@ export default function NearbyStores() {
         setLoading(true);
         const res = await axiosInstance.get("/public/stores?limit=8");
         setStores(res?.stores || []);
-      } catch (err) {
-        console.error("Fetch nearby stores failed:", err);
+      } catch (_err) {
+        console.error("Fetch nearby stores failed:", _err);
         setStores([]);
       } finally {
         setLoading(false);

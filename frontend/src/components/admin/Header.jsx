@@ -42,7 +42,7 @@ export default function Header() {
       try {
         await axiosInstance.get("/admin/management/health");
         setHealthStatus("Online");
-      } catch (err) {
+      } catch (_err) {
         setHealthStatus("Offline");
       }
     };

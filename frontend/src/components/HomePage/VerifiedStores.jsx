@@ -138,8 +138,8 @@ export default function VerifiedStores() {
         const res = await axiosInstance.get("/public/stores?limit=8");
         const fetchedStores = res?.stores || [];
         setStores(fetchedStores);
-      } catch (err) {
-        console.error("Fetch public stores failed:", err);
+      } catch (_err) {
+        console.error("Fetch public stores failed:", _err);
         setStores([]);
       } finally {
         setLoading(false);

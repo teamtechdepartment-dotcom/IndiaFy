@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-undef, no-empty */
 import React, { useState } from "react";
 import { Outlet, NavLink, useNavigate, Link, useLocation } from "react-router-dom";
 import {

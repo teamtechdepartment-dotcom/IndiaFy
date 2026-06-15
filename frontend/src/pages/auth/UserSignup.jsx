@@ -111,7 +111,7 @@ const UserSignup = () => {
           try {
             await addToCart(productId, quantity);
             navigate("/checkout", { state: { testProduct: product } });
-          } catch (err) {
+          } catch (_err) {
             navigate("/checkout", { state: { testProduct: product } });
           }
         } else {
@@ -120,10 +120,10 @@ const UserSignup = () => {
       } else {
         toast.error(res.message || "Signup failed");
       }
-    } catch (err) {
-      console.error("Signup error:", err);
+    } catch (_err) {
+      console.error("Signup error:", _err);
       toast.error(
-        err.response?.data?.message || err.message || "Registration failed. Please try again.",
+        _err?.response?.data?.message || _err?.message || "Registration failed. Please try again.",
       );
     } finally {
       setLoading(false);

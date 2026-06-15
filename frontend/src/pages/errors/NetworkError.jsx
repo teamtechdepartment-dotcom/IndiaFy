@@ -16,7 +16,7 @@ export default function NetworkError() {
       try {
         await axiosInstance.get('/health');
         setIsOnline(true);
-      } catch (err) {
+      } catch (_err) {
         setIsOnline(false);
       }
     };
@@ -44,7 +44,7 @@ export default function NetworkError() {
     try {
       await axiosInstance.get('/health');
       window.location.href = '/';
-    } catch (err) {
+    } catch (_err) {
       setIsOnline(false);
       setIsChecking(false);
     }

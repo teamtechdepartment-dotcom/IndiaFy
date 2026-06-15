@@ -35,8 +35,8 @@ export const useAdminAuthStore = create(
       logout: async () => {
         try {
           await axiosInstance.post('/admin/auth/logout');
-        } catch (err) {
-          console.error("Admin logout failed on backend:", err);
+        } catch (_err) {
+          console.error("Admin logout failed on backend:", _err);
         }
         set({
           user: null,
@@ -77,8 +77,8 @@ export const useAdminAuthStore = create(
           } else {
             set({ user: null, isAuthenticated: false, isBackendAvailable: true });
           }
-        } catch (err) {
-          if (err.code === "ERR_NETWORK") {
+        } catch (_err) {
+          if ((_err).code === "ERR_NETWORK") {
             if (retries > 0) {
               console.log(`Retrying admin fetchMe... (${retries} attempts left)`);
               await new Promise(resolve => setTimeout(resolve, 1000));
@@ -88,13 +88,13 @@ export const useAdminAuthStore = create(
             return;
           }
           
-          if (err.response?.status === 401) {
+          if (_err?.response?.status === 401) {
             get().clearSession();
             set({ isBackendAvailable: true });
             return;
           }
 
-          throw err;
+          throw _err;
         }
       }
     }),

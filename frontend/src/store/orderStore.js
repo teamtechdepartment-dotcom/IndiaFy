@@ -20,8 +20,8 @@ export const useOrderStore = create((set) => ({
       // res = { statusCode, data: [orders], message }
       const orders = res.data || res || [];
       set({ orders: Array.isArray(orders) ? orders : [] });
-    } catch (err) {
-      set({ error: err.response?.data?.message || 'Failed to fetch orders' });
+    } catch (_err) {
+      set({ error: _err?.response?.data?.message || 'Failed to fetch orders' });
     } finally {
       set({ isLoading: false });
     }
@@ -35,8 +35,8 @@ export const useOrderStore = create((set) => ({
       });
       const orders = res.data || res || [];
       set({ sellerOrders: Array.isArray(orders) ? orders : [] });
-    } catch (err) {
-      set({ error: err.response?.data?.message || 'Failed to fetch seller orders' });
+    } catch (_err) {
+      set({ error: _err?.response?.data?.message || 'Failed to fetch seller orders' });
     } finally {
       set({ isLoading: false });
     }
@@ -67,9 +67,9 @@ export const useOrderStore = create((set) => ({
       if (res && res.data) return res.data;
       if (res && res._id) return res; // Already the order object
       return res;
-    } catch (err) {
-      console.error("fetchOrderById error:", err);
-      throw err;
+    } catch (_err) {
+      console.error("fetchOrderById error:", _err);
+      throw _err;
     }
   }
 }));

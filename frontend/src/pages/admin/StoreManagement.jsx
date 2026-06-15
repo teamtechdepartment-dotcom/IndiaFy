@@ -19,7 +19,7 @@ export default function StoreManagement() {
       const res = await axiosInstance.get("/admin/management/stores");
       const data = res.data || res;
       setStores(data || []);
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to load storefront directories");
     } finally {
       setLoading(false);
@@ -46,7 +46,7 @@ export default function StoreManagement() {
       toast.success("Store SEO & dispatch parameters saved");
       setEditingStore(null);
       fetchStores();
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to update store settings");
     }
   };

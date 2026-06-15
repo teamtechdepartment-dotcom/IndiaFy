@@ -187,8 +187,8 @@ export default function Stores() {
       const res = await axiosInstance.get(`/public/stores?${params}`);
       setStores(res?.stores || []);
       setTotal(res?.total || 0);
-    } catch (err) {
-      console.error("Fetch stores error:", err);
+    } catch (_err) {
+      console.error("Fetch stores error:", _err);
       setStores([]);
     } finally {
       setLoading(false);

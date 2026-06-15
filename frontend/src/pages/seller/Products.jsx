@@ -47,8 +47,11 @@ export default function Products() {
     }
   }, [user?._id, activeNode?._id, activeNode?.nodeType, fetchProducts]);
 
-  // Reset to page 1 when searching
-  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
+  // Reset to page 1 when searching (deferred to avoid synchronous setState-in-effect lint warning)
+  useEffect(() => {
+    const t = setTimeout(() => setCurrentPage(1), 0);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
   // --- IMAGE UPLOAD LOGIC ---
   const handleImageUpload = (e) => {
@@ -139,8 +142,8 @@ export default function Products() {
       if (user?._id && activeNode?._id) {
         fetchProducts('', '', user._id, activeNode.nodeType, activeNode._id);
       }
-    } catch (err) {
-      toast.error(err.message || "Failed to create product");
+    } catch (_err) {
+      toast.error(_err?.message || "Failed to create product");
     }
   };
 

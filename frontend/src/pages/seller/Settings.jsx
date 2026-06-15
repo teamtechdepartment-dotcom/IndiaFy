@@ -250,8 +250,8 @@ export default function Settings({ storeDetails, setStoreDetails }) {
         toast.success("Settings updated successfully");
         setTimeout(() => setShowSuccess(false), 3000);
       }
-    } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Failed to update settings");
+    } catch (_err) {
+      toast.error(_err?.response?.data?.message || _err?.message || "Failed to update settings");
     } finally {
       setIsSaving(false);
     }
@@ -282,9 +282,9 @@ export default function Settings({ storeDetails, setStoreDetails }) {
           window.location.href = "/seller-hub";
         }, 1500);
       }
-    } catch (err) {
-      console.error("Delete store failed:", err);
-      toast.error(err?.response?.data?.message || err?.message || "Failed to delete store. Please try again.");
+    } catch (_err) {
+      console.error("Delete store failed:", _err);
+      toast.error(_err?.response?.data?.message || _err?.message || "Failed to delete store. Please try again.");
     } finally {
       setIsDeleting(false);
     }
