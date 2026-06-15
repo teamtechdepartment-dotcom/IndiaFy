@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-undef, no-empty */
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useCartStore } from "../../store/cartStore";
@@ -35,6 +35,7 @@ export default function CheckoutPage() {
   const [selectedAddr, setSelectedAddr] = useState(1);
   const [payMethod, setPayMethod] = useState("test");
   const [isPlacing, setIsPlacing] = useState(false);
+  const orderPlacedRef = useRef(false); // Guard: prevent cart-empty redirect after order placed
 
   const { cartItems, fetchCart, clearCartStore } = useCartStore();
   const { profile, fetchProfile } = useProfileStore();
@@ -56,6 +57,7 @@ export default function CheckoutPage() {
   }, [fetchCart, fetchProfile, isAuthenticated, navigate, location.pathname]);
 
   useEffect(() => {
+    if (orderPlacedRef.current) return; // Don't redirect if order was just placed
     if (cartItems !== null && cartItems.length === 0 && !location.state?.testProduct) {
       toast.info("Your basket is empty. Please add items first.");
       navigate("/quick-commerce");
@@ -139,6 +141,13 @@ export default function CheckoutPage() {
 
     setIsPlacing(true);
     setShowManualConfirm(false);
+
+    // Helper: navigate to success safely, always clear cart first but never block on it
+    const goToSuccess = async (orderId) => {
+      orderPlacedRef.current = true; // prevent cart-empty useEffect redirect
+      try { await clearCartStore(); } catch (_e) { /* ignore cart clear errors */ }
+      navigate("/order-success", { state: { orderId } });
+    };
     try {
       let newOrder = null;
 
@@ -186,8 +195,7 @@ export default function CheckoutPage() {
       // 2. If COD, we are done
       if (payMethod === "cod") {
         toast.success("Order placed successfully (COD)!");
-        await clearCartStore();
-        navigate("/order-success", { state: { orderId: newOrder._id } });
+        await goToSuccess(newOrder._id);
         return;
       }
 
@@ -200,9 +208,8 @@ export default function CheckoutPage() {
             orderId: newOrder._id
           });
           toast.success("Order placed successfully (Simulator Payment)!");
-          await clearCartStore();
-          navigate("/order-success", { state: { orderId: newOrder._id } });
-        } catch (simErr) {
+          await goToSuccess(newOrder._id);
+        } catch (_simErr) {
           toast.error("Failed to process simulator payment");
           setIsPlacing(false);
         }
@@ -256,8 +263,7 @@ export default function CheckoutPage() {
               orderId: newOrder._id
             });
             toast.success("Payment successful!");
-            await clearCartStore();
-            navigate("/order-success", { state: { orderId: newOrder._id } });
+            await goToSuccess(newOrder._id);
           } catch (_err) {
             toast.error("Payment verification failed. Use manual confirm.");
             setShowManualConfirm(true);
