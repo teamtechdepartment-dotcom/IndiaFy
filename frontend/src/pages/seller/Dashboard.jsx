@@ -16,6 +16,7 @@ import {
 import SEOHead from "../../components/seo/SEOHead";
 import { useOrderStore } from "../../store/orderStore";
 import { useNodeStore } from "../../store/nodeStore";
+import VerificationDashboard from "./components/VerificationDashboard";
 
 export default function Dashboard() {
   const { activeNode } = useNodeStore();
@@ -95,6 +96,18 @@ export default function Dashboard() {
             </button>
           </Link>
         </div>
+      </div>
+    );
+  }
+
+  if (activeNode && activeNode.isVerified === false) {
+    return (
+      <div className="space-y-6">
+        <SEOHead 
+          title="Verification Dashboard | Indiafy"
+          noindex={true}
+        />
+        <VerificationDashboard node={activeNode} />
       </div>
     );
   }

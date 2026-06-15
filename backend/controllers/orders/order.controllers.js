@@ -5,6 +5,7 @@ import ApiError from "../../utils/apiError.js";
 import ApiResponse from "../../utils/apiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { getIO } from "../../utils/socket.js";
+import { sendOrderNotifications } from "../../utils/orderNotification.js";
 
 // @desc    Create new order
 // @route   POST /api/v1/indiafy/orders
@@ -103,6 +104,11 @@ export const createOrder = asyncHandler(async (req, res) => {
         } catch (err) {
             console.error("Socket emission failed:", err.message);
         }
+
+        // Send email and simulated SMS notifications
+        sendOrderNotifications(createdOrder).catch(err => {
+            console.error("[Notification] Failed to send order notifications:", err);
+        });
     }
 
     return res.status(201).json(new ApiResponse(201, createdOrder, "Order placed successfully"));

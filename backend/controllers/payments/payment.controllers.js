@@ -10,7 +10,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 // @route   POST /api/v1/indiafy/payments/create-order
 // @access  Private (Customer)
 export const createRazorpayOrder = asyncHandler(async (req, res) => {
-    const { amount } = req.body; // Amount in INR
+    const { amount, orderId } = req.body; // Amount in INR, optional orderId
 
     if (!amount || isNaN(amount)) {
         throw new ApiError(400, "Valid amount is required");
@@ -42,6 +42,7 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
         amount: Math.round(amount * 100), // Ensure it's an integer in paise
         currency: "INR",
         receipt: `receipt_order_${Date.now()}`,
+        notes: orderId ? { mongoOrderId: orderId } : {}
     };
 
     console.log("Creating Razorpay Order with options:", JSON.stringify(options));
@@ -147,6 +148,12 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         } catch (err) {
             console.error("Socket emission failed in payment verify:", err.message);
         }
+
+        // 3. Send email/SMS notifications
+        const { sendOrderNotifications } = await import("../../utils/orderNotification.js");
+        sendOrderNotifications(order).catch(err => {
+            console.error("[Notification] Verification notifications failed:", err);
+        });
     }
 
     return res.status(200).json(new ApiResponse(200, { verified: true }, "Payment verified & Stock synced"));
@@ -165,3 +172,79 @@ export const getRazorpayKey = asyncHandler(async (req, res) => {
     const activeKeyId = key_id || "rzp_test_Sm5HFLdh2qH4N1";
     return res.status(200).json(new ApiResponse(200, { key: activeKeyId }, "Razorpay Key ID fetched successfully"));
 });
+
+// @desc    Razorpay Webhook for payment capture events
+// @route   POST /api/v1/indiafy/payments/webhook
+// @access  Public (Called by Razorpay)
+export const razorpayWebhook = asyncHandler(async (req, res) => {
+    const signature = req.headers["x-razorpay-signature"];
+    const webhookSecret = process.env.Razorpay_Webhook_Secret || "test_secret";
+
+    const shasum = crypto.createHmac("sha256", webhookSecret);
+    shasum.update(JSON.stringify(req.body));
+    const digest = shasum.digest("hex");
+
+    if (signature !== digest && process.env.NODE_ENV === "production") {
+        return res.status(400).json(new ApiError(400, "Invalid webhook signature"));
+    }
+
+    const { event, payload } = req.body;
+
+    if (event === "payment.captured" || event === "order.paid") {
+        const paymentEntity = payload.payment.entity;
+        const razorpay_payment_id = paymentEntity.id;
+        const mongoOrderId = paymentEntity.notes?.mongoOrderId;
+
+        if (mongoOrderId) {
+            const order = await OrderModel.findById(mongoOrderId);
+            if (order && !order.isPaid) {
+                order.isPaid = true;
+                order.paidAt = Date.now();
+                order.paymentResult = {
+                    id: razorpay_payment_id,
+                    status: "success",
+                    update_time: new Date().toISOString(),
+                };
+                order.status = "Processing";
+                await order.save();
+
+                // Deduct stock
+                for (const item of order.orderItems) {
+                    const product = await ProductModel.findById(item.product);
+                    if (product) {
+                        const newQty = parseInt(product.attribute.quantity) - item.quantity;
+                        product.attribute.quantity = newQty.toString();
+                        await product.save();
+                    }
+                }
+
+                // Send email/SMS notifications
+                const { sendOrderNotifications } = await import("../../utils/orderNotification.js");
+                sendOrderNotifications(order).catch(err => {
+                    console.error("[Notification] Webhook notifications failed:", err);
+                });
+
+                // Emit Socket.IO Event
+                try {
+                    const io = await import("../../utils/socket.js").then(m => m.getIO());
+                    order.orderItems.forEach(item => {
+                        const sellerId = item.seller.toString();
+                        const nodeType = item.nodeType || "local";
+                        const roomName = `seller_${sellerId}_node_${nodeType}`;
+                        io.to(roomName).emit("NEW_ORDER", {
+                            orderId: order._id,
+                            totalPrice: order.totalPrice,
+                            status: order.status,
+                            createdAt: order.createdAt
+                        });
+                    });
+                } catch (err) {
+                    console.error("Socket emission failed in payment webhook:", err.message);
+                }
+            }
+        }
+    }
+
+    return res.status(200).json(new ApiResponse(200, { received: true }, "Webhook processed successfully"));
+});
+

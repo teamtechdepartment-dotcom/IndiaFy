@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { 
   Store, MapPin, Bell, Shield, Save, CheckCircle2,
-  Loader2, Mail, Phone, Landmark, Building, Power, AlertTriangle, Copy, Trash2
+  Loader2, Mail, Phone, Landmark, Building, Power, AlertTriangle, Copy, Trash2, Plus
 } from "lucide-react";
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
@@ -53,6 +53,7 @@ const Toggle = ({ label, description, checked, onChange, disabled }) => (
 
 export default function Settings({ storeDetails, setStoreDetails }) {
   const fileInputRef = useRef(null);
+  const bannerFileInputRef = useRef(null);
   
   const { activeNode, updateActiveNode } = useNodeStore();
   
@@ -61,7 +62,7 @@ export default function Settings({ storeDetails, setStoreDetails }) {
     address: "", gstin: "",
     accountName: "", accountNumber: "", ifsc: "", bankName: "",
     orderAlerts: true, autoAccept: false, promotionalEmails: true,
-    isStoreOpen: true, isDeactivated: false, logo: null
+    isStoreOpen: true, isDeactivated: false, logo: null, banner: null
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -78,6 +79,7 @@ export default function Settings({ storeDetails, setStoreDetails }) {
       address: activeNode.address || "",
       gstin: activeNode.gstin || "",
       logo: activeNode.logo || null,
+      banner: activeNode.banner || null,
       accountName: activeNode.accountName || "",
       accountNumber: activeNode.accountNumber || "",
       ifsc: activeNode.ifsc || "",
@@ -128,6 +130,26 @@ export default function Settings({ storeDetails, setStoreDetails }) {
     if(fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const handleBannerUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File size exceeds the 10MB limit. Please choose a smaller image.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleChange('banner', reader.result); 
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveBanner = () => {
+    handleChange('banner', null);
+    if(bannerFileInputRef.current) bannerFileInputRef.current.value = "";
+  };
+
   const handleCopyLink = () => {
     const storeName = formData.name || "store";
     navigator.clipboard.writeText(`indiafy.com/${storeName.toLowerCase().replace(/\s+/g, '-')}`);
@@ -153,6 +175,7 @@ export default function Settings({ storeDetails, setStoreDetails }) {
         const nodePayload = {
           storeName: formData.name,
           logo: formData.logo,
+          banner: formData.banner,
           email: formData.email,
           phone: formData.phone,
           address: formData.address,
@@ -171,18 +194,19 @@ export default function Settings({ storeDetails, setStoreDetails }) {
         res = await axiosInstance.put(`/seller/nodes/${activeNode._id}`, nodePayload);
 
         // Update nodeStore instantly so sidebar reflects changes
-        if (updateActiveNode) {
+        if (updateActiveNode && res.node) {
           updateActiveNode({
-            storeName: formData.name,
-            logo: formData.logo,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-            gstin: formData.gstin,
-            orderAlerts: formData.orderAlerts,
-            autoAccept: formData.autoAccept,
-            isStoreOpen: formData.isStoreOpen,
-            isDeactivated: formData.isDeactivated,
+            storeName: res.node.storeName || formData.name,
+            logo: res.node.logo || formData.logo,
+            banner: res.node.banner || formData.banner,
+            email: res.node.email || formData.email,
+            phone: res.node.phone || formData.phone,
+            address: res.node.address || formData.address,
+            gstin: res.node.gstin || formData.gstin,
+            orderAlerts: res.node.orderAlerts || formData.orderAlerts,
+            autoAccept: res.node.autoAccept || formData.autoAccept,
+            isStoreOpen: res.node.isStoreOpen || formData.isStoreOpen,
+            isDeactivated: res.node.isDeactivated || formData.isDeactivated,
           });
         }
       } else {
@@ -195,12 +219,33 @@ export default function Settings({ storeDetails, setStoreDetails }) {
 
       // res is response.data already (axiosInstance interceptor)
       if (res?.success || res?.node) {
-        const words = (formData.name || "").trim().split(" ");
+        const updatedNodeData = res.node || formData;
+        const words = (updatedNodeData.storeName || updatedNodeData.name || "").trim().split(" ");
         let newInitials = "S";
         if (words.length >= 2) newInitials = (words[0][0] + words[1][0]).toUpperCase();
         else if (words.length === 1 && words[0].length > 0) newInitials = words[0].substring(0, 2).toUpperCase();
 
-        if (setStoreDetails) setStoreDetails({ ...formData, initials: newInitials });
+        if (res.node) {
+          setFormData(prev => ({
+            ...prev,
+            ...res.node,
+            name: res.node.storeName || formData.name,
+            logo: res.node.logo,
+            banner: res.node.banner,
+            initials: newInitials
+          }));
+        }
+
+        if (setStoreDetails) {
+          setStoreDetails({
+            ...formData,
+            ...res.node,
+            name: res.node?.storeName || formData.name,
+            logo: res.node?.logo || formData.logo,
+            banner: res.node?.banner || formData.banner,
+            initials: newInitials
+          });
+        }
         setShowSuccess(true);
         toast.success("Settings updated successfully");
         setTimeout(() => setShowSuccess(false), 3000);
@@ -349,6 +394,49 @@ export default function Settings({ storeDetails, setStoreDetails }) {
                  </button>
                  {formData.logo && (
                    <button type="button" onClick={handleRemoveLogo} className="px-5 py-2.5 bg-white border border-slate-200 text-red-600 font-bold text-xs rounded-xl hover:bg-red-50 hover:border-red-200 transition-colors shadow-sm flex items-center gap-1.5">
+                     <Trash2 size={14}/> Remove
+                   </button>
+                 )}
+              </div>
+            </div>
+          </div>
+
+          <div className="h-px bg-slate-100 w-full my-4"></div>
+
+          {/* FUNCTIONAL BANNER UPLOAD */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <div 
+              className="relative cursor-pointer shrink-0 w-full sm:w-64" 
+              onClick={() => bannerFileInputRef.current?.click()}
+            >
+              {formData.banner ? (
+                 <img loading="lazy" decoding="async" src={formData.banner} alt="Store Banner" className="w-full h-32 rounded-2xl object-cover shadow-inner border border-slate-200" />
+              ) : (
+                 <div className="w-full h-32 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center text-slate-400 font-bold overflow-hidden shadow-inner">
+                   <Plus size={24} className="text-slate-400 mb-1" />
+                   <span className="text-xs">No Store Banner</span>
+                 </div>
+              )}
+            </div>
+            
+            {/* Hidden Input */}
+            <input 
+              type="file" 
+              accept="image/png, image/jpeg, image/jpg" 
+              className="hidden" 
+              ref={bannerFileInputRef} 
+              onChange={handleBannerUpload} 
+            />
+
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 mb-1">Store Banner</h3>
+              <p className="text-xs text-slate-500 mb-4 max-w-sm leading-relaxed">Upload a wide banner image. Recommended ratio is 16:9 or 3:1. Maximum file size is 2MB.</p>
+              <div className="flex gap-3">
+                 <button type="button" onClick={() => bannerFileInputRef.current?.click()} className="px-5 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-colors shadow-sm">
+                   Upload New
+                 </button>
+                 {formData.banner && (
+                   <button type="button" onClick={handleRemoveBanner} className="px-5 py-2.5 bg-white border border-slate-200 text-red-600 font-bold text-xs rounded-xl hover:bg-red-50 hover:border-red-200 transition-colors shadow-sm flex items-center gap-1.5">
                      <Trash2 size={14}/> Remove
                    </button>
                  )}

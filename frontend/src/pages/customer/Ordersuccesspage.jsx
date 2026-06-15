@@ -36,7 +36,7 @@ export default function OrderSuccessPage() {
       const fetchOrder = async () => {
         try {
           const res = await axiosInstance.get(`/orders/${orderId}`);
-          setOrder(res.data.data);
+          setOrder(res.data || res);
         } catch (err) {
           console.error("Fetch order success details failed", err);
         } finally {

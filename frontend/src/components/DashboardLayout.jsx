@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Outlet, NavLink, useNavigate, Link } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -21,11 +21,13 @@ import {
   Heart,
   LogOut,
   ArrowLeft,
+  Lock,
 } from "lucide-react";
 import { useSellerAuthStore } from "../store/sellerAuthStore";
 import { useAuthStore } from "../store/authStore";
 import { useNodeStore } from "../store/nodeStore";
 import { useSocket } from "../hooks/useSocket";
+import toast from "react-hot-toast";
 
 /* ----------------------------------------------------------
    NODE TYPE → THEME MAPPING
@@ -111,10 +113,14 @@ const SIDEBAR_LINKS = [
 export default function DashboardLayout({ storeDetails, activeNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { user, logout } = useSellerAuthStore();
   const { logout: logoutCustomer } = useAuthStore();
-  const { clearActiveNode } = useNodeStore();
+  const { clearActiveNode, activeNode: fullActiveNode } = useNodeStore();
+
+  const isVerified = fullActiveNode?.isVerified !== false;
+  const currentPathSegment = location.pathname.split("/").pop(); // e.g. "dashboard", "products"
 
   // 🛰️ Connect real-time operational Socket pipeline
   useSocket(storeDetails?.nodeType);
@@ -210,22 +216,35 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {SIDEBAR_LINKS.map((item) => {
           const Icon = item.icon;
+          const isItemLocked = !isVerified && item.path !== "dashboard";
           return (
             <NavLink
               key={item.path}
-              to={item.path}
+              to={isItemLocked ? "#" : item.path}
               end={item.path === "dashboard"}
-              onClick={() => setSidebarOpen(false)}
+              onClick={(e) => {
+                if (isItemLocked) {
+                  e.preventDefault();
+                  toast.error(`"${item.label}" features are locked until onboarding approval!`, { id: "locked-tab" });
+                  return;
+                }
+                setSidebarOpen(false);
+              }}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all font-semibold text-sm ${
-                  isActive
+                `flex items-center justify-between px-4 py-2.5 rounded-2xl transition-all font-semibold text-sm ${
+                  isItemLocked
+                    ? "text-slate-350 cursor-not-allowed bg-transparent"
+                    : isActive
                     ? `${theme.accent} text-white shadow-sm`
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`
               }
             >
-              <Icon size={18} />
-              {item.label}
+              <span className="flex items-center gap-3">
+                <Icon size={18} />
+                {item.label}
+              </span>
+              {isItemLocked && <Lock size={12} className="text-slate-450" />}
             </NavLink>
           );
         })}
@@ -330,7 +349,29 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
 
         {/* PAGE CONTENT */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <Outlet />
+          {!isVerified && currentPathSegment !== "dashboard" ? (
+            <div className="min-h-[60vh] flex items-center justify-center p-6">
+              <div className="max-w-md w-full bg-white/70 backdrop-blur-xl border border-slate-200 p-8 rounded-[2rem] shadow-xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-16 h-16 bg-amber-50/50 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                  <Lock size={28} className="text-amber-500" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-slate-900">Console Feature Locked</h3>
+                  <p className="text-slate-500 text-xs leading-relaxed font-medium">
+                    Access to this console capability is restricted. Complete business compliance documents submission and wait for administrative node verification approvals.
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate("dashboard")}
+                  className="w-full py-3.5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition shadow-md text-xs uppercase tracking-wider"
+                >
+                  Return to Verification Hub
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
     </div>

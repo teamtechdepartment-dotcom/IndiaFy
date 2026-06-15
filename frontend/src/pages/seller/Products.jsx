@@ -4,7 +4,7 @@ import { useProductStore } from '../../store/productStore';
 import { useSellerAuthStore } from '../../store/sellerAuthStore';
 import { useNodeStore } from '../../store/nodeStore';
 import { toast } from 'react-toastify';
-import { useLocation } from 'react-router-dom';
+
 
 export default function Products() {
   const { activeNode } = useNodeStore();

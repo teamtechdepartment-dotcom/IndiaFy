@@ -29,3 +29,33 @@ export const bervo = async (email, subject, otp, type) => {
         }
     }
 }
+
+export const sendGenericEmail = async (email, subject, htmlContent) => {
+    try {
+        const client = sibApi.ApiClient.instance;
+
+        const apiKey = client.authentications["api-key"];
+        apiKey.apiKey = process.env.BREVO_API_KEY;
+
+        const transEmailApi = new sibApi.TransactionalEmailsApi();
+
+        await transEmailApi.sendTransacEmail({
+            sender: {
+                email: process.env.companyEmail || "support@indiafy.com",
+                name: "Indiafy Support"
+            },
+            to: [{ email }],
+            subject: subject,
+            htmlContent: htmlContent
+        });
+
+        return { message: true };
+    } catch (err) {
+        console.error("Brevo sendGenericEmail failed:", err.message);
+        return {
+            error: err.message,
+            message: false
+        };
+    }
+};
+

@@ -2,7 +2,7 @@ import { ShoppingBag, ChevronRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function StickyCart({ totalItems, totalPrice, totalSaved }) {
+export default function StickyCart({ totalItems, totalPrice, totalSaved, onOpenDrawer }) {
   const navigate = useNavigate();
 
   return (
@@ -16,7 +16,7 @@ export default function StickyCart({ totalItems, totalPrice, totalSaved }) {
           className="fixed bottom-16 md:bottom-6 left-0 w-full z-50 px-4 pointer-events-none flex justify-center"
         >
           <div
-            onClick={() => navigate("/cart")}
+            onClick={onOpenDrawer}
             className="pointer-events-auto w-full max-w-[480px] bg-brand-accent text-white p-3 rounded-2xl shadow-[0_12px_40px_rgba(16,185,129,0.35)] cursor-pointer hover:bg-brand-accent-hover hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-between"
           >
             <div className="flex items-center gap-3">

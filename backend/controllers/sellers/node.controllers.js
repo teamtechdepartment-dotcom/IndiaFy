@@ -13,88 +13,172 @@ export const createSellerNode = asyncHandler(async (req, res) => {
   try {
     const sellerId = req.user._id;
 
-    let {
-      nodeType, storeName, email, phone, address, city, state, pincode,
-      deliveryRadius, gstin, warehouseLocation, minOrderQty, minOrderValue,
-      activeSectors, dispatchSpeed, logo, banner, description, storeCategory,
-      operatingHours, pickupAvailable,
-      accountName, accountNumber, ifsc, bankName,
-    } = req.body;
-
-    // --- Validation ---
-    if (!nodeType || !storeName || !email || !phone || !address) {
-      return res.status(400).json({
-        success: false,
-        message: "Required fields missing: nodeType, storeName, email, phone, address",
-      });
-    }
-
-    // --- Check duplicate store name for this seller ---
-    const existingNode = await SellerNode.findOne({
-      seller: sellerId,
-      storeName: { $regex: new RegExp(`^${storeName.trim()}$`, "i") },
-    });
-    if (existingNode) {
-      return res.status(409).json({
-        success: false,
-        message: "A store with this name already exists under your account",
-      });
-    }
-
-    // --- Logo upload to Cloudinary ---
-    if (logo && typeof logo === "string" && logo.startsWith("data:image")) {
-      try {
-        const uploadedUrl = await uploadBase64(logo, "store_logos");
-        if (uploadedUrl) logo = uploadedUrl;
-      } catch (e) {
-        console.error("Logo upload error:", e.message);
-        logo = "";
+    // Helper to upload base64 to Cloudinary
+    const uploadField = async (base64Data, folder) => {
+      if (base64Data && typeof base64Data === "string" && base64Data.startsWith("data:")) {
+        try {
+          const uploadedUrl = await uploadBase64(base64Data, folder);
+          return uploadedUrl || "";
+        } catch (e) {
+          console.error(`Upload error for ${folder}:`, e.message);
+          return "";
+        }
       }
-    }
+      return base64Data || "";
+    };
 
-    // --- Banner upload to Cloudinary ---
-    if (banner && typeof banner === "string" && banner.startsWith("data:image")) {
-      try {
-        const uploadedUrl = await uploadBase64(banner, "store_banners");
-        if (uploadedUrl) banner = uploadedUrl;
-      } catch (e) {
-        console.error("Banner upload error:", e.message);
-        banner = "";
+    let logo = req.body.logo;
+    let banner = req.body.banner;
+
+    // Process logo & banner uploads
+    logo = await uploadField(logo, "store_logos");
+    banner = await uploadField(banner, "store_banners");
+
+    // Process all document files
+    const storeFrontPhoto = await uploadField(req.body.storeFrontPhoto, "store_docs");
+    const storeInteriorPhoto = await uploadField(req.body.storeInteriorPhoto, "store_docs");
+    const cancelledChequePhoto = await uploadField(req.body.cancelledChequePhoto, "store_docs");
+    const bankStatementPhoto = await uploadField(req.body.bankStatementPhoto, "store_docs");
+    const passbookFrontPhoto = await uploadField(req.body.passbookFrontPhoto, "store_docs");
+    const gstCertificatePhoto = await uploadField(req.body.gstCertificatePhoto, "store_docs");
+    const panCardPhoto = await uploadField(req.body.panCardPhoto, "store_docs");
+    const aadhaarFrontPhoto = await uploadField(req.body.aadhaarFrontPhoto, "store_docs");
+    const aadhaarBackPhoto = await uploadField(req.body.aadhaarBackPhoto, "store_docs");
+    const shopEstablishmentLicensePhoto = await uploadField(req.body.shopEstablishmentLicensePhoto, "store_docs");
+    const tradeLicensePhoto = await uploadField(req.body.tradeLicensePhoto, "store_docs");
+    const foodLicensePhoto = await uploadField(req.body.foodLicensePhoto, "store_docs");
+    const drugLicensePhoto = await uploadField(req.body.drugLicensePhoto, "store_docs");
+    const msmeCertificatePhoto = await uploadField(req.body.msmeCertificatePhoto, "store_docs");
+    const businessRegistrationPhoto = await uploadField(req.body.businessRegistrationPhoto, "store_docs");
+    const utilityBillPhoto = await uploadField(req.body.utilityBillPhoto, "store_docs");
+    const storeOwnershipProofPhoto = await uploadField(req.body.storeOwnershipProofPhoto, "store_docs");
+    const rentAgreementPhoto = await uploadField(req.body.rentAgreementPhoto, "store_docs");
+    const ownerSelfiePhoto = await uploadField(req.body.ownerSelfiePhoto, "store_docs");
+
+    // Process storePhotos array
+    let storePhotos = [];
+    if (Array.isArray(req.body.storePhotos)) {
+      for (const photo of req.body.storePhotos) {
+        const url = await uploadField(photo, "store_docs");
+        if (url) storePhotos.push(url);
       }
     }
 
     // --- Generate unique slug ---
-    const slug = storeName.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
+    const storeNameStr = (req.body.storeName || "Store").trim();
+    const slug = storeNameStr.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
 
-    // --- Create node ---
+    // Set initial status to Pending review
+    const initialVerificationStatus = {
+      business: "Pending",
+      address: "Pending",
+      bank: "Pending",
+      documents: "Pending",
+      compliance: "Pending",
+      storeApproval: "Pending"
+    };
+
+    // Create node
     const newNode = await SellerNode.create({
       seller: sellerId,
-      nodeType,
-      storeName,
+      nodeType: req.body.nodeType,
+      storeName: storeNameStr,
       slug,
-      email,
-      phone,
-      address,
-      city: city || "",
-      state: state || "",
-      pincode: pincode || "",
-      deliveryRadius: Number(deliveryRadius) || 5,
-      gstin: gstin || "",
-      warehouseLocation: warehouseLocation || "",
-      minOrderQty: Number(minOrderQty) || 1,
-      minOrderValue: Number(minOrderValue) || 0,
-      activeSectors: activeSectors || "",
-      dispatchSpeed: dispatchSpeed || "30 mins",
+      email: req.body.email || "",
+      phone: req.body.phone || "",
+      address: req.body.address || "",
+      city: req.body.city || "",
+      state: req.body.state || "",
+      pincode: req.body.pincode || "",
+      deliveryRadius: Number(req.body.deliveryRadius) || 5,
+      gstin: req.body.gstin || "",
+      warehouseLocation: req.body.warehouseLocation || "",
+      minOrderQty: Number(req.body.minOrderQty) || 1,
+      minOrderValue: Number(req.body.minOrderValue) || 0,
+      activeSectors: req.body.activeSectors || "",
+      dispatchSpeed: req.body.dispatchSpeed || "30 mins",
       logo: logo || "",
       banner: banner || "",
-      description: description || "",
-      storeCategory: storeCategory || "",
-      operatingHours: operatingHours || "",
-      pickupAvailable: pickupAvailable === true || pickupAvailable === "true",
-      accountName: accountName || "",
-      accountNumber: accountNumber || "",
-      ifsc: ifsc || "",
-      bankName: bankName || "",
+      description: req.body.description || "",
+      storeCategory: req.body.storeCategory || "",
+      operatingHours: req.body.operatingHours || "",
+      pickupAvailable: req.body.pickupAvailable === true || req.body.pickupAvailable === "true",
+      accountName: req.body.accountName || "",
+      accountNumber: req.body.accountNumber || "",
+      ifsc: req.body.ifsc || "",
+      bankName: req.body.bankName || "",
+
+      // New onboarding schema attributes
+      businessName: req.body.businessName || "",
+      ownerFullName: req.body.ownerFullName || "",
+      businessType: req.body.businessType || "",
+      panNumber: req.body.panNumber || "",
+      aadhaarNumber: req.body.aadhaarNumber || "",
+      businessEmail: req.body.businessEmail || "",
+      businessPhone: req.body.businessPhone || "",
+      website: req.body.website || "",
+      yearsInBusiness: Number(req.body.yearsInBusiness) || 0,
+      businessDescription: req.body.businessDescription || "",
+
+      subCategory: req.body.subCategory || "",
+      storeTags: Array.isArray(req.body.storeTags) ? req.body.storeTags : [],
+      openingTime: req.body.openingTime || "",
+      closingTime: req.body.closingTime || "",
+      physicalStoreAvailable: req.body.physicalStoreAvailable === true || req.body.physicalStoreAvailable === "true",
+      expressDelivery: req.body.expressDelivery === true || req.body.expressDelivery === "true",
+
+      addressLine1: req.body.addressLine1 || "",
+      addressLine2: req.body.addressLine2 || "",
+      area: req.body.area || "",
+      country: req.body.country || "",
+      latitude: Number(req.body.latitude) || 0,
+      longitude: Number(req.body.longitude) || 0,
+      storeFrontPhoto,
+      storeInteriorPhoto,
+
+      upiId: req.body.upiId || "",
+      cancelledChequePhoto,
+      bankStatementPhoto,
+      passbookFrontPhoto,
+      verificationMethod: req.body.verificationMethod || "Micro Deposit",
+
+      gstCertificatePhoto,
+      panCardPhoto,
+      aadhaarFrontPhoto,
+      aadhaarBackPhoto,
+      shopEstablishmentLicensePhoto,
+      tradeLicensePhoto,
+      foodLicensePhoto,
+      drugLicensePhoto,
+      msmeCertificatePhoto,
+      businessRegistrationPhoto,
+      utilityBillPhoto,
+      storeOwnershipProofPhoto,
+      rentAgreementPhoto,
+      storePhotos,
+      ownerSelfiePhoto,
+
+      storeManagerName: req.body.storeManagerName || "",
+      supportPhone: req.body.supportPhone || "",
+      supportEmail: req.body.supportEmail || "",
+      orderProcessingTime: req.body.orderProcessingTime || "",
+      avgDeliveryTime: req.body.avgDeliveryTime || "",
+      maxDailyOrders: Number(req.body.maxDailyOrders) || 0,
+      inventoryManagementType: req.body.inventoryManagementType || "",
+      warehouseAvailable: req.body.warehouseAvailable === true || req.body.warehouseAvailable === "true",
+      deliveryType: req.body.deliveryType || "",
+      operatingDays: Array.isArray(req.body.operatingDays) ? req.body.operatingDays : [],
+      holidaySchedule: req.body.holidaySchedule || "",
+
+      inventoryReady: req.body.inventoryReady || "",
+      expectedMonthlyOrders: req.body.expectedMonthlyOrders || "",
+      productCategories: Array.isArray(req.body.productCategories) ? req.body.productCategories : [],
+      productImagesAvailable: req.body.productImagesAvailable || "",
+      bulkUploadRequired: req.body.bulkUploadRequired || "",
+      importProductsNow: req.body.importProductsNow || "",
+
+      isVerified: false, // Default unverified until approved
+      verificationStatus: initialVerificationStatus,
     });
 
     return res.status(201).json({
@@ -170,24 +254,37 @@ export const updateSellerNode = asyncHandler(async (req, res) => {
 
   let updateData = { ...req.body };
 
-  // Handle logo update via Cloudinary
-  if (updateData.logo && typeof updateData.logo === "string" && updateData.logo.startsWith("data:image")) {
-    try {
-      const uploadedUrl = await uploadBase64(updateData.logo, "store_logos");
-      if (uploadedUrl) updateData.logo = uploadedUrl;
-    } catch (e) {
-      delete updateData.logo;
+  // Helper to upload all base64 images dynamically during update
+  for (const key of Object.keys(updateData)) {
+    if (typeof updateData[key] === "string" && updateData[key].startsWith("data:")) {
+      try {
+        const folderName = key.includes("logo") ? "store_logos" : key.includes("banner") ? "store_banners" : "store_docs";
+        const uploadedUrl = await uploadBase64(updateData[key], folderName);
+        if (uploadedUrl) {
+          updateData[key] = uploadedUrl;
+        }
+      } catch (e) {
+        console.error(`Error uploading update field ${key}:`, e.message);
+      }
     }
   }
 
-  // Handle banner update via Cloudinary
-  if (updateData.banner && typeof updateData.banner === "string" && updateData.banner.startsWith("data:image")) {
-    try {
-      const uploadedUrl = await uploadBase64(updateData.banner, "store_banners");
-      if (uploadedUrl) updateData.banner = uploadedUrl;
-    } catch (e) {
-      delete updateData.banner;
+  // Also support array of storePhotos if passed as base64 strings
+  if (Array.isArray(updateData.storePhotos)) {
+    let storePhotos = [];
+    for (const photo of updateData.storePhotos) {
+      if (typeof photo === "string" && photo.startsWith("data:")) {
+        try {
+          const uploadedUrl = await uploadBase64(photo, "store_docs");
+          if (uploadedUrl) storePhotos.push(uploadedUrl);
+        } catch (e) {
+          console.error("Error uploading storePhoto:", e.message);
+        }
+      } else if (typeof photo === "string") {
+        storePhotos.push(photo);
+      }
     }
+    updateData.storePhotos = storePhotos;
   }
 
   // Prevent overwriting immutable fields

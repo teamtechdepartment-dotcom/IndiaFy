@@ -13,11 +13,18 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req, file) => ({
-    folder: "indiafy_products",
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
-    public_id: Date.now() + "-" + file.originalname,
-  }),
+  params: async (req, file) => {
+    const cleanName = file.originalname
+      .split('.')
+      .slice(0, -1)
+      .join('.')
+      .replace(/[^a-zA-Z0-9]/g, "_");
+    return {
+      folder: "indiafy_products",
+      allowed_formats: ["jpg", "jpeg", "png", "webp"],
+      public_id: `${Date.now()}-${cleanName}`,
+    };
+  },
 });
 
 export { cloudinary, storage };

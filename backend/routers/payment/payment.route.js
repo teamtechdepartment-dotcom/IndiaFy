@@ -1,9 +1,12 @@
 import { Router } from "express";
-import { createRazorpayOrder, verifyPayment, getRazorpayKey } from "../../controllers/payments/payment.controllers.js";
+import { createRazorpayOrder, verifyPayment, getRazorpayKey, razorpayWebhook } from "../../controllers/payments/payment.controllers.js";
 import requiredLogin from "../../middlewares/requiredLogin.middleware.js";
 import roleGuard from "../../middlewares/roleGuard.middleware.js";
 
 const router = Router();
+
+// Public webhook route (called by Razorpay)
+router.route("/webhook").post(razorpayWebhook);
 
 // Only customers should be creating payments for orders
 router.use(requiredLogin);

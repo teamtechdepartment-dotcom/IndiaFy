@@ -24,13 +24,19 @@ export const useAuthStore = create(
         expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000
       }),
 
-      clearSession: () => set({ 
-        user: null, 
-        token: null, 
-        refreshToken: null,
-        isAuthenticated: false,
-        expiresAt: null 
-      }),
+      clearSession: () => {
+        // Clear local cart store memory dynamically
+        try {
+          import('./cartStore.js').then(m => m.useCartStore.setState({ cartItems: [], totalPrice: 0 }));
+        } catch (e) {}
+        set({ 
+          user: null, 
+          token: null, 
+          refreshToken: null,
+          isAuthenticated: false,
+          expiresAt: null 
+        });
+      },
 
       logout: async () => {
         try {
@@ -38,6 +44,10 @@ export const useAuthStore = create(
         } catch (err) {
           console.error("Customer logout failed on backend:", err);
         }
+        // Clear local cart store memory dynamically
+        try {
+          import('./cartStore.js').then(m => m.useCartStore.setState({ cartItems: [], totalPrice: 0 }));
+        } catch (e) {}
         set({
           user: null,
           token: null,

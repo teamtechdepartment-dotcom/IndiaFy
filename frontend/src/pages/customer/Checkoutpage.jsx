@@ -40,6 +40,8 @@ export default function CheckoutPage() {
   const { isAuthenticated, user } = useAuthStore();
 
   const [quickAddr, setQuickAddr] = useState({ street: "", city: "", pincode: "" });
+  const [showNewAddrForm, setShowNewAddrForm] = useState(false);
+  const [newAddr, setNewAddr] = useState({ street: "", city: "", pincode: "" });
   const [b2bDetails, setB2bDetails] = useState({ companyName: "", gstNumber: "", poNotes: "", deliverySlot: "Standard" });
 
   useEffect(() => {
@@ -51,6 +53,13 @@ export default function CheckoutPage() {
     fetchCart();
     fetchProfile();
   }, [fetchCart, fetchProfile, isAuthenticated, navigate, location.pathname]);
+
+  useEffect(() => {
+    if (cartItems !== null && cartItems.length === 0 && !location.state?.testProduct) {
+      toast.info("Your basket is empty. Please add items first.");
+      navigate("/quick-commerce");
+    }
+  }, [cartItems, navigate, location.state]);
 
   const addresses = profile?.address || [];
   const activeAddress = addresses.length > 0 
@@ -78,7 +87,7 @@ export default function CheckoutPage() {
 
   const subtotal = displayItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const gstEstimate = displayItems.reduce((acc, item) => acc + (item.gstAmount || 0), 0);
-  const deliveryFee = 0;
+  const deliveryFee = (subtotal >= 200 || subtotal === 0) ? 0 : 30;
   const codFee = payMethod === "cod" ? 40 : 0;
   const total = subtotal + gstEstimate + deliveryFee + codFee;
   const hasWholesaleItems = displayItems.some(item => item.isWholesale);
@@ -211,7 +220,7 @@ export default function CheckoutPage() {
       // Create Razorpay order on backend
       let rpRes;
       try {
-        rpRes = await axiosInstance.post("/payments/create-order", { amount: total });
+        rpRes = await axiosInstance.post("/payments/create-order", { amount: total, orderId: newOrder._id });
       } catch (payErr) {
         console.error("Payment initiation failed:", payErr);
         toast.error("Payment gateway error. Use the manual confirm button below.");
@@ -408,6 +417,79 @@ export default function CheckoutPage() {
                     </div>
                   ))
                 )}
+                {addresses.length > 0 && (
+                  <div className="col-span-2 mt-4">
+                    {!showNewAddrForm ? (
+                      <button
+                        onClick={() => setShowNewAddrForm(true)}
+                        className="text-xs font-black uppercase text-brand-accent hover:underline"
+                      >
+                        + Add New Address
+                      </button>
+                    ) : (
+                      <div className="p-6 rounded-3xl bg-zinc-50 border border-zinc-200 space-y-4">
+                        <p className="text-xs font-black uppercase text-zinc-600">New Address Details</p>
+                        <input 
+                          type="text" 
+                          placeholder="Street / House No."
+                          className="w-full p-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white outline-none focus:ring-2 focus:ring-zinc-900/10"
+                          value={newAddr.street}
+                          onChange={(e) => setNewAddr({...newAddr, street: e.target.value})}
+                        />
+                        <div className="grid grid-cols-2 gap-3">
+                          <input 
+                            type="text" 
+                            placeholder="City"
+                            className="w-full p-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white outline-none focus:ring-2 focus:ring-zinc-900/10"
+                            value={newAddr.city}
+                            onChange={(e) => setNewAddr({...newAddr, city: e.target.value})}
+                          />
+                          <input 
+                            type="text" 
+                            placeholder="Pincode"
+                            className="w-full p-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white outline-none focus:ring-2 focus:ring-zinc-900/10"
+                            value={newAddr.pincode}
+                            onChange={(e) => setNewAddr({...newAddr, pincode: e.target.value})}
+                          />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={() => setShowNewAddrForm(false)}
+                            className="px-4 py-2 border border-zinc-200 text-zinc-500 rounded-xl text-xs font-bold hover:bg-zinc-100 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!newAddr.street || !newAddr.city || !newAddr.pincode) {
+                                return toast.warn("Please fill all address fields");
+                              }
+                              try {
+                                const addAddressAction = useProfileStore.getState().addAddress;
+                                await addAddressAction({
+                                  street: newAddr.street,
+                                  city: newAddr.city,
+                                  state: "Local",
+                                  country: "India",
+                                  pincode: newAddr.pincode,
+                                  nearBy: "Home"
+                                });
+                                toast.success("New address added successfully!");
+                                setShowNewAddrForm(false);
+                                setNewAddr({ street: "", city: "", pincode: "" });
+                              } catch (e) {
+                                toast.error("Failed to add address");
+                              }
+                            }}
+                            className="px-4 py-2 bg-zinc-950 text-white rounded-xl text-xs font-bold hover:bg-zinc-800 transition-colors"
+                          >
+                            Save Address
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* WHOLESALE B2B DETAILS (ONLY VISIBLE IF WHOLESALE ITEMS PRESENT) */}
@@ -462,10 +544,28 @@ export default function CheckoutPage() {
 
               {step === 1 && (
                 <button
-                  onClick={() => {
-                    if (!activeAddress && profile.address?.[0]?.street) {
-                      // Accept the "Quick Address" hack
-                      setStep(2);
+                  onClick={async () => {
+                    if (addresses.length === 0) {
+                      if (!quickAddr.street || !quickAddr.city || !quickAddr.pincode) {
+                        return toast.warn("Please enter all address details");
+                      }
+                      try {
+                        const addrData = {
+                          street: quickAddr.street,
+                          city: quickAddr.city,
+                          state: "Local",
+                          country: "India",
+                          pincode: quickAddr.pincode,
+                          nearBy: "Home"
+                        };
+                        const addAddressAction = useProfileStore.getState().addAddress;
+                        await addAddressAction(addrData);
+                        toast.success("Delivery address saved to profile!");
+                        setStep(2);
+                      } catch (err) {
+                        toast.error("Failed to save address. Proceeding as quick checkout.");
+                        setStep(2);
+                      }
                     } else if (activeAddress) {
                       setStep(2);
                     } else {
@@ -621,7 +721,7 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-black uppercase text-slate-900 truncate tracking-tight">{item.productId?.title || "Product"}</p>
+                        <p className="text-[10px] font-black uppercase text-slate-900 truncate tracking-tight">{item.productId?.productName || item.productId?.title || "Product"}</p>
                         <p className="text-[10px] font-bold text-slate-500 uppercase">Qty: {item.quantity}</p>
                       </div>
                       <p className="text-[10px] font-black text-slate-900">{fmt(item.price)}</p>
@@ -668,7 +768,7 @@ export default function CheckoutPage() {
                 <button
                   disabled={step !== 2 || isPlacing}
                   onClick={handlePlaceOrder}
-                  className="w-full py-5 bg-white text-slate-900 rounded-3xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30"
+                  className="w-full py-5 bg-zinc-900 text-white rounded-3xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:bg-zinc-800 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 shadow-lg shadow-zinc-900/20"
                 >
                   {isPlacing ? "Processing Order..." : "Confirm & Pay Now"}
                 </button>

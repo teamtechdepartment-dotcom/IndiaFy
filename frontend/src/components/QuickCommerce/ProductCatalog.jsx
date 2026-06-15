@@ -153,11 +153,11 @@ function ProductCard({ product, cart, onAdd, onInc, onDec }) {
   );
 }
 
-export default function ProductCatalog({ activeCategory, onCategoryClick, cart, onAdd, onInc, onDec, isLoading }) {
+export default function ProductCatalog({ activeCategory, onCategoryClick, cart, onAdd, onInc, onDec, isLoading, productsCatalog = PRODUCTS_DB }) {
   const sidebarRef = useRef(null);
 
   // Get products for active category
-  const products = PRODUCTS_DB[activeCategory] || [];
+  const products = productsCatalog[activeCategory] || [];
 
   return (
     <div className="px-4 py-5 bg-zinc-50">
@@ -174,6 +174,7 @@ export default function ProductCatalog({ activeCategory, onCategoryClick, cart, 
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               const isActive = activeCategory === cat.id;
+              const itemCount = productsCatalog[cat.id]?.length || 0;
               return (
                 <button
                   key={cat.id}
@@ -194,7 +195,7 @@ export default function ProductCatalog({ activeCategory, onCategoryClick, cart, 
                       {cat.name}
                     </span>
                     <span className="text-[9px] font-semibold text-zinc-400">
-                      {cat.count} items
+                      {itemCount} items
                     </span>
                   </div>
                 </button>

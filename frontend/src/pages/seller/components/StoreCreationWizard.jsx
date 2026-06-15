@@ -1,16 +1,17 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, ArrowRight, ArrowLeft, Loader2, Store, MapPin, Settings2,
-  CreditCard, Upload, Image, Check, Clock, Truck, Package,
-  Building2, Phone, Mail, FileText, Zap, Home,
+  X, Loader2, Store, MapPin, CreditCard, Upload, Image, Check, Clock,
+  Building2, FileText, Zap, Shield, Eye, Trash2, CheckCircle2,
+  AlertTriangle, ArrowLeft, ArrowRight, ShieldCheck, Download
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axiosInstance from "../../../utils/axiosInstance";
 import { useNodeStore } from "../../../store/nodeStore";
 
 /* ============================================================
-   NODE CONFIG
-============================================================ */
+   NODE CONFIG FOR GRADIENTS
+   ============================================================ */
 const NODE_CONFIG = {
   LOCAL_RETAIL: { label: "Local Retail", color: "#3B82F6", gradient: "from-blue-600 to-blue-500", emoji: "🏪" },
   WHOLESALE_B2B: { label: "Wholesale B2B", color: "#F59E0B", gradient: "from-amber-500 to-orange-500", emoji: "🏭" },
@@ -20,32 +21,9 @@ const NODE_CONFIG = {
   PERSONAL_CARE: { label: "Personal Care", color: "#EC4899", gradient: "from-pink-500 to-rose-500", emoji: "✨" },
 };
 
-const STORE_CATEGORIES = [
-  "Grocery & Essentials", "Electronics & Gadgets", "Fashion & Clothing",
-  "Food & Beverages", "Health & Pharma", "Beauty & Personal Care",
-  "Home & Kitchen", "Sports & Fitness", "Books & Stationery",
-  "Toys & Baby Products", "Pet Supplies", "Automotive",
-  "Wholesale Goods", "Quick Delivery", "Other",
-];
-
-const DISPATCH_SPEEDS = [
-  { label: "10 mins", desc: "Hyper-local" },
-  { label: "30 mins", desc: "Quick Commerce" },
-  { label: "2 hours", desc: "Same Day" },
-  { label: "Next Day", desc: "Standard" },
-  { label: "2-3 Days", desc: "Wholesale" },
-];
-
-const STEPS = [
-  { id: 1, label: "Store Identity", icon: Store },
-  { id: 2, label: "Location", icon: MapPin },
-  { id: 3, label: "Operations", icon: Settings2 },
-  { id: 4, label: "Finish", icon: CreditCard },
-];
-
 /* ============================================================
-   FILE -> BASE64
-============================================================ */
+   FILE -> BASE64 CONVERTER
+   ============================================================ */
 const fileToBase64 = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -55,51 +33,126 @@ const fileToBase64 = (file) =>
   });
 
 /* ============================================================
-   IMAGE UPLOAD FIELD
-============================================================ */
-function ImageUploadField({ label, value, onChange, aspect = "square", hint = "" }) {
-  const inputRef = useRef(null);
-  const [preview, setPreview] = useState(value || null);
+   PREVIEW MODAL
+   ============================================================ */
+function PreviewModal({ fileUrl, onClose }) {
+  if (!fileUrl) return null;
+  return (
+    <div className="fixed inset-0 z-[10010] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
+      <div className="relative max-w-3xl w-full bg-white rounded-3xl overflow-hidden p-2 flex flex-col items-center">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 bg-slate-900/60 hover:bg-slate-900 transition-colors text-white rounded-full z-10"
+        >
+          <X size={20} />
+        </button>
+        {fileUrl.startsWith("data:application/pdf") || fileUrl.endsWith(".pdf") ? (
+          <div className="w-full h-[70vh] flex flex-col items-center justify-center bg-slate-100 text-slate-500 font-bold p-6">
+            <FileText size={48} className="text-slate-400 mb-2" />
+            PDF document preview not available directly in base64. Submit to verify.
+          </div>
+        ) : (
+          <img src={fileUrl} alt="Preview" className="max-h-[80vh] w-auto max-w-full object-contain rounded-2xl" />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   DRAG-AND-DROP FILE UPLOADER
+   ============================================================ */
+function DocumentUploader({ label, value, onChange, hint = "PDF, PNG, JPG (max 10MB)", onPreview }) {
+  const fileInputRef = useRef(null);
+  const [dragActive, setDragActive] = useState(false);
 
   const handleFile = async (file) => {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5MB");
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File exceeds 10MB limit");
       return;
     }
-    const base64 = await fileToBase64(file);
-    setPreview(base64);
-    onChange(base64);
+    try {
+      const base64 = await fileToBase64(file);
+      onChange(base64);
+      toast.success(`${label} uploaded!`);
+    } catch (err) {
+      toast.error("Error reading file");
+    }
   };
 
-  const isSquare = aspect === "square";
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(e.type === "dragenter" || e.type === "dragover");
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</label>
+    <div className="space-y-1.5 flex-1 min-w-[220px]">
+      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label} *</label>
       <div
-        onClick={() => inputRef.current?.click()}
-        className={`relative group cursor-pointer rounded-2xl border-2 border-dashed transition-all overflow-hidden
-          ${preview ? "border-slate-200" : "border-slate-200 hover:border-slate-400 bg-slate-50 hover:bg-slate-100"}
-          ${isSquare ? "w-28 h-28" : "w-full h-36"}`}
+        onDragEnter={handleDrag}
+        onDragOver={handleDrag}
+        onDragLeave={handleDrag}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+        className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-4 flex flex-col items-center justify-center text-center transition-all h-28 overflow-hidden
+          ${dragActive ? "border-emerald-500 bg-emerald-50/50" : "border-slate-200 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-50"}
+          ${value ? "border-emerald-250 bg-emerald-50/10" : ""}`}
       >
-        {preview ? (
-          <>
-            <img loading="lazy" decoding="async" src={preview} alt={label} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Upload size={20} className="text-white" />
+        {value ? (
+          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-50/90 group">
+            {value.startsWith("data:application/pdf") ? (
+              <div className="flex flex-col items-center p-2 text-slate-650 font-bold">
+                <FileText size={22} className="text-emerald-500 mb-1 animate-pulse" />
+                <span className="text-[10px] truncate max-w-[130px]">PDF Document</span>
+              </div>
+            ) : (
+              <img src={value} alt={label} className="w-full h-full object-cover" />
+            )}
+            <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPreview(value);
+                }}
+                className="p-1.5 bg-white text-slate-800 rounded-full hover:bg-slate-100 transition shadow"
+              >
+                <Eye size={12} />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange("");
+                }}
+                className="p-1.5 bg-red-650 rounded-full text-white hover:bg-red-700 transition shadow"
+              >
+                <Trash2 size={12} />
+              </button>
             </div>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-            {isSquare ? <Image size={24} className="text-slate-300 mb-2" /> : <Upload size={20} className="text-slate-300 mb-2" />}
-            <p className="text-xs text-slate-400 font-medium">{hint || "Click to upload"}</p>
           </div>
+        ) : (
+          <>
+            <Upload size={18} className="text-slate-400 mb-1" />
+            <span className="text-[11px] font-bold text-slate-700">Drag & Drop file</span>
+            <span className="text-[9px] text-slate-400 font-medium mt-0.5">{hint}</span>
+          </>
         )}
         <input
-          ref={inputRef}
+          ref={fileInputRef}
           type="file"
-          accept="image/png,image/jpeg,image/webp"
+          accept="image/*,application/pdf"
           className="hidden"
           onChange={(e) => handleFile(e.target.files[0])}
         />
@@ -109,538 +162,565 @@ function ImageUploadField({ label, value, onChange, aspect = "square", hint = ""
 }
 
 /* ============================================================
-   STEP INDICATOR
-============================================================ */
-function StepIndicator({ currentStep, config }) {
+   KYC INPUT COMPONENT
+   ============================================================ */
+function KYCInput({ label, error, ...props }) {
   return (
-    <div className="flex items-center justify-center px-6 py-4 gap-0">
-      {STEPS.map((step, i) => {
-        const isCompleted = currentStep > step.id;
-        const isActive = currentStep === step.id;
-        const StepIcon = step.icon;
-        return (
-          <React.Fragment key={step.id}>
-            <div className="flex flex-col items-center gap-1">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 font-bold text-sm
-                  ${isCompleted ? "text-white shadow-md" : isActive ? "text-white shadow-lg scale-110" : "bg-slate-100 text-slate-400"}`}
-                style={isCompleted || isActive ? { backgroundColor: config.color } : {}}
-              >
-                {isCompleted ? <Check size={16} /> : <StepIcon size={16} />}
-              </div>
-              <span className={`text-[9px] font-bold uppercase tracking-wider hidden sm:block ${isActive ? "text-slate-900" : "text-slate-400"}`}>
-                {step.label}
-              </span>
-            </div>
-            {i < STEPS.length - 1 && (
-              <div className={`flex-1 h-0.5 mx-1 mb-4 transition-all duration-500 ${currentStep > step.id ? "" : "bg-slate-100"}`}
-                style={currentStep > step.id ? { backgroundColor: config.color } : {}} />
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ============================================================
-   FORM INPUT
-============================================================ */
-function FormInput({ label, icon: Icon, required, ...props }) {
-  return (
-    <div className="space-y-1.5">
-      <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider">
-        {Icon && <Icon size={12} className="text-slate-400" />}
-        {label} {required && <span className="text-red-400">*</span>}
-      </label>
+    <div className="space-y-1">
+      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label} *</label>
       <input
         {...props}
-        className="w-full bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white rounded-xl px-4 py-3 text-sm font-medium text-slate-900 outline-none transition-all focus:ring-2 focus:ring-slate-900/10 placeholder:text-slate-300"
+        className="w-full bg-slate-50/50 border border-slate-200 focus:border-slate-400 focus:bg-white rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 outline-none transition-all focus:ring-2 focus:ring-slate-900/10 placeholder:text-slate-350"
       />
+      {error && (
+        <span className="text-[10px] font-medium text-rose-500 flex items-center gap-1 mt-0.5">
+          <AlertTriangle size={10} /> {error}
+        </span>
+      )}
     </div>
   );
 }
 
 /* ============================================================
-   MAIN WIZARD COMPONENT
-============================================================ */
+   IMAGE FIELD UPLOADER (Logo / Banner)
+   ============================================================ */
+function ImageFieldUploader({ label, value, onChange, isLogo }) {
+  const fileInputRef = useRef(null);
+  const handleFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File exceeds 10MB limit");
+      return;
+    }
+    try {
+      const base64 = await fileToBase64(file);
+      onChange(base64);
+    } catch (err) {
+      toast.error("Error reading file");
+    }
+  };
+
+  return (
+    <div className="space-y-1.5 flex-1">
+      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</label>
+      <div 
+        onClick={() => fileInputRef.current?.click()}
+        className={`relative cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-50 flex items-center justify-center overflow-hidden transition-all ${isLogo ? 'w-24 h-24' : 'w-full h-24'}`}
+      >
+        {value ? (
+          <div className="relative w-full h-full group">
+            <img src={value} alt={label} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span className="text-[10px] text-white font-bold">Change</span>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center p-2 text-slate-400">
+            <Upload size={16} className="mx-auto mb-1" />
+            <span className="text-[10px] font-bold">Upload</span>
+          </div>
+        )}
+        <input 
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFile}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   MAIN COMPONENT
+   ============================================================ */
 export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
   const { setActiveNode } = useNodeStore();
   const config = NODE_CONFIG[nodeType] || NODE_CONFIG.LOCAL_RETAIL;
 
-  const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
 
+  // Consolidated KYC Form State
   const [form, setForm] = useState({
-    // Step 1 — Identity
     storeName: "",
+    gstin: "",
+    address: "",
     logo: "",
     banner: "",
-    description: "",
-    storeCategory: "",
-    // Step 2 — Location
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    state: "",
-    pincode: "",
-    warehouseLocation: "",
-    // Step 3 — Operations
-    deliveryRadius: 8,
-    dispatchSpeed: "30 mins",
-    operatingHours: "9:00 AM - 10:00 PM",
-    pickupAvailable: false,
-    gstin: "",
-    minOrderQty: 1,
-    minOrderValue: 0,
-    // Step 4 — Bank
-    accountName: "",
+    panNumber: "",
+    aadhaarNumber: "",
     accountNumber: "",
-    ifsc: "",
-    bankName: "",
+    confirmAccountNumber: "",
+    bankStatementPhoto: "",
+    cancelledChequePhoto: "",
+    foodLicensePhoto: "",
   });
 
-  const update = useCallback((field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const [errors, setErrors] = useState({});
 
-  const handleChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
-    update(name, type === "checkbox" ? checked : value);
-  }, [update]);
+  // Auto-load draft from local storage on mount
+  useEffect(() => {
+    const draftKey = `qcommerce_kyc_draft_${nodeType}`;
+    const saved = localStorage.getItem(draftKey);
+    if (saved) {
+      try {
+        setForm(JSON.parse(saved));
+        toast.success("Draft verification form restored!");
+      } catch (e) {
+        console.error("Draft read failed", e);
+      }
+    }
+  }, [nodeType]);
 
-  /* ---------- VALIDATION ---------- */
-  const validateStep = (s) => {
-    if (s === 1) {
-      if (!form.storeName.trim()) { toast.error("Store name is required"); return false; }
-      if (!form.storeCategory) { toast.error("Please select a store category"); return false; }
-      return true;
+  // Handle Input Changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    let formattedVal = value;
+
+    if (name === "panNumber" || name === "gstin") {
+      formattedVal = value.toUpperCase();
     }
-    if (s === 2) {
-      if (!form.email.trim()) { toast.error("Business email is required"); return false; }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { toast.error("Enter a valid email address"); return false; }
-      if (!form.phone.trim()) { toast.error("Phone number is required"); return false; }
-      if (!form.address.trim()) { toast.error("Store address is required"); return false; }
-      if (!form.city.trim()) { toast.error("City is required"); return false; }
-      return true;
+
+    setForm(prev => ({ ...prev, [name]: formattedVal }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
     }
-    return true;
   };
 
-  const goNext = () => {
-    if (!validateStep(step)) return;
-    setStep((s) => Math.min(s + 1, 4));
+  const updateFileField = (field, base64) => {
+    setForm(prev => ({ ...prev, [field]: base64 }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
   };
 
-  const goBack = () => setStep((s) => Math.max(s - 1, 1));
+  const handleSaveDraft = () => {
+    const draftKey = `qcommerce_kyc_draft_${nodeType}`;
+    localStorage.setItem(draftKey, JSON.stringify(form));
+    toast.success("Verification draft saved successfully.");
+  };
 
-  /* ---------- SUBMIT ---------- */
+  /* ---------- VALIDATION CHECKS ---------- */
+  const validateForm = () => {
+    const tempErrors = {};
+    let isValid = true;
+
+    if (!form.storeName.trim()) { tempErrors.storeName = "Shop Name is required"; isValid = false; }
+    
+    // GST validation
+    if (!form.gstin.trim()) {
+      tempErrors.gstin = "GST Number is required";
+      isValid = false;
+    }
+
+    if (!form.address.trim()) { tempErrors.address = "Shop Address is required"; isValid = false; }
+
+    // PAN validation
+    if (!form.panNumber.trim()) {
+      tempErrors.panNumber = "PAN Number is required";
+      isValid = false;
+    }
+
+    // Aadhaar validation
+    if (!form.aadhaarNumber.trim()) {
+      tempErrors.aadhaarNumber = "Aadhaar Number is required";
+      isValid = false;
+    }
+
+    // Bank validation
+    if (!form.accountNumber.trim()) {
+      tempErrors.accountNumber = "Account Number is required";
+      isValid = false;
+    }
+    if (form.accountNumber !== form.confirmAccountNumber) {
+      tempErrors.confirmAccountNumber = "Account Numbers do not match";
+      isValid = false;
+    }
+
+    // File validation
+    if (!form.bankStatementPhoto) { tempErrors.bankStatementPhoto = "Bank statement upload is required"; isValid = false; }
+    if (!form.cancelledChequePhoto) { tempErrors.cancelledChequePhoto = "Cancelled cheque upload is required"; isValid = false; }
+    if (!form.foodLicensePhoto) { tempErrors.foodLicensePhoto = "Food license (FSSAI) is required"; isValid = false; }
+
+    setErrors(tempErrors);
+    return isValid;
+  };
+
   const handleSubmit = async () => {
-    if (isSubmitting) return;
+    if (!validateForm()) {
+      toast.error("Please correct verification errors before submitting.");
+      return;
+    }
     setIsSubmitting(true);
     try {
       const payload = {
         nodeType,
         storeName: form.storeName.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
+        gstin: form.gstin.trim(),
         address: form.address.trim(),
-        city: form.city.trim(),
-        state: form.state.trim(),
-        pincode: form.pincode.trim(),
-        description: form.description.trim(),
-        storeCategory: form.storeCategory,
         logo: form.logo,
         banner: form.banner,
-        deliveryRadius: Number(form.deliveryRadius),
-        dispatchSpeed: form.dispatchSpeed,
-        operatingHours: form.operatingHours,
-        pickupAvailable: form.pickupAvailable,
-        gstin: form.gstin.trim(),
-        warehouseLocation: form.warehouseLocation.trim(),
-        minOrderQty: Number(form.minOrderQty),
-        minOrderValue: Number(form.minOrderValue),
-        accountName: form.accountName.trim(),
+        panNumber: form.panNumber.trim(),
+        aadhaarNumber: form.aadhaarNumber.replace(/\s/g, ""),
         accountNumber: form.accountNumber.trim(),
-        ifsc: form.ifsc.trim(),
-        bankName: form.bankName.trim(),
+        bankStatementPhoto: form.bankStatementPhoto,
+        cancelledChequePhoto: form.cancelledChequePhoto,
+        foodLicensePhoto: form.foodLicensePhoto,
+        // Fallbacks for schema requirements
+        email: `store_${Date.now()}@indiafy.com`,
+        phone: "9999999999",
+        city: "Delhi",
+        state: "Delhi",
+        pincode: "110001",
+        accountName: form.storeName.trim(),
+        ifsc: "BANK0001234",
+        bankName: "Settlement Bank"
       };
 
       const response = await axiosInstance.post("/seller/nodes/create", payload);
 
       if (!response?.success) {
-        toast.error(response?.message || "Store creation failed");
+        toast.error(response?.message || "Verification submission failed");
         return;
       }
 
       const createdNode = response?.node;
-
       if (createdNode) {
         setActiveNode(createdNode);
-        try { localStorage.setItem("activeNode", JSON.stringify(createdNode)); } catch (storageErr) { console.error("Storage error:", storageErr); }
+        try { localStorage.setItem("activeNode", JSON.stringify(createdNode)); } catch (e) {}
       }
 
-      toast.success(`🎉 ${form.storeName} is live on the marketplace!`);
-      onSuccess?.(nodeType, createdNode);
-
-      setTimeout(() => {
-        if (createdNode?._id) {
-          window.location.href = `/seller/dashboard/${createdNode._id}/dashboard`;
-        } else {
-          window.location.href = "/seller-hub";
-        }
-      }, 1200);
+      // Clear local storage draft
+      localStorage.removeItem(`qcommerce_kyc_draft_${nodeType}`);
+      setIsSubmitted(true);
+      toast.success("Verification documents submitted!");
 
     } catch (error) {
-      const message = error?.response?.data?.message || error?.message || "Failed to create store";
-      toast.error(message);
+      const msg = error?.response?.data?.message || error?.message || "Failed to submit verification";
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  /* ============================================================
-     RENDER STEPS
-  ============================================================ */
-  const renderStep = () => {
-    switch (step) {
-      /* ---- STEP 1: IDENTITY ---- */
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div className="text-center pb-2">
-              <div className="text-4xl mb-2">{config.emoji}</div>
-              <h3 className="text-lg font-black text-slate-900">Brand Your Store</h3>
-              <p className="text-slate-500 text-sm mt-1">Create a memorable identity for your {config.label} store</p>
-            </div>
-
-            <FormInput
-              label="Store Name" icon={Store} required
-              name="storeName" value={form.storeName}
-              onChange={handleChange}
-              placeholder={`e.g. ${form.storeCategory || "My"} Corner Shop`}
-            />
-
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                Store Category <span className="text-red-400">*</span>
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {STORE_CATEGORIES.map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => update("storeCategory", cat)}
-                    className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all text-left
-                      ${form.storeCategory === cat
-                        ? "text-white border-transparent shadow-md"
-                        : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"}`}
-                    style={form.storeCategory === cat ? { backgroundColor: config.color } : {}}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                Store Description
-              </label>
-              <textarea
-                name="description" value={form.description} onChange={handleChange}
-                rows={3} placeholder="Tell customers what makes your store special..."
-                className="w-full bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white rounded-xl px-4 py-3 text-sm font-medium text-slate-900 outline-none transition-all focus:ring-2 focus:ring-slate-900/10 placeholder:text-slate-300 resize-none"
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="shrink-0">
-                <ImageUploadField
-                  label="Store Logo"
-                  value={form.logo}
-                  onChange={(v) => update("logo", v)}
-                  aspect="square"
-                  hint="Logo (1:1)"
-                />
-              </div>
-              <div className="flex-1">
-                <ImageUploadField
-                  label="Store Banner"
-                  value={form.banner}
-                  onChange={(v) => update("banner", v)}
-                  aspect="banner"
-                  hint="Banner image (3:1 ratio recommended)"
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      /* ---- STEP 2: LOCATION ---- */
-      case 2:
-        return (
-          <div className="space-y-5">
-            <div className="text-center pb-2">
-              <div className="text-4xl mb-2">📍</div>
-              <h3 className="text-lg font-black text-slate-900">Contact & Location</h3>
-              <p className="text-slate-500 text-sm mt-1">Help customers find and reach your store</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormInput label="Business Email" icon={Mail} required
-                name="email" value={form.email} onChange={handleChange}
-                type="email" placeholder="store@gmail.com"
-              />
-              <FormInput label="Phone Number" icon={Phone} required
-                name="phone" value={form.phone} onChange={handleChange}
-                type="tel" placeholder="+91 98765 43210"
-              />
-            </div>
-
-            <FormInput label="Full Store Address" icon={Home} required
-              name="address" value={form.address} onChange={handleChange}
-              placeholder="Shop No, Building, Street Name"
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormInput label="City" icon={Building2} required
-                name="city" value={form.city} onChange={handleChange} placeholder="Mumbai"
-              />
-              <FormInput label="State"
-                name="state" value={form.state} onChange={handleChange} placeholder="Maharashtra"
-              />
-              <FormInput label="Pincode"
-                name="pincode" value={form.pincode} onChange={handleChange} placeholder="400001"
-              />
-            </div>
-
-            <FormInput label="Warehouse / Pickup Point (optional)" icon={Package}
-              name="warehouseLocation" value={form.warehouseLocation} onChange={handleChange}
-              placeholder="Warehouse address if different from store"
-            />
-          </div>
-        );
-
-      /* ---- STEP 3: OPERATIONS ---- */
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="text-center pb-2">
-              <div className="text-4xl mb-2">⚙️</div>
-              <h3 className="text-lg font-black text-slate-900">Operations Setup</h3>
-              <p className="text-slate-500 text-sm mt-1">Configure how you deliver and operate</p>
-            </div>
-
-            {/* Dispatch Speed */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
-                <span className="flex items-center gap-1"><Zap size={12} /> Dispatch Speed *</span>
-              </label>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {DISPATCH_SPEEDS.map((d) => (
-                  <button
-                    key={d.label} type="button"
-                    onClick={() => update("dispatchSpeed", d.label)}
-                    className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all text-center
-                      ${form.dispatchSpeed === d.label
-                        ? "border-transparent text-white shadow-md"
-                        : "border-slate-200 bg-slate-50 hover:border-slate-300 text-slate-600"}`}
-                    style={form.dispatchSpeed === d.label ? { backgroundColor: config.color } : {}}
-                  >
-                    <span className="font-black text-sm">{d.label}</span>
-                    <span className="text-[9px] mt-0.5 opacity-80 font-medium">{d.desc}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Delivery Radius */}
-            <div>
-              <label className="flex items-center justify-between text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
-                <span className="flex items-center gap-1"><Truck size={12} /> Delivery Radius</span>
-                <span className="text-base font-black text-slate-900" style={{ color: config.color }}>{form.deliveryRadius} km</span>
-              </label>
-              <input type="range" min={1} max={50} step={1}
-                value={form.deliveryRadius}
-                onChange={(e) => update("deliveryRadius", Number(e.target.value))}
-                className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                style={{ accentColor: config.color }}
-              />
-              <div className="flex justify-between text-[10px] text-slate-400 font-bold mt-1">
-                <span>1 km</span><span>50 km</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormInput label="Operating Hours" icon={Clock}
-                name="operatingHours" value={form.operatingHours} onChange={handleChange}
-                placeholder="9:00 AM - 10:00 PM"
-              />
-              <FormInput label="GSTIN (optional)" icon={FileText}
-                name="gstin" value={form.gstin} onChange={handleChange}
-                placeholder="22AAAAA0000A1Z5"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormInput label="Min Order Qty"
-                name="minOrderQty" value={form.minOrderQty} onChange={handleChange}
-                type="number" min={1} placeholder="1"
-              />
-              <FormInput label="Min Order Value (₹)"
-                name="minOrderValue" value={form.minOrderValue} onChange={handleChange}
-                type="number" min={0} placeholder="0"
-              />
-            </div>
-
-            {/* Pickup Toggle */}
-            <div
-              onClick={() => update("pickupAvailable", !form.pickupAvailable)}
-              className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all
-                ${form.pickupAvailable ? "border-transparent" : "border-slate-200 bg-slate-50 hover:border-slate-300"}`}
-              style={form.pickupAvailable ? { backgroundColor: config.color + "20", borderColor: config.color } : {}}
-            >
-              <div>
-                <p className="font-bold text-slate-900 text-sm">Pickup Available</p>
-                <p className="text-xs text-slate-500 mt-0.5">Let customers pick up from your store</p>
-              </div>
-              <div className={`w-12 h-6 rounded-full transition-all relative ${form.pickupAvailable ? "" : "bg-slate-200"}`}
-                style={form.pickupAvailable ? { backgroundColor: config.color } : {}}>
-                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${form.pickupAvailable ? "left-6" : "left-0.5"}`} />
-              </div>
-            </div>
-          </div>
-        );
-
-      /* ---- STEP 4: BANK + REVIEW ---- */
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="text-center pb-2">
-              <div className="text-4xl mb-2">🏦</div>
-              <h3 className="text-lg font-black text-slate-900">Bank Details & Launch</h3>
-              <p className="text-slate-500 text-sm mt-1">Add your bank account to receive payouts (optional)</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormInput label="Account Holder Name" icon={CreditCard}
-                name="accountName" value={form.accountName} onChange={handleChange}
-                placeholder="Full name as per bank"
-              />
-              <FormInput label="Bank Name"
-                name="bankName" value={form.bankName} onChange={handleChange}
-                placeholder="HDFC / SBI / ICICI"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormInput label="Account Number"
-                name="accountNumber" value={form.accountNumber} onChange={handleChange}
-                placeholder="XXXXXXXXXXXX"
-              />
-              <FormInput label="IFSC Code"
-                name="ifsc" value={form.ifsc} onChange={handleChange}
-                placeholder="HDFC0001234"
-              />
-            </div>
-
-            {/* Review Summary */}
-            <div className="rounded-2xl p-4 space-y-3" style={{ backgroundColor: config.color + "10", border: `1px solid ${config.color}30` }}>
-              <p className="text-xs font-black uppercase tracking-wider" style={{ color: config.color }}>Store Summary</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                {[
-                  ["Store Name", form.storeName || "—"],
-                  ["Category", form.storeCategory || "—"],
-                  ["City", form.city || "—"],
-                  ["Dispatch", form.dispatchSpeed],
-                  ["Delivery Radius", `${form.deliveryRadius} km`],
-                  ["Type", config.label],
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <p className="text-xs text-slate-400 font-bold">{label}</p>
-                    <p className="font-bold text-slate-900 truncate">{value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="text-xs text-slate-400 text-center font-medium">
-              By launching your store, you agree to Indiafy's seller terms and marketplace policies.
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  // Helper getters for masks
+  const getMaskedAadhaar = () => {
+    const clean = form.aadhaarNumber.replace(/\s/g, "");
+    if (clean.length < 4) return clean;
+    return `XXXX XXXX ${clean.slice(-4)}`;
   };
 
-  /* ============================================================
-     RENDER
-  ============================================================ */
+  const getMaskedAccount = () => {
+    if (form.accountNumber.length < 4) return form.accountNumber;
+    return `${"•".repeat(form.accountNumber.length - 4)}${form.accountNumber.slice(-4)}`;
+  };
+
+  const isFormValid =
+    form.storeName.trim() &&
+    form.gstin.trim() &&
+    form.address.trim() &&
+    form.panNumber.trim() &&
+    form.aadhaarNumber.trim() &&
+    form.accountNumber.trim() &&
+    form.accountNumber === form.confirmAccountNumber &&
+    form.bankStatementPhoto &&
+    form.cancelledChequePhoto &&
+    form.foodLicensePhoto;
+
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-hidden"
-      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-slate-900/60 backdrop-blur-sm">
+      {previewFile && <PreviewModal fileUrl={previewFile} onClose={() => setPreviewFile(null)} />}
 
-      <div className="w-full sm:max-w-2xl bg-white rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden shadow-2xl max-h-[85dvh] md:max-h-[80dvh] flex flex-col relative animate-in fade-in zoom-in-95 duration-300">
-
-        {/* HEADER */}
-        <div className={`bg-gradient-to-r ${config.gradient} p-5 sm:p-6 flex items-center justify-between shrink-0`}>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">{config.emoji}</span>
-              <h2 className="text-lg font-black text-white">Create {config.label} Store</h2>
-            </div>
-            <p className="text-white/70 text-xs font-medium">Your store will go live on Indiafy marketplace instantly</p>
+      <div className="w-full max-w-xl bg-white rounded-2xl overflow-hidden shadow-2xl h-[92vh] sm:h-[85vh] flex flex-col relative border border-slate-100">
+        
+        {/* HEADER SECTION */}
+        <div className={`p-5 text-white bg-gradient-to-r ${config.gradient} shrink-0`}>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-base font-black flex items-center gap-1.5 leading-none">
+              ⚡ Activate Your Quick Commerce Store
+            </h2>
+            <button onClick={onClose} className="p-1 rounded-lg bg-white/10 hover:bg-white/20 transition text-white">
+              <X size={16} />
+            </button>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-white">
-            <X size={18} />
-          </button>
+          <p className="text-[11px] text-white/80 font-medium">
+            Complete verification to start selling products on Indiafy.
+          </p>
+          <div className="mt-4 space-y-1">
+            <div className="flex justify-between text-[9px] font-black uppercase tracking-wider opacity-90">
+              <span>Progress Status</span>
+              <span>Step 1 of 1</span>
+            </div>
+            <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-white transition-all duration-300" style={{ width: "100%" }} />
+            </div>
+          </div>
         </div>
 
-        {/* STEP INDICATOR */}
-        <div className="border-b border-slate-100 shrink-0">
-          <StepIndicator currentStep={step} config={config} />
+        {/* CORE SCROLL AREA */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-slate-50/30">
+          <AnimatePresence mode="wait">
+            {!isSubmitted ? (
+              <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                
+                {/* SECTION 1: STORE DETAILS */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3.5">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
+                    <Store size={14} className="text-emerald-500" /> Section 1: Store Details
+                  </h3>
+                  <KYCInput
+                    label="Shop Name"
+                    name="storeName" value={form.storeName} onChange={handleInputChange}
+                    placeholder="Enter your shop name (e.g. Sharma Super Mart)"
+                    error={errors.storeName}
+                  />
+                  <KYCInput
+                    label="GST Number"
+                    name="gstin" value={form.gstin} onChange={handleInputChange}
+                    placeholder="22AAAAA0000A1Z5"
+                    error={errors.gstin}
+                  />
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Shop Address *</label>
+                    <textarea
+                      rows={2.5}
+                      name="address" value={form.address} onChange={handleInputChange}
+                      placeholder="Enter complete shop address (Building, Street, Area, City, State, Pincode)"
+                      className="w-full bg-slate-50/50 border border-slate-200 focus:border-slate-400 focus:bg-white rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 outline-none transition-all resize-none placeholder:text-slate-350"
+                    />
+                    {errors.address && <span className="text-[10px] font-medium text-rose-500">{errors.address}</span>}
+                  </div>
+
+                  <div className="flex gap-4 items-start pt-3 border-t border-slate-100">
+                    <ImageFieldUploader 
+                      label="Store Logo" 
+                      value={form.logo} 
+                      onChange={(base64) => updateFileField("logo", base64)} 
+                      isLogo={true} 
+                    />
+                    <ImageFieldUploader 
+                      label="Store Banner" 
+                      value={form.banner} 
+                      onChange={(base64) => updateFileField("banner", base64)} 
+                      isLogo={false} 
+                    />
+                  </div>
+                </div>
+
+                {/* SECTION 2: OWNER VERIFICATION */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3.5">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
+                    <Shield size={14} className="text-emerald-500" /> Section 2: Owner Verification
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <KYCInput
+                      label="PAN Number"
+                      name="panNumber" value={form.panNumber} onChange={handleInputChange}
+                      placeholder="ABCDE1234F"
+                      error={errors.panNumber}
+                    />
+                    <KYCInput
+                      label="Aadhaar Number"
+                      name="aadhaarNumber" value={form.aadhaarNumber} onChange={handleInputChange}
+                      placeholder="XXXX XXXX XXXX"
+                      error={errors.aadhaarNumber}
+                    />
+                  </div>
+                </div>
+
+                {/* SECTION 3: BANK DETAILS */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3.5">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
+                    <CreditCard size={14} className="text-emerald-500" /> Section 3: Settlement Details
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <KYCInput
+                      label="Account Number"
+                      name="accountNumber" value={form.accountNumber} onChange={handleInputChange}
+                      placeholder="Enter bank account number"
+                      error={errors.accountNumber}
+                    />
+                    <KYCInput
+                      label="Confirm Account Number"
+                      name="confirmAccountNumber" value={form.confirmAccountNumber} onChange={handleInputChange}
+                      placeholder="Re-enter account number"
+                      error={errors.confirmAccountNumber}
+                    />
+                  </div>
+                </div>
+
+                {/* SECTION 4: DOCUMENT UPLOADS */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3.5">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
+                    <FileText size={14} className="text-emerald-500" /> Section 4: Required Uploads
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <DocumentUploader
+                      label="Bank Statement"
+                      value={form.bankStatementPhoto}
+                      onChange={(base64) => updateFileField("bankStatementPhoto", base64)}
+                      onPreview={setPreviewFile}
+                    />
+                    <DocumentUploader
+                      label="Cancelled Cheque"
+                      value={form.cancelledChequePhoto}
+                      onChange={(base64) => updateFileField("cancelledChequePhoto", base64)}
+                      onPreview={setPreviewFile}
+                    />
+                    <DocumentUploader
+                      label="Food License"
+                      value={form.foodLicensePhoto}
+                      onChange={(base64) => updateFileField("foodLicensePhoto", base64)}
+                      onPreview={setPreviewFile}
+                    />
+                  </div>
+                  {(errors.bankStatementPhoto || errors.cancelledChequePhoto || errors.foodLicensePhoto) && (
+                    <span className="text-[10px] font-medium text-rose-500 flex items-center gap-1">
+                      <AlertTriangle size={10} /> Bank statement, cancelled cheque, and food license uploads are all required
+                    </span>
+                  )}
+                </div>
+
+                {/* REVIEW SUMMARY CARD */}
+                <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 shadow-inner space-y-3">
+                  <div className="flex justify-between items-center border-b border-slate-150 pb-1.5">
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide flex items-center gap-1">
+                      <CheckCircle2 size={13} className="text-emerald-500" /> Live Verification Summary
+                    </h4>
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isFormValid ? "bg-emerald-100 text-emerald-700 border border-emerald-250" : "bg-slate-100 text-slate-450"}`}>
+                      {isFormValid ? "Valid ✓" : "Incomplete ⚠"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="text-slate-400 font-medium text-[10px] uppercase">Shop Name</p>
+                      <p className="font-bold text-slate-800 truncate">{form.storeName || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400 font-medium text-[10px] uppercase">GST Number</p>
+                      <p className="font-bold text-slate-800 truncate">{form.gstin || "—"}</p>
+                    </div>
+                    <div className="col-span-1 sm:col-span-2">
+                      <p className="text-slate-400 font-medium text-[10px] uppercase">Shop Address</p>
+                      <p className="font-bold text-slate-800 truncate">{form.address || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400 font-medium text-[10px] uppercase">PAN Number</p>
+                      <p className="font-bold text-slate-800 uppercase">{form.panNumber || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400 font-medium text-[10px] uppercase">Aadhaar (Masked)</p>
+                      <p className="font-bold text-slate-800">{form.aadhaarNumber ? getMaskedAadhaar() : "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400 font-medium text-[10px] uppercase">Account (Masked)</p>
+                      <p className="font-bold text-slate-850 truncate">{form.accountNumber ? getMaskedAccount() : "—"}</p>
+                    </div>
+                    <div className="col-span-1 sm:col-span-2">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Uploaded Licenses</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          ["Bank Statement", form.bankStatementPhoto],
+                          ["Cancelled Cheque", form.cancelledChequePhoto],
+                          ["Food License (FSSAI)", form.foodLicensePhoto]
+                        ].map(([label, file]) => (
+                          <div key={label} className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${file ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-400 border-slate-200"}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${file ? "bg-emerald-500" : "bg-slate-300"}`} />
+                            {label}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </motion.div>
+            ) : (
+              /* SUCCESS SCREEN */
+              <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center text-center p-6 h-full space-y-6">
+                <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 shadow-inner">
+                  <CheckCircle2 size={36} className="animate-bounce" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">🎉 Store Verification Submitted</h3>
+                  <p className="text-slate-500 text-xs mt-2 leading-relaxed max-w-sm mx-auto">
+                    Your verification documents have been submitted successfully. Our compliance board is auditing your credentials.
+                  </p>
+                </div>
+                
+                <div className="border border-slate-100 bg-slate-50/50 rounded-2xl p-4 w-full text-left grid grid-cols-2 gap-4 text-xs font-semibold text-slate-650">
+                  <div>
+                    <span className="text-[9px] text-slate-450 uppercase block">Verification Status</span>
+                    <span className="text-slate-800 font-black mt-0.5 flex items-center gap-1"><Clock size={12} className="text-amber-500" /> Pending Review</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-450 uppercase block">Estimated Approval</span>
+                    <span className="text-slate-850 font-black mt-0.5">24–48 Hours</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    const activeNode = JSON.parse(localStorage.getItem("activeNode"));
+                    onSuccess?.(nodeType, activeNode);
+                    if (activeNode?._id) {
+                      window.location.href = `/seller/dashboard/${activeNode._id}/dashboard`;
+                    } else {
+                      window.location.href = "/seller-hub";
+                    }
+                  }}
+                  className="w-full py-3.5 bg-slate-900 text-white font-black uppercase rounded-xl hover:bg-slate-800 transition active:scale-95 text-xs shadow-md"
+                >
+                  Go To Seller Dashboard
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* SCROLLABLE FORM */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-7">
-          {renderStep()}
-        </div>
+        {/* ACTION BUTTONS (Hidden on success screen) */}
+        {!isSubmitted && (
+          <div className="border-t border-slate-100 p-4 flex items-center justify-between gap-3 shrink-0 bg-white">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition bg-white"
+            >
+              <ArrowLeft size={14} /> Back
+            </button>
 
-        {/* FOOTER ACTIONS */}
-        <div className="border-t border-slate-100 p-4 sm:p-5 flex items-center justify-between gap-3 shrink-0 bg-white">
-          {step > 1 ? (
-            <button onClick={goBack}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 transition-all">
-              <ArrowLeft size={16} /> Back
-            </button>
-          ) : (
-            <button onClick={onClose}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50 transition-all">
-              Cancel
-            </button>
-          )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-650 font-bold rounded-xl text-xs transition"
+              >
+                Save Draft
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-white font-bold text-xs shadow-lg transition hover:opacity-90 active:scale-95 disabled:opacity-70"
+                style={{ background: `linear-gradient(135deg, ${config.color}, ${config.color}cc)` }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" /> Activating...
+                  </>
+                ) : (
+                  <>
+                    <Zap size={12} /> Activate Store
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
 
-          {step < 4 ? (
-            <button onClick={goNext}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl text-white font-bold text-sm shadow-lg transition-all hover:opacity-90 active:scale-95"
-              style={{ background: `linear-gradient(135deg, ${config.color}, ${config.color}cc)` }}>
-              Continue <ArrowRight size={16} />
-            </button>
-          ) : (
-            <button onClick={handleSubmit} disabled={isSubmitting}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl text-white font-bold text-sm shadow-xl transition-all hover:opacity-90 active:scale-95 disabled:opacity-70"
-              style={{ background: `linear-gradient(135deg, ${config.color}, ${config.color}cc)` }}>
-              {isSubmitting ? (
-                <>Launching Store...</>
-              ) : (
-                <><Zap size={16} /> Launch Store 🚀</>
-              )}
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );

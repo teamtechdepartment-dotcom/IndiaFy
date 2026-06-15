@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 const VideoVerification = () => {
-  const { id } = useParams();
+  const { nodeId, id } = useParams();
   const navigate = useNavigate();
   const { fetchSellerOrders } = useOrderStore();
   const [items, setItems] = useState([]);
@@ -60,7 +60,7 @@ const VideoVerification = () => {
       } catch (err) {
         console.error("fetchOrder error:", err);
         toast.error("Failed to load order details");
-        navigate('/live');
+        navigate(`/seller/dashboard/${nodeId}/live`);
       }
     };
     if (id) fetchOrder();
@@ -96,14 +96,19 @@ const VideoVerification = () => {
         videoRef.current.play();
       }
 
-      // Detect supported MIME types
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-        ? 'video/webm;codecs=vp9' 
-        : MediaRecorder.isTypeSupported('video/webm') 
-          ? 'video/webm' 
-          : 'video/mp4';
+      // Detect supported MIME types dynamically
+      let options = {};
+      if (typeof MediaRecorder !== 'undefined') {
+        if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+          options = { mimeType: 'video/webm;codecs=vp9' };
+        } else if (MediaRecorder.isTypeSupported('video/webm')) {
+          options = { mimeType: 'video/webm' };
+        } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+          options = { mimeType: 'video/mp4' };
+        }
+      }
 
-      const mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+      const mediaRecorder = new MediaRecorder(mediaStream, options);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
@@ -112,7 +117,8 @@ const VideoVerification = () => {
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mimeType });
+        const recordedMime = mediaRecorder.mimeType || 'video/webm';
+        const blob = new Blob(chunksRef.current, { type: recordedMime });
         const url = URL.createObjectURL(blob);
         setVideoSrc(url);
         // Store the blob globally or in a ref to avoid fetch later
@@ -125,7 +131,7 @@ const VideoVerification = () => {
       setVideoSrc(null);
     } catch (err) {
       console.error("Camera Error:", err);
-      toast.error("Could not access camera. Ensure permissions are granted.");
+      toast.error(`Could not access camera: ${err.message || err.name || "Permission denied"}`);
     }
   };
 
@@ -182,7 +188,7 @@ const VideoVerification = () => {
 
       toast.success("Video verified & Order Shipped!");
       if (fetchSellerOrders) fetchSellerOrders();
-      navigate('/live');
+      navigate(`/seller/dashboard/${nodeId}/live`);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || err.message || "Failed to upload verification video");
@@ -198,7 +204,7 @@ const VideoVerification = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <button 
-            onClick={() => navigate('/live')}
+            onClick={() => navigate(`/seller/dashboard/${nodeId}/live`)}
             className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors mb-3 text-sm font-bold"
           >
             <ArrowLeft size={16} /> Back to Live Orders

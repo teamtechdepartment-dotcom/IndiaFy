@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import { motion } from "framer-motion";
 import { BuyAgainSkeleton } from "./LoadingSkeletons";
 
@@ -40,7 +40,7 @@ const BUY_AGAIN_ITEMS = [
   },
 ];
 
-export default function BuyAgain({ cart, onAdd, isLoading }) {
+export default function BuyAgain({ cart, onAdd, onInc, onDec, isLoading, items = BUY_AGAIN_ITEMS }) {
   if (isLoading) {
     return (
       <div className="px-4 py-4">
@@ -66,50 +66,68 @@ export default function BuyAgain({ cart, onAdd, isLoading }) {
           </span>
         </div>
         <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-          {BUY_AGAIN_ITEMS.map((item, i) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="shrink-0 w-[130px] bg-zinc-50 rounded-2xl p-2.5 border border-zinc-100 hover:border-brand-accent/30 hover:shadow-sm transition-all group"
-            >
-              <div className="w-full aspect-square bg-white rounded-xl mb-2 overflow-hidden border border-zinc-100/50">
-                <img
-                  src={item.img}
-                  alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-              </div>
-              <p className="text-[11px] font-bold text-zinc-800 leading-tight line-clamp-1 mb-0.5">
-                {item.name}
-              </p>
-              <p className="text-[9px] font-semibold text-zinc-400 mb-1.5">
-                {item.weight}
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-zinc-900">
-                  ₹{item.price}
-                </span>
-                {cart[item.id] ? (
-                  <div className="w-7 h-7 rounded-lg bg-brand-accent flex items-center justify-center text-white text-[10px] font-black">
-                    {cart[item.id]}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => onAdd(item.id)}
-                    className="w-7 h-7 rounded-lg bg-brand-accent/10 hover:bg-brand-accent text-brand-accent hover:text-white flex items-center justify-center active:scale-90 transition-all"
-                    aria-label={`Add ${item.name} to cart`}
-                  >
-                    <Plus size={14} strokeWidth={2.5} />
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          ))}
+          {items.map((item, i) => {
+            const qty = cart[item.id] || 0;
+            return (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="shrink-0 w-[130px] bg-zinc-50 rounded-2xl p-2.5 border border-zinc-100 hover:border-brand-accent/30 hover:shadow-sm transition-all group"
+              >
+                <div className="w-full aspect-square bg-white rounded-xl mb-2 overflow-hidden border border-zinc-100/50">
+                  <img
+                    src={item.img}
+                    alt={item.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                </div>
+                <p className="text-[11px] font-bold text-zinc-800 leading-tight line-clamp-1 mb-0.5">
+                  {item.name}
+                </p>
+                <p className="text-[9px] font-semibold text-zinc-400 mb-1.5">
+                  {item.weight}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-zinc-900">
+                    ₹{item.price}
+                  </span>
+                  {qty > 0 ? (
+                    <div className="flex items-center bg-brand-accent text-white rounded-lg h-7 shadow-sm">
+                      <button
+                        onClick={() => onDec(item.id)}
+                        className="w-6 h-full flex items-center justify-center active:bg-brand-accent-hover rounded-l-lg transition-colors"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus size={10} strokeWidth={3} />
+                      </button>
+                      <span className="w-4 text-center text-[9px] font-black">{qty}</span>
+                      <button
+                        onClick={() => onInc(item.id)}
+                        className="w-6 h-full flex items-center justify-center active:bg-brand-accent-hover rounded-r-lg transition-colors"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus size={10} strokeWidth={3} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => onAdd(item.id)}
+                      className="w-7 h-7 rounded-lg bg-brand-accent/10 hover:bg-brand-accent text-brand-accent hover:text-white flex items-center justify-center active:scale-90 transition-all"
+                      aria-label={`Add ${item.name} to cart`}
+                    >
+                      <Plus size={14} strokeWidth={2.5} />
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
+
