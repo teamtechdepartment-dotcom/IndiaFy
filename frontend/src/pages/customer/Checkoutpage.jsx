@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-undef, no-empty */
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -98,11 +98,13 @@ export default function CheckoutPage() {
   // Track if Razorpay failed so we can show manual fallback
   const [showManualConfirm, setShowManualConfirm] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState(null);
+  const [checkoutError, setCheckoutError] = useState("");
 
   const handlePayMethodSelect = (method) => {
     setPayMethod(method);
     setPendingOrderId(null); // Invalidate legacy pending order configuration
     setShowManualConfirm(false);
+    setCheckoutError("");
   };
 
   const loadRazorpayScript = () => {
@@ -116,16 +118,18 @@ export default function CheckoutPage() {
     });
   };
 
-  // Helper: navigate to success safely, always clear cart first but never block on it
-  const goToSuccess = async (orderId) => {
+  // Helper: navigate to success safely — navigate FIRST, then clear cart in background
+  const goToSuccess = (orderId) => {
     orderPlacedRef.current = true; // prevent cart-empty useEffect redirect
-    try { await clearCartStore(); } catch (_e) { /* ignore cart clear errors */ }
     navigate("/order-success", { state: { orderId } });
+    // Fire-and-forget: clear cart in background after navigation has started
+    clearCartStore().catch(() => { /* ignore cart clear errors */ });
   };
 
   // Manual order completion (for test mode / payment gateway issues)
   const handleManualComplete = async () => {
     if (!pendingOrderId) return;
+    setCheckoutError("");
     try {
       await axiosInstance.post("/payments/verify", {
         razorpay_order_id: "manual",
@@ -134,9 +138,11 @@ export default function CheckoutPage() {
         orderId: pendingOrderId
       });
       toast.success("Order placed successfully!");
-      await goToSuccess(pendingOrderId);
+      goToSuccess(pendingOrderId);
     } catch (_err) {
-      toast.error(_err?.response?.data?.message || _err?.message || "Failed to complete order");
+      const errorMsg = _err?.response?.data?.message || _err?.message || "Failed to complete order";
+      setCheckoutError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -147,6 +153,7 @@ export default function CheckoutPage() {
 
     setIsPlacing(true);
     setShowManualConfirm(false);
+    setCheckoutError("");
 
     try {
       let newOrder = null;
@@ -195,7 +202,7 @@ export default function CheckoutPage() {
       // 2. If COD, we are done
       if (payMethod === "cod") {
         toast.success("Order placed successfully (COD)!");
-        await goToSuccess(newOrder._id);
+        goToSuccess(newOrder._id);
         return;
       }
 
@@ -208,10 +215,12 @@ export default function CheckoutPage() {
             orderId: newOrder._id
           });
           toast.success("Order placed successfully (Simulator Payment)!");
-          await goToSuccess(newOrder._id);
+          goToSuccess(newOrder._id);
         } catch (_simErr) {
           console.error("Simulator payment verification failed:", _simErr);
           const errorMsg = _simErr?.response?.data?.message || _simErr?.message || "Failed to process simulator payment";
+          setCheckoutError(errorMsg);
+          setShowManualConfirm(true);
           toast.error(errorMsg);
           setIsPlacing(false);
         }
@@ -221,7 +230,9 @@ export default function CheckoutPage() {
       // 3. Razorpay Path
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
-        toast.error("Razorpay SDK failed to load. Use the manual confirm button below.");
+        const errorMsg = "Razorpay SDK failed to load. Use the manual confirm button below.";
+        setCheckoutError(errorMsg);
+        toast.error(errorMsg);
         setShowManualConfirm(true);
         setIsPlacing(false);
         return;
@@ -233,7 +244,9 @@ export default function CheckoutPage() {
         rpRes = await axiosInstance.post("/payments/create-order", { amount: total, orderId: newOrder._id });
       } catch (payErr) {
         console.error("Payment initiation failed:", payErr);
-        toast.error("Payment gateway error. Use the manual confirm button below.");
+        const errorMsg = payErr?.response?.data?.message || payErr?.message || "Payment gateway error. Use the manual confirm button below.";
+        setCheckoutError(errorMsg);
+        toast.error(errorMsg);
         setShowManualConfirm(true);
         setIsPlacing(false);
         return;
@@ -265,9 +278,11 @@ export default function CheckoutPage() {
               orderId: newOrder._id
             });
             toast.success("Payment successful!");
-            await goToSuccess(newOrder._id);
+            goToSuccess(newOrder._id);
           } catch (_err) {
-            toast.error("Payment verification failed. Use manual confirm.");
+            const errorMsg = _err?.response?.data?.message || _err?.message || "Payment verification failed. Use manual confirm.";
+            setCheckoutError(errorMsg);
+            toast.error(errorMsg);
             setShowManualConfirm(true);
             setIsPlacing(false);
           }
@@ -283,7 +298,9 @@ export default function CheckoutPage() {
         theme: { color: "#000000" },
         modal: {
           ondismiss: () => {
-            toast.info("Payment cancelled. You can retry or use manual confirm.");
+            const errorMsg = "Payment cancelled. You can retry or use manual confirm.";
+            setCheckoutError(errorMsg);
+            toast.info(errorMsg);
             setShowManualConfirm(true);
             setIsPlacing(false);
           }
@@ -293,19 +310,38 @@ export default function CheckoutPage() {
       const rzp = new window.Razorpay(options);
       rzp.on('payment.failed', (response) => {
         console.error("Razorpay payment failed:", response.error);
-        toast.error(`Payment failed: ${response.error.description || "Unknown error"}`);
+        const errorMsg = `Payment failed: ${response.error.description || "Unknown error"}`;
+        setCheckoutError(errorMsg);
+        toast.error(errorMsg);
         setShowManualConfirm(true);
         setIsPlacing(false);
       });
-      rzp.open();
+      try {
+        rzp.open();
+      } catch (openErr) {
+        console.error("Razorpay checkout failed to open:", openErr);
+        const errorMsg = openErr?.message || "Payment window could not open. Use manual confirm or retry.";
+        setCheckoutError(errorMsg);
+        toast.error(errorMsg);
+        setShowManualConfirm(true);
+        setIsPlacing(false);
+      }
       
     } catch (_err) {
       console.error("Order process error:", _err);
       setIsPlacing(false);
       const msg = _err?.response?.data?.message || _err?.message || "Failed to process order";
+      setCheckoutError(msg);
       toast.error(msg);
     }
   };
+
+  const renderCheckoutError = () => checkoutError ? (
+    <div role="alert" className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
+      <Info size={16} className="mt-0.5 shrink-0" />
+      <p className="text-[11px] font-bold leading-relaxed">{checkoutError}</p>
+    </div>
+  ) : null;
 
 
   return (
@@ -709,6 +745,32 @@ export default function CheckoutPage() {
                 </label>
               </div>
             </section>
+
+            {/* MOBILE-ONLY: Confirm & Pay button (visible only on < lg screens) */}
+            {step === 2 && (
+              <div className="lg:hidden mt-6 space-y-3">
+                <div className="flex justify-between items-end px-2">
+                  <p className="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">Payable Amount</p>
+                  <p className="text-2xl font-black text-slate-900">{fmt(total)}</p>
+                </div>
+                <button
+                  disabled={isPlacing}
+                  onClick={handlePlaceOrder}
+                  className="w-full py-5 bg-zinc-900 text-white rounded-3xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:bg-zinc-800 active:scale-95 transition-all disabled:opacity-30 shadow-lg shadow-zinc-900/20"
+                >
+                  {isPlacing ? "Processing Order..." : "Confirm & Pay Now"}
+                </button>
+                {renderCheckoutError()}
+                {showManualConfirm && pendingOrderId && (
+                  <button
+                    onClick={handleManualComplete}
+                    className="w-full py-4 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:bg-emerald-600 active:scale-95 transition-all animate-pulse"
+                  >
+                    ✅ Complete Order (Test Mode)
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* RIGHT: SUMMARY */}
@@ -781,6 +843,7 @@ export default function CheckoutPage() {
                 >
                   {isPlacing ? "Processing Order..." : "Confirm & Pay Now"}
                 </button>
+                {renderCheckoutError()}
 
                 {/* Manual Confirm Button — shows after Razorpay fails/dismissed */}
                 {showManualConfirm && pendingOrderId && (

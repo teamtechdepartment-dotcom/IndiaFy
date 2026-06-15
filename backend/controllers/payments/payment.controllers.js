@@ -86,12 +86,16 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         .update(sign.toString())
         .digest("hex");
 
-    // 🔒 STRICT PRODUCTION SECURITY LOCK: Only allow simulator bypass in non-production, test-key mode.
-    const isProd = process.env.NODE_ENV === "production";
+    // Simulator payments are only valid while the active Razorpay key is a test key.
+    // This lets deployed test-mode builds behave like localhost without opening a bypass for live keys.
     const isKeyInTestMode = activeKeyId.includes("test") || activeKeyId.startsWith("rzp_test");
     const hasOverrideParameters = razorpay_signature === "test_manual_override" || razorpay_order_id === "manual";
+    const isSimulatorPaymentId = typeof razorpay_payment_id === "string" && (
+        razorpay_payment_id.startsWith("test_simulator_") ||
+        razorpay_payment_id.startsWith("manual_")
+    );
     
-    const isTestSimulatorVerified = !isProd && isKeyInTestMode && hasOverrideParameters;
+    const isTestSimulatorVerified = isKeyInTestMode && hasOverrideParameters && isSimulatorPaymentId;
 
     if (razorpay_signature !== expectedSign && !isTestSimulatorVerified) {
         throw new ApiError(400, "Invalid payment signature. Live transaction verification failed.");
@@ -247,4 +251,3 @@ export const razorpayWebhook = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new ApiResponse(200, { received: true }, "Webhook processed successfully"));
 });
-
