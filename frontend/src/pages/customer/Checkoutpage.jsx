@@ -116,6 +116,13 @@ export default function CheckoutPage() {
     });
   };
 
+  // Helper: navigate to success safely, always clear cart first but never block on it
+  const goToSuccess = async (orderId) => {
+    orderPlacedRef.current = true; // prevent cart-empty useEffect redirect
+    try { await clearCartStore(); } catch (_e) { /* ignore cart clear errors */ }
+    navigate("/order-success", { state: { orderId } });
+  };
+
   // Manual order completion (for test mode / payment gateway issues)
   const handleManualComplete = async () => {
     if (!pendingOrderId) return;
@@ -127,10 +134,9 @@ export default function CheckoutPage() {
         orderId: pendingOrderId
       });
       toast.success("Order placed successfully!");
-      await clearCartStore();
-      navigate("/order-success", { state: { orderId: pendingOrderId } });
+      await goToSuccess(pendingOrderId);
     } catch (_err) {
-      toast.error("Failed to complete order");
+      toast.error(_err?.response?.data?.message || _err?.message || "Failed to complete order");
     }
   };
 
@@ -142,12 +148,6 @@ export default function CheckoutPage() {
     setIsPlacing(true);
     setShowManualConfirm(false);
 
-    // Helper: navigate to success safely, always clear cart first but never block on it
-    const goToSuccess = async (orderId) => {
-      orderPlacedRef.current = true; // prevent cart-empty useEffect redirect
-      try { await clearCartStore(); } catch (_e) { /* ignore cart clear errors */ }
-      navigate("/order-success", { state: { orderId } });
-    };
     try {
       let newOrder = null;
 
@@ -210,7 +210,9 @@ export default function CheckoutPage() {
           toast.success("Order placed successfully (Simulator Payment)!");
           await goToSuccess(newOrder._id);
         } catch (_simErr) {
-          toast.error("Failed to process simulator payment");
+          console.error("Simulator payment verification failed:", _simErr);
+          const errorMsg = _simErr?.response?.data?.message || _simErr?.message || "Failed to process simulator payment";
+          toast.error(errorMsg);
           setIsPlacing(false);
         }
         return;
