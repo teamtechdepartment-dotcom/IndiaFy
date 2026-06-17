@@ -53,7 +53,7 @@ const PageLoader = () => (
 );
 
 /* =========================================================
-   PUBLIC PAGES
+   PUBLIC PAGES & COMPONENTS
 ========================================================= */
 
 import Home from "./pages/public/Home";
@@ -76,6 +76,9 @@ const TrustSafety = lazy(() => import("./pages/public/TrustSafety"));
 const BecomeSellerInfo = lazy(() => import("./pages/public/BecomeSellerInfo"));
 const HelpCenter = lazy(() => import("./pages/public/HelpCenter"));
 const FAQ = lazy(() => import("./pages/public/FAQ"));
+
+// ADDED: Quick Commerce Hero Component
+const Hero = lazy(() => import("./components/QuickCommerce/Hero"));
 
 /* =========================================================
    SEO LANDING PAGES
@@ -283,6 +286,9 @@ export default function App() {
             <Route path="/become-seller-info" element={<BecomeSellerInfo />} />
             <Route path="/help-center" element={<HelpCenter />} />
             <Route path="/faq" element={<FAQ />} />
+
+            {/* ADDED: Hero standalone preview route */}
+            <Route path="/hero" element={<Suspense fallback={<HeroSkeleton />}><Hero /></Suspense>} />
 
             {/* =====================================================
                 SEO LANDING PAGES

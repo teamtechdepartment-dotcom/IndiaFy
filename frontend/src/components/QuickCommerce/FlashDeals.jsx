@@ -1,188 +1,117 @@
-import { useState, useEffect, useRef } from "react";
-import { Zap, Clock, ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
-import { FlashDealSkeleton } from "./LoadingSkeletons";
+import React from "react";
+import { ChevronRight, Heart, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const FLASH_DEALS = [
-  {
-    id: "fd-1",
-    name: "Fresh Tomatoes",
-    weight: "1 kg",
-    price: 39,
-    mrp: 50,
-    discount: "22% OFF",
-    eta: "12 min",
-    img: "https://images.unsplash.com/photo-1546470427-0d4db154ceb8?w=300&q=80",
-    endsIn: 8100, // seconds
-  },
-  {
-    id: "fd-2",
-    name: "Nagpur Oranges",
-    weight: "500 g",
-    price: 69,
-    mrp: 100,
-    discount: "31% OFF",
-    eta: "15 min",
-    img: "https://images.unsplash.com/photo-1611080661265-d04b86bb3d58?w=300&q=80",
-    endsIn: 5400,
-  },
-  {
-    id: "fd-3",
-    name: "Mother Dairy Paneer",
-    weight: "200 g",
-    price: 65,
-    mrp: 90,
-    discount: "28% OFF",
-    eta: "10 min",
-    img: "https://images.unsplash.com/photo-1559561853-08451507cbe7?w=300&q=80",
-    endsIn: 3600,
-  },
-  {
-    id: "fd-4",
-    name: "Red Bull Energy",
-    weight: "250 ml",
-    price: 99,
-    mrp: 125,
-    discount: "21% OFF",
-    eta: "12 min",
-    img: "https://images.unsplash.com/photo-1568227451296-17631cc1fa23?w=300&q=80",
-    endsIn: 7200,
-  },
-  {
-    id: "fd-5",
-    name: "Amul Butter",
-    weight: "100 g",
-    price: 48,
-    mrp: 60,
-    discount: "20% OFF",
-    eta: "10 min",
-    img: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=300&q=80",
-    endsIn: 6000,
-  },
-];
-
-function Countdown({ seconds: initialSeconds }) {
-  const [seconds, setSeconds] = useState(initialSeconds);
-  const intervalRef = useRef(null);
-
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setSeconds((s) => (s > 0 ? s - 1 : 0));
-    }, 1000);
-    return () => clearInterval(intervalRef.current);
-  }, []);
-
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-
+// Standardized Product Card matching the reference image UI
+const FlashDealCard = ({ product, onAdd }) => {
+  const navigate = useNavigate();
+  
   return (
-    <span className="text-[10px] font-extrabold text-red-600 tabular-nums">
-      {String(h).padStart(2, "0")}:{String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
-    </span>
+    <div className="group flex flex-col h-full border border-transparent hover:border-gray-200 hover:shadow-md rounded-md overflow-hidden transition-all duration-300 p-3 relative bg-white">
+      {/* Image Container */}
+      <div
+        onClick={() => navigate(`/product/${product.id}`)}
+        className="relative aspect-square w-full overflow-hidden cursor-pointer bg-white mb-3 flex items-center justify-center"
+      >
+        <img
+          src={product.img}
+          alt={product.name}
+          loading="lazy"
+          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+        />
+
+        {/* Orange Discount Badge - Top Left */}
+        <div className="absolute top-0 left-0 px-2 py-0.5 bg-[#ff6161] text-white text-[10px] font-bold shadow-sm rounded-sm z-10 uppercase tracking-wide">
+          {product.discount}% OFF
+        </div>
+        
+        {/* Heart Wishlist Icon - Top Right */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate("/profile");
+          }}
+          className="absolute top-0 right-0 p-1 rounded-full text-gray-400 hover:text-red-500 transition-colors z-10"
+        >
+          <Heart size={16} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      {/* Product Details */}
+      <div className="flex flex-col flex-1">
+        {/* Title */}
+        <h3
+          onClick={() => navigate(`/product/${product.id}`)}
+          className="text-sm font-semibold text-zinc-800 leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors min-h-[40px]"
+        >
+          {product.name}
+        </h3>
+
+        {/* Rating Row (Removed Assured logo from here) */}
+        <div className="flex items-center gap-1.5 mb-2.5">
+          <div className="flex items-center gap-0.5 px-1.5 py-[2px] bg-[#388e3c] text-white rounded-[3px]">
+            <span className="text-[10px] font-bold">4.8</span>
+            <Star size={8} fill="white" strokeWidth={0} />
+          </div>
+          <span className="text-[10px] font-medium text-gray-500">(320)</span>
+        </div>
+
+        {/* Price Row */}
+        <div className="mt-auto flex items-baseline gap-2 mb-1.5 flex-wrap">
+          <span className="text-base font-bold text-zinc-900">₹{product.price}</span>
+          <span className="text-[11px] font-medium text-gray-500 line-through">₹{product.mrp}</span>
+          <span className="text-[11px] font-bold text-[#388e3c]">{product.discount}% off</span>
+        </div>
+
+        {/* Delivery Info */}
+        <div className="text-[10px] text-gray-500 font-medium mb-3">
+          Delivery in 15 min
+        </div>
+
+        {/* Add Button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onAdd(product.id); }}
+          className="w-full bg-white border border-gray-300 text-gray-700 text-[11px] sm:text-xs font-bold py-1.5 rounded hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-all shadow-sm mt-auto"
+        >
+          Add to Cart
+        </button>
+      </div>
+    </div>
   );
-}
+};
 
 export default function FlashDeals({ onAdd, isLoading }) {
-  if (isLoading) {
-    return (
-      <div className="px-4 py-4 bg-white border-b border-zinc-100">
-        <div className="max-w-[1440px] mx-auto">
-          <div className="w-32 h-4 bg-zinc-100 rounded-md mb-3 animate-pulse" />
-          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <FlashDealSkeleton key={i} />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const navigate = useNavigate();
+
+  const flashProducts = [
+    { id: 'f1', name: 'Premium A2 Desi Cow Ghee', weight: '1 kg', price: "1,299", mrp: "1,500", discount: 13, img: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&q=80' },
+    { id: 'f2', name: 'Luxury Silk Evening Wrap', weight: '1 pc', price: "2,450", mrp: "3,200", discount: 23, img: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=400&q=80' },
+    { id: 'f3', name: 'Bulk Pack: Roasted Almonds (5kg)', weight: '5 kg', price: "4,800", mrp: "6,000", discount: 20, img: 'https://images.unsplash.com/photo-1599598425947-330026e138bf?w=400&q=80' },
+    { id: 'f4', name: 'Handcrafted Ceramic Vase', weight: '1 pc', price: "899", mrp: "1,200", discount: 25, img: 'https://images.unsplash.com/photo-1627485937980-221c88ce04ea?w=400&q=80' },
+  ];
+
+  if (isLoading) return null;
 
   return (
-    <div className="px-4 py-4 bg-gradient-to-r from-red-50/50 via-white to-orange-50/50 border-b border-zinc-100">
+    <div className="px-2 sm:px-4 py-4 bg-white border-y border-gray-100 my-2 shadow-sm">
       <div className="max-w-[1440px] mx-auto">
-        <div className="flex items-center justify-between mb-3">
+        
+        <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
-              <Zap size={12} className="text-red-600 fill-red-600" />
-            </div>
-            <h2 className="text-sm font-extrabold text-zinc-900">Flash Deals</h2>
-            <span className="text-[9px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
-              Live
-            </span>
+            <h2 className="text-xl md:text-2xl font-bold text-zinc-900 tracking-tight">Trending Deals</h2>
           </div>
-          <button className="flex items-center gap-0.5 text-[10px] font-bold text-brand-accent uppercase tracking-wider hover:underline">
-            View All <ChevronRight size={12} />
+          <button 
+            onClick={() => navigate('/flash-deals')}
+            className="flex items-center justify-center bg-brand-primary text-white w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-blue-800 transition-colors shadow-sm"
+            aria-label="View All"
+          >
+            <ChevronRight size={18} strokeWidth={2.5} />
           </button>
         </div>
 
-        <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-          {FLASH_DEALS.map((deal, i) => (
-            <motion.div
-              key={deal.id}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.06 }}
-              className="shrink-0 w-[180px] sm:w-[200px] bg-white rounded-2xl border border-zinc-100 overflow-hidden hover:border-red-200 hover:shadow-md transition-all group cursor-pointer"
-            >
-              {/* Image */}
-              <div className="relative h-24 bg-zinc-50 overflow-hidden">
-                <img
-                  src={deal.img}
-                  alt={deal.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-                {/* Discount badge */}
-                <div className="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-md flex items-center gap-0.5">
-                  <Zap size={8} className="fill-white" />
-                  {deal.discount}
-                </div>
-                {/* ETA */}
-                <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-md flex items-center gap-1 border border-zinc-100">
-                  <Clock size={8} className="text-zinc-500" />
-                  <span className="text-[9px] font-bold text-zinc-600">
-                    {deal.eta}
-                  </span>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-2.5">
-                <p className="text-[11px] font-bold text-zinc-800 leading-tight line-clamp-1 mb-0.5">
-                  {deal.name}
-                </p>
-                <p className="text-[9px] font-semibold text-zinc-400 mb-2">
-                  {deal.weight}
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-extrabold text-zinc-900">
-                      ₹{deal.price}
-                    </span>
-                    <span className="text-[9px] text-zinc-400 line-through ml-1 font-bold">
-                      ₹{deal.mrp}
-                    </span>
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onAdd(deal.id); }}
-                    className="h-7 px-3 bg-brand-accent/10 hover:bg-brand-accent text-brand-accent hover:text-white text-[10px] font-extrabold rounded-lg active:scale-90 transition-all"
-                    aria-label={`Add ${deal.name}`}
-                  >
-                    ADD
-                  </button>
-                </div>
-
-                {/* Countdown */}
-                <div className="flex items-center gap-1 mt-2 pt-2 border-t border-zinc-50">
-                  <Clock size={9} className="text-red-400" />
-                  <span className="text-[9px] font-semibold text-zinc-400">Ends in</span>
-                  <Countdown seconds={deal.endsIn} />
-                </div>
-              </div>
-            </motion.div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 pb-2">
+          {flashProducts.map((product) => (
+            <FlashDealCard key={product.id} product={product} onAdd={onAdd} />
           ))}
         </div>
       </div>
