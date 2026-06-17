@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, memo } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Search,
+  ShoppingCart,
   ShoppingBag,
   Menu,
   X,
@@ -23,7 +24,7 @@ import {
   Scissors,
   MapPin,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { useAuthStore } from "../store/authStore";
 import { useSellerAuthStore } from "../store/sellerAuthStore";
 import { useAdminAuthStore } from "../store/adminAuthStore";
@@ -123,12 +124,13 @@ function WebsiteNavbar() {
       <nav
         role="navigation"
         aria-label="Main navigation"
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 bg-white ${
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
           scrolled ? "shadow-nav-scroll" : "shadow-nav"
         }`}
       >
         {/* Top Bar */}
-        <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-brand-primary text-white">
+          <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-[72px]">
             
             {/* LEFT: Logo */}
@@ -147,31 +149,31 @@ function WebsiteNavbar() {
               onSubmit={handleSearch}
               role="search"
               aria-label="Search products"
-              className="hidden md:flex items-center flex-1 max-w-xl mx-6 lg:mx-10"
+              className="hidden md:flex items-center flex-1 max-w-2xl mx-6 lg:mx-12"
             >
               <div className="relative w-full group">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-secondary" aria-hidden="true" />
+                <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-secondary" aria-hidden="true" />
                 <label htmlFor="nav-search" className="sr-only">Search products</label>
                 <input
                   id="nav-search"
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search products, stores, brands..."
-                  className="w-full pl-11 pr-4 py-2.5 bg-brand-background border border-brand-border rounded-full text-sm font-medium text-brand-primary placeholder:text-brand-text-secondary/60 focus:outline-none focus:ring-2 focus:ring-brand-accent/30 focus:border-brand-accent transition-all"
+                  placeholder="Search for products, brands and more"
+                  className="w-full pl-12 pr-4 py-3 bg-white text-brand-text-primary rounded-md text-sm font-medium placeholder:text-brand-text-secondary/80 focus:outline-none focus:ring-0 shadow-sm"
                 />
               </div>
             </form>
 
             {/* RIGHT: Actions */}
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-4">
               {/* Track Order (desktop only) */}
               {isCustomerAuthenticated && (
                 <Link
                   to="/order-history"
-                  className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-brand-text-secondary hover:text-brand-primary transition-colors rounded-lg hover:bg-brand-background"
+                  className="hidden lg:flex items-center gap-1.5 px-2 py-2 text-sm font-medium text-white hover:text-gray-200 transition-colors"
                 >
-                  <Package size={16} />
+                  <Package size={20} />
                   <span>Orders</span>
                 </Link>
               )}
@@ -181,36 +183,33 @@ function WebsiteNavbar() {
                 <button
                   onClick={() => navigate("/seller/login")}
                   aria-label="Become a seller on Indiafy"
-                  className="hidden xl:flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full border-2 border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-200"
+                  className="hidden xl:flex items-center gap-1.5 text-sm font-medium px-4 py-2 text-white hover:text-gray-200 transition-all duration-200"
                 >
-                  <Store size={14} />
-                  Sell on Indiafy
+                  <Store size={18} />
+                  Become a Seller
                 </button>
               )}
 
-              {/* Admin Panel Link */}
-              <Link
-                to={isAdminAuthenticated ? "/admin/dashboard" : "/admin/login"}
-                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-[#0F172A] text-white hover:bg-slate-800 rounded-full transition-all duration-200 border border-[#10B981]/20 shadow-sm"
-              >
-                Admin Panel
-              </Link>
+              {/* Removed Admin Panel Link as per request */}
 
               {/* Cart */}
               <button
                 aria-label={`Shopping cart${cartItems.length > 0 ? `, ${cartItems.length} items` : ''}`}
-                className="relative p-2.5 rounded-full text-brand-primary hover:bg-brand-background transition-colors"
+                className="relative flex items-center gap-1.5 p-2 text-white hover:text-gray-200 transition-colors font-medium text-sm"
                 onClick={() => navigate("/cart")}
               >
-                <ShoppingBag size={20} strokeWidth={1.8} aria-hidden="true" />
-                {cartItems.length > 0 && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 text-[10px] flex items-center justify-center rounded-full font-bold bg-brand-accent text-white shadow-sm"
-                  >
-                    {cartItems.length}
-                  </span>
-                )}
+                <div className="relative">
+                  <ShoppingCart size={22} strokeWidth={1.8} aria-hidden="true" />
+                  {cartItems.length > 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 text-[10px] flex items-center justify-center rounded-full font-bold bg-brand-accent text-white border border-brand-primary"
+                    >
+                      {cartItems.length}
+                    </span>
+                  )}
+                </div>
+                <span className="hidden lg:block">Cart</span>
               </button>
 
               {/* Profile / Login */}
@@ -221,25 +220,21 @@ function WebsiteNavbar() {
                     aria-label="User menu"
                     aria-expanded={userMenuOpen}
                     aria-haspopup="true"
-                    className="flex items-center gap-1.5 p-1.5 rounded-full hover:bg-brand-background transition-colors"
+                    className="flex items-center gap-1.5 p-1.5 text-white hover:text-gray-200 transition-colors text-sm font-medium"
                   >
-                    <div className="w-8 h-8 rounded-full bg-brand-accent flex items-center justify-center text-white text-xs font-bold" aria-hidden="true">
+                    <div className="w-8 h-8 rounded-full bg-brand-accent flex items-center justify-center text-white text-xs font-bold border border-white" aria-hidden="true">
                       {user.firstName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
                     </div>
-                    <ChevronDown size={14} className="hidden sm:block text-brand-text-secondary" aria-hidden="true" />
+                    <span className="hidden sm:block">{user.firstName || 'Profile'}</span>
+                    <ChevronDown size={14} className="hidden sm:block" aria-hidden="true" />
                   </button>
 
-                  <AnimatePresence>
-                    {userMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-lg border border-brand-border py-2 z-50 origin-top-right"
-                        role="menu"
-                        aria-label="User menu"
-                      >
+                  {userMenuOpen && (
+                    <div
+                      className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-lg border border-brand-border py-2 z-50 origin-top-right transition-all duration-200"
+                      role="menu"
+                      aria-label="User menu"
+                    >
                         {user?.role?.toLowerCase() === 'seller' ? (
                           <Link
                             to="/seller-hub"
@@ -293,15 +288,14 @@ function WebsiteNavbar() {
                           <LogOut size={16} aria-hidden="true" />
                           Logout
                         </button>
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
                 </div>
               ) : (
                 <button
                   onClick={() => navigate("/login")}
                   aria-label="Login to your account"
-                  className="hidden sm:flex items-center gap-1.5 text-sm font-semibold bg-brand-primary text-white py-2 px-5 rounded-full hover:bg-brand-secondary transition-colors active:scale-[0.98]"
+                  className="hidden sm:flex items-center gap-1.5 text-sm font-semibold bg-white text-brand-primary py-2 px-6 rounded-md hover:bg-gray-100 transition-colors active:scale-[0.98] shadow-sm"
                 >
                   Login
                 </button>
@@ -311,136 +305,124 @@ function WebsiteNavbar() {
               <button
                 aria-label={menuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={menuOpen}
-                className="lg:hidden p-2 rounded-full hover:bg-brand-background text-brand-primary transition-colors"
+                className="lg:hidden p-2 text-white transition-colors"
                 onClick={() => setMenuOpen(true)}
               >
-                <Menu size={22} strokeWidth={1.8} aria-hidden="true" />
+                <Menu size={24} strokeWidth={2} aria-hidden="true" />
               </button>
             </div>
           </div>
         </div>
+        </div>
 
         {/* Bottom Category Bar (desktop only) */}
-        <div className="hidden lg:block border-t border-brand-border/60">
+        <div className="hidden lg:block bg-white border-b border-brand-border">
           <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-1 h-10">
-              {/* All Categories Dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={() => setMegaOpen(true)}
-                onMouseLeave={() => setMegaOpen(false)}
-              >
-                <button
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
-                  aria-expanded={megaOpen}
-                  aria-haspopup="true"
+            <div className="flex items-center justify-between h-12">
+              {/* Left Side: All Categories */}
+              <div className="flex items-center">
+                <div
+                  className="relative"
+                  onMouseEnter={() => setMegaOpen(true)}
+                  onMouseLeave={() => setMegaOpen(false)}
                 >
-                  <Menu size={14} />
-                  All Categories
-                  <ChevronDown size={12} className={`transition-transform ${megaOpen ? "rotate-180" : ""}`} />
-                </button>
+                  <button
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
+                    aria-expanded={megaOpen}
+                    aria-haspopup="true"
+                  >
+                    <Menu size={14} />
+                    All Categories
+                    <ChevronDown size={12} className={`transition-transform ${megaOpen ? "rotate-180" : ""}`} />
+                  </button>
 
-                <AnimatePresence>
                   {megaOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 4 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 w-[580px] pt-2 z-50"
+                    <div
+                      className="absolute top-full left-0 w-[580px] pt-2 z-50 transition-all duration-200"
                       role="menu"
                       aria-label="All categories"
                     >
-                      <div className="bg-white rounded-2xl shadow-xl border border-brand-border overflow-hidden grid grid-cols-2 p-3 gap-1">
-                        {megaMenuCategories.map((cat) => (
-                          <button
-                            key={cat.label}
-                            role="menuitem"
-                            onClick={() => {
-                              setMegaOpen(false);
-                              navigate(cat.path);
-                            }}
-                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-brand-background transition-all text-left w-full group"
-                          >
-                            <div className="w-10 h-10 rounded-xl bg-brand-background flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
-                              {cat.icon}
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-brand-primary leading-tight">{cat.label}</p>
-                              <p className="text-[11px] text-brand-text-secondary mt-0.5">{cat.sub}</p>
-                            </div>
-                          </button>
-                        ))}
+                        <div className="bg-white rounded-2xl shadow-xl border border-brand-border overflow-hidden grid grid-cols-2 p-3 gap-1">
+                          {megaMenuCategories.map((cat) => (
+                            <button
+                              key={cat.label}
+                              role="menuitem"
+                              onClick={() => {
+                                setMegaOpen(false);
+                                navigate(cat.path);
+                              }}
+                              className="flex items-center gap-3 p-3 rounded-xl hover:bg-brand-background transition-all text-left w-full group"
+                            >
+                              <div className="w-10 h-10 rounded-xl bg-brand-background flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                                {cat.icon}
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-brand-primary leading-tight">{cat.label}</p>
+                                <p className="text-[11px] text-brand-text-secondary mt-0.5">{cat.sub}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    )}
+                </div>
               </div>
 
-              <div className="w-px h-5 bg-brand-border mx-1" />
+              {/* Middle: Category Pills */}
+              <div className="flex items-center justify-around flex-1 px-8">
+                {categoryPills.map((pill) => (
+                  <Link
+                    key={pill.label}
+                    to={pill.path}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
+                  >
+                    {pill.icon}
+                    {pill.label}
+                  </Link>
+                ))}
 
-              {/* Quick Category Pills */}
-              {categoryPills.map((pill) => (
                 <Link
-                  key={pill.label}
-                  to={pill.path}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
+                  to="/quick-commerce"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-bold text-brand-accent hover:bg-brand-accent/5 rounded-lg transition-colors"
                 >
-                  {pill.label}
+                  <Zap size={16} className="fill-brand-accent" />
+                  15-Min Delivery
                 </Link>
-              ))}
 
-              <div className="w-px h-5 bg-brand-border mx-1" />
+                <Link
+                  to="/wholesale"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
+                >
+                  <Package size={16} />
+                  Wholesale
+                </Link>
 
-              <Link
-                to="/quick-commerce"
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-brand-accent hover:bg-emerald-50 rounded-lg transition-colors"
-              >
-                <Zap size={13} className="fill-current" />
-                15-Min Delivery
-              </Link>
-
-              <Link
-                to="/wholesale"
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
-              >
-                Wholesale
-              </Link>
-
-              <Link
-                to="/stores"
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
-              >
-                Stores
-              </Link>
+                <Link
+                  to="/stores"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
+                >
+                  <Store size={16} />
+                  Stores
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </nav>
 
       {/* MOBILE SIDEBAR */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            key="mobile-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-brand-primary/40 backdrop-blur-sm z-[999] lg:hidden"
-            onClick={() => setMenuOpen(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Mobile navigation menu"
+      {menuOpen && (
+        <div
+          className="fixed inset-0 bg-brand-primary/40 backdrop-blur-sm z-[999] lg:hidden transition-all duration-300"
+          onClick={() => setMenuOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation menu"
+        >
+          <div
+            className="absolute right-0 top-0 h-[100dvh] w-[85%] max-w-[360px] bg-white shadow-2xl flex flex-col pointer-events-auto transition-transform duration-300 translate-x-0"
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              key="mobile-sidebar"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "tween", duration: 0.3 }}
-              className="absolute right-0 top-0 h-[100dvh] w-[85%] max-w-[360px] bg-white shadow-2xl flex flex-col pointer-events-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
               {/* Header */}
               <div className="flex items-center justify-between p-5 border-b border-brand-border">
                 <img loading="lazy" decoding="async" src="/Images/logo.png" alt="Indiafy" width={96} height={24} className="h-6 w-auto" />
@@ -564,10 +546,9 @@ function WebsiteNavbar() {
                   </>
                 )}
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+      )}
     </>
   );
 }

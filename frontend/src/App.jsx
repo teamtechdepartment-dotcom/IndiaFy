@@ -56,7 +56,7 @@ const PageLoader = () => (
    PUBLIC PAGES
 ========================================================= */
 
-const Home = lazy(() => import("./pages/public/Home"));
+import Home from "./pages/public/Home";
 const About = lazy(() => import("./pages/public/About"));
 const Wholesalepage = lazy(() => import("./pages/public/Wholesalepage"));
 const QuickCommerce = lazy(() => import("./pages/public/QuickCommerce"));
@@ -261,7 +261,7 @@ export default function App() {
           ===================================================== */}
 
           <Route element={<WebsiteLayout />}>
-            <Route path="/" element={<Suspense fallback={<HeroSkeleton />}><Home /></Suspense>} />
+            <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/wholesale" element={<Suspense fallback={<WholesaleSkeleton />}><Wholesalepage /></Suspense>} />
             <Route path="/cart" element={<Cartpage />} />

@@ -78,10 +78,10 @@ export default function FlashSale() {
   const { h, m, s } = formatCountdown(timeLeft);
 
   return (
-    <section className="py-section-mobile md:py-16 bg-gradient-to-br from-amber-50 via-orange-50/50 to-white" id="flash-sale">
-      <div className="section-container">
+    <section className="bg-brand-background px-2 py-2" id="flash-sale">
+      <div className="w-full bg-white shadow-sm p-4 sm:p-6 border border-brand-border">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-brand-border/50 gap-4">
           <motion.div
             initial={{ opacity: 0, x: -15 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -89,32 +89,33 @@ export default function FlashSale() {
             className="flex items-center gap-4"
           >
             <div className="flex items-center gap-2">
-              <Flame size={24} className="text-orange-500" />
-              <h2 className="text-2xl sm:text-3xl font-display font-bold text-brand-primary">Flash Sale</h2>
+              <h2 className="text-2xl font-bold text-brand-text-primary">Deals of the Day</h2>
+              <Clock size={20} className="text-brand-text-secondary ml-2" />
             </div>
 
             {/* Countdown */}
-            <div className="flex items-center gap-1.5">
-              <Clock size={14} className="text-brand-text-secondary" />
-              <span className="text-xs font-medium text-brand-text-secondary">Ends in</span>
+            <div className="flex items-center gap-1.5 bg-brand-error text-white px-3 py-1 rounded-sm shadow-sm">
+              <Clock size={14} className="text-white" />
               <div className="flex gap-1">
                 {[h, m, s].map((val, i) => (
                   <React.Fragment key={i}>
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-primary text-white text-sm font-bold">
+                    <span className="text-sm font-bold tracking-wider">
                       {val}
                     </span>
-                    {i < 2 && <span className="text-brand-primary font-bold">:</span>}
+                    {i < 2 && <span className="font-bold">:</span>}
                   </React.Fragment>
                 ))}
               </div>
+              <span className="text-xs font-medium ml-1">Left</span>
             </div>
           </motion.div>
 
           <button
             onClick={() => navigate("/search?q=sale")}
-            className="flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors"
+            className="flex items-center justify-center bg-brand-primary text-white w-8 h-8 rounded-full hover:bg-blue-800 transition-colors shadow-sm"
+            aria-label="View All Deals"
           >
-            View All Deals <ArrowRight size={16} />
+            <ArrowRight size={18} />
           </button>
         </div>
 
@@ -135,30 +136,39 @@ export default function FlashSale() {
                 className="flex-none w-[200px] sm:w-[220px] snap-start group"
               >
                 <div
-                  className="bg-white rounded-card border border-brand-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer"
+                  className="group border border-transparent hover:border-gray-200 hover:shadow-md rounded-md overflow-hidden transition-all duration-300 p-2 sm:p-3 relative bg-white cursor-pointer"
                   onClick={() => navigate(`/product/${product.id}`)}
                 >
-                  <div className="relative aspect-square overflow-hidden bg-gray-50">
+                  <div className="relative aspect-square overflow-hidden bg-white mb-3">
                     <img
                       src={product.image}
                       alt={product.name}
                       loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute top-2.5 left-2.5 px-2 py-1 rounded-lg bg-orange-500 text-white text-[10px] font-bold flex items-center gap-1">
-                      <Flame size={10} /> {discount}% OFF
+                    <div className="absolute top-0 left-0 px-2 py-1 bg-brand-error text-white text-[10px] font-bold shadow-sm rounded-br-md">
+                      {discount}% OFF
                     </div>
                   </div>
-                  <div className="p-3.5">
-                    <h3 className="text-sm font-semibold text-brand-primary line-clamp-1 mb-2">{product.name}</h3>
+                  <div className="flex flex-col h-full">
+                    <h3 className="text-sm text-brand-text-primary mb-1 line-clamp-2 hover:text-brand-primary transition-colors min-h-[40px]">{product.name}</h3>
                     <div className="flex items-center gap-1 mb-2">
-                      <Star size={11} fill="#F59E0B" className="text-amber-400" />
-                      <span className="text-[11px] font-semibold text-amber-700">{product.rating}</span>
+                      <div className="flex items-center gap-0.5 px-1 bg-green-700 text-white rounded-[3px]">
+                        <span className="text-[10px] font-bold">{product.rating}</span>
+                        <Star size={8} fill="white" className="text-white" />
+                      </div>
+                      <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png" alt="assured" className="h-4 ml-auto" />
                     </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-base font-bold text-brand-primary">₹{product.price}</span>
-                      <span className="text-xs text-brand-text-secondary line-through">₹{product.oldPrice}</span>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <span className="text-base font-bold text-brand-text-primary">₹{product.price}</span>
+                      <span className="text-[11px] text-brand-text-secondary line-through">₹{product.oldPrice}</span>
+                      <span className="text-[11px] font-bold text-brand-error">Deal</span>
                     </div>
+                    {/* Stock Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1">
+                      <div className="bg-brand-error h-1.5 rounded-full" style={{ width: '80%' }}></div>
+                    </div>
+                    <p className="text-[10px] text-brand-error font-semibold">Only a few left!</p>
                   </div>
                 </div>
               </motion.div>

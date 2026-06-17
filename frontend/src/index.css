@@ -4,20 +4,20 @@
 
 @layer base {
   :root {
-    --brand-primary: #0F172A;
+    --brand-primary: #2874F0;
     --brand-secondary: #111827;
-    --brand-accent: #10B981;
-    --brand-accent-hover: #059669;
+    --brand-accent: #FB641B;
+    --brand-accent-hover: #F0570F;
     --brand-surface: #FFFFFF;
-    --brand-background: #F8FAFC;
-    --brand-text-primary: #0F172A;
+    --brand-background: #F1F3F6;
+    --brand-text-primary: #212121;
     --brand-text-secondary: #64748B;
-    --brand-border: #E2E8F0;
+    --brand-border: #E0E0E0;
     --brand-success: #10B981;
     --brand-warning: #F59E0B;
     --brand-error: #EF4444;
-    --radius: 24px;
-    --radius-sm: 16px;
+    --radius: 8px;
+    --radius-sm: 4px;
   }
 
   body {
@@ -69,19 +69,18 @@
 
   /* Primary button */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-8 py-4 
+    @apply inline-flex items-center justify-center gap-2 px-8 py-3 
            bg-brand-accent text-white font-semibold text-base
-           rounded-full hover:bg-brand-accent-hover 
-           active:scale-[0.98] transition-all duration-200 
-           shadow-lg shadow-brand-accent/20;
+           rounded hover:bg-brand-accent-hover 
+           active:scale-[0.98] transition-all duration-200 shadow-sm;
   }
 
   /* Secondary button */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-8 py-4 
-           bg-transparent text-brand-primary font-semibold text-base
-           rounded-full border-2 border-brand-border 
-           hover:border-brand-primary hover:bg-brand-primary hover:text-white
+    @apply inline-flex items-center justify-center gap-2 px-8 py-3 
+           bg-white text-brand-primary font-semibold text-base
+           rounded border border-brand-border shadow-sm
+           hover:border-brand-primary 
            active:scale-[0.98] transition-all duration-200;
   }
 

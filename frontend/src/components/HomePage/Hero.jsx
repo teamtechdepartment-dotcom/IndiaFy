@@ -1,261 +1,123 @@
-/* eslint-disable no-unused-vars, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-undef, no-empty */
-import { useState, useCallback, memo } from "react";
+import React, { useState, useEffect, memo } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowRight,
-  ShoppingBag,
-  Zap,
-  ShieldCheck,
-  Package,
-  Star,
-  Clock,
-  BadgeCheck,
-  TrendingUp,
-} from "lucide-react";
-import { motion } from "framer-motion";
 
-/* ---------- Floating Marketplace Mockup Cards ---------- */
-function FloatingProductCard() {
-  return (
-    <motion.div
-      animate={{ y: [0, -12, 0] }}
-      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      className="absolute top-8 right-4 lg:right-8 w-52 bg-white rounded-2xl shadow-xl border border-brand-border p-3 z-20"
-    >
-      <div className="w-full h-28 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 mb-3 flex items-center justify-center">
-        <ShoppingBag size={32} className="text-brand-accent" />
-      </div>
-      <p className="text-xs font-bold text-brand-primary truncate">Premium A2 Desi Ghee</p>
-      <div className="flex items-center gap-1 mt-1">
-        <Star size={11} fill="#F59E0B" className="text-amber-400" />
-        <span className="text-[10px] font-semibold text-brand-text-secondary">4.9 · 320 reviews</span>
-      </div>
-      <div className="flex items-baseline gap-1.5 mt-1.5">
-        <span className="text-sm font-bold text-brand-primary">₹1,299</span>
-        <span className="text-[10px] text-brand-text-secondary line-through">₹1,699</span>
-        <span className="text-[10px] font-semibold text-brand-accent ml-auto">23% OFF</span>
-      </div>
-    </motion.div>
-  );
-}
+const banners = [
+  {
+    id: 1,
+    image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop", // Electronics/Sale
+    title: "Big Billion Days Sale",
+    subtitle: "Up to 80% Off on Top Electronics",
+    bgColor: "bg-blue-900",
+  },
+  {
+    id: 2,
+    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop", // Fashion
+    title: "Fashion Wardrobe Refresh",
+    subtitle: "Min 50% Off on Top Brands",
+    bgColor: "bg-purple-900",
+  },
+  {
+    id: 3,
+    image: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop", // Groceries
+    title: "Supermart Grocery Delivery",
+    subtitle: "Fresh Produce at your Doorstep",
+    bgColor: "bg-green-900",
+  }
+];
 
-function FloatingOrderCard() {
-  return (
-    <motion.div
-      animate={{ y: [0, -8, 0] }}
-      transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-      className="absolute bottom-24 left-0 lg:left-4 w-56 bg-white rounded-2xl shadow-lg border border-brand-border p-3.5 z-20"
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-          <Package size={16} className="text-brand-accent" />
-        </div>
-        <div>
-          <p className="text-[10px] font-semibold text-brand-primary">Order #IF-2847</p>
-          <p className="text-[9px] text-brand-text-secondary">Out for delivery</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-          <div className="w-[75%] h-full bg-brand-accent rounded-full" />
-        </div>
-        <span className="text-[10px] font-bold text-brand-accent">12 min</span>
-      </div>
-    </motion.div>
-  );
-}
-
-function FloatingRatingCard() {
-  return (
-    <motion.div
-      animate={{ y: [0, -10, 0] }}
-      transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-      className="absolute bottom-8 right-12 w-44 bg-white rounded-xl shadow-lg border border-brand-border p-3 z-20"
-    >
-      <div className="flex items-center gap-2 mb-1.5">
-        <BadgeCheck size={16} className="text-brand-accent" />
-        <span className="text-[10px] font-bold text-brand-primary">Verified Seller</span>
-      </div>
-      <div className="flex gap-0.5">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} size={12} fill="#F59E0B" className="text-amber-400" />
-        ))}
-      </div>
-      <p className="text-[10px] text-brand-text-secondary mt-1">Organic Roots · 4.9★</p>
-    </motion.div>
-  );
-}
-
-/* ---------- Network Route Animation ---------- */
-function NetworkRoute() {
-  return (
-    <div className="absolute inset-0 z-10 pointer-events-none opacity-80">
-      <svg className="w-full h-full" viewBox="0 0 400 500" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="routeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.15" />
-            <stop offset="50%" stopColor="#10B981" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#10B981" stopOpacity="0.15" />
-          </linearGradient>
-          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Dotted static path */}
-        <path 
-          d="M 280 80 C 380 200, 380 300, 260 430 C 200 480, 80 450, 130 380" 
-          fill="none" 
-          stroke="url(#routeGradient)" 
-          strokeWidth="2" 
-          strokeDasharray="4 8" 
-          strokeLinecap="round"
-        />
-
-        {/* Pulsing Location Markers */}
-        <circle cx="280" cy="80" r="3.5" fill="#10B981" className="animate-pulse" />
-        <circle cx="260" cy="430" r="3.5" fill="#10B981" className="animate-pulse" />
-        <circle cx="130" cy="380" r="3.5" fill="#10B981" className="animate-pulse" />
-
-        <circle cx="280" cy="80" r="10" fill="none" stroke="#10B981" strokeWidth="1" className="animate-ping" style={{ animationDuration: '3s' }} opacity="0.3" />
-        <circle cx="260" cy="430" r="10" fill="none" stroke="#10B981" strokeWidth="1" className="animate-ping" style={{ animationDuration: '3s', animationDelay: '1s' }} opacity="0.3" />
-        <circle cx="130" cy="380" r="10" fill="none" stroke="#10B981" strokeWidth="1" className="animate-ping" style={{ animationDuration: '3s', animationDelay: '2s' }} opacity="0.3" />
-
-        {/* Glowing moving dot */}
-        <circle r="4" fill="#10B981" filter="url(#glow)">
-          <animateMotion 
-            dur="6s" 
-            repeatCount="indefinite"
-            path="M 280 80 C 380 200, 380 300, 260 430 C 200 480, 80 450, 130 380"
-          />
-        </circle>
-      </svg>
-    </div>
-  );
-}
-
-/* ---------- Main Hero ---------- */
 function Hero() {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+    }, 5000); // Auto slide every 5 seconds
+    return () => clearInterval(timer);
+  }, []);
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % banners.length);
+  };
+
   return (
-    <section
-      className="relative w-full bg-hero-gradient overflow-hidden pt-32 lg:pt-36 pb-16 lg:pb-24"
-      aria-label="Hero banner"
-    >
-      {/* Background decoration */}
-      <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-gradient-to-br from-emerald-100/40 to-teal-100/20 rounded-full blur-3xl -z-0" aria-hidden="true" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-blue-100/30 to-indigo-100/10 rounded-full blur-3xl -z-0" aria-hidden="true" />
-
-      <div className="section-container relative z-10">
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-
-          {/* LEFT: Text & CTA */}
-          <div className="lg:col-span-7 flex flex-col">
-            {/* Live Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 w-fit px-4 py-2 mb-6 rounded-full bg-white border border-brand-border shadow-sm"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-accent opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-accent" />
+    <div className="relative w-full max-w-[1600px] mx-auto mt-[112px] lg:mt-[112px] bg-brand-background px-2 sm:px-4 py-2 group">
+      {/* Carousel Container */}
+      <div className="relative h-[200px] sm:h-[300px] md:h-[400px] lg:h-[450px] w-full overflow-hidden rounded-md shadow-sm bg-gray-200">
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -100 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+            className={`absolute inset-0 w-full h-full ${banners[currentIndex].bgColor}`}
+          >
+            <div className="absolute inset-0 bg-black/40 z-10" /> {/* Dark Overlay */}
+            <img 
+              src={banners[currentIndex].image} 
+              alt={banners[currentIndex].title} 
+              className="w-full h-full object-cover"
+            />
+            
+            {/* Banner Content */}
+            <div className="absolute inset-0 z-20 flex flex-col justify-center items-start px-8 md:px-16 lg:px-24">
+              <span className="px-3 py-1 bg-brand-accent text-white text-xs font-bold uppercase rounded-sm mb-4">
+                Limited Time Offer
               </span>
-              <span className="text-xs font-semibold text-brand-primary">
-                Live in Gurugram · 500+ Verified Sellers
-              </span>
-            </motion.div>
-
-            {/* Headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="font-display text-hero-mobile lg:text-hero text-brand-primary mb-5"
-            >
-              India's Most{" "}
-              <span className="text-brand-accent">Trusted Marketplace</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-brand-text-secondary text-base lg:text-lg font-medium max-w-xl mb-8 leading-relaxed"
-            >
-              The best online shopping platform in Gurugram. Discover local stores, wholesale suppliers, and instant quick commerce delivery from our verified sellers marketplace.
-            </motion.p>
-
-            {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-wrap gap-3 mb-10"
-            >
-              <button
-                onClick={() => navigate("/search")}
-                className="btn-primary"
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 max-w-2xl leading-tight">
+                {banners[currentIndex].title}
+              </h2>
+              <p className="text-lg md:text-2xl text-white/90 mb-8 max-w-xl">
+                {banners[currentIndex].subtitle}
+              </p>
+              <button 
+                onClick={() => navigate('/search')}
+                className="bg-white text-brand-primary px-8 py-3 rounded-sm font-bold shadow-md hover:bg-gray-100 transition-colors"
               >
                 Shop Now
-                <ArrowRight size={18} />
               </button>
-              <button
-                onClick={() => navigate("/seller/login")}
-                className="btn-secondary"
-              >
-                Become a Seller
-              </button>
-            </motion.div>
-
-            {/* Stat Pills */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="flex flex-wrap gap-3"
-            >
-              {[
-                { icon: <Zap size={14} className="text-brand-accent" />, text: "15-min Delivery" },
-                { icon: <ShieldCheck size={14} className="text-brand-accent" />, text: "Verified Sellers" },
-                { icon: <Package size={14} className="text-brand-accent" />, text: "Free Returns" },
-              ].map((stat) => (
-                <div
-                  key={stat.text}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-border text-xs font-semibold text-brand-primary shadow-sm"
-                >
-                  {stat.icon}
-                  {stat.text}
-                </div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* RIGHT: Floating Marketplace Mockup */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="lg:col-span-5 hidden lg:block relative h-[500px]"
-          >
-            {/* Background blob */}
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-teal-50/50 rounded-[3rem] border border-brand-border/50" />
-
-            {/* Subtly Animated Logistics Route */}
-            <NetworkRoute />
-
-            <FloatingProductCard />
-            <FloatingOrderCard />
-            <FloatingRatingCard />
+            </div>
           </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={handlePrevious}
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md flex items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-r-md"
+          aria-label="Previous banner"
+        >
+          <ChevronLeft size={32} />
+        </button>
+        <button
+          onClick={handleNext}
+          className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md flex items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-l-md"
+          aria-label="Next banner"
+        >
+          <ChevronRight size={32} />
+        </button>
+
+        {/* Pagination Dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === currentIndex ? "w-6 bg-white" : "bg-white/50 hover:bg-white/80"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 

@@ -10,16 +10,22 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-router-dom')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
               return 'vendor';
+            }
+            if (id.includes('framer-motion')) {
+              return 'framer';
+            }
+            if (id.includes('lucide-react')) {
+              return 'lucide';
             }
             if (id.includes('zustand')) {
               return 'state';
             }
-            if (id.includes('lucide-react') || id.includes('react-toastify') || id.includes('framer-motion')) {
-              return 'ui';
+            if (id.includes('axios')) {
+              return 'network';
             }
-            return 'vendor';
+            return 'common';
           }
         }
       }

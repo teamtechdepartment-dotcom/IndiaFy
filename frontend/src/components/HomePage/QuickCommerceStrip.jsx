@@ -28,58 +28,54 @@ export default function QuickCommerceStrip() {
   const navigate = useNavigate();
 
   return (
-    <section className="py-section-mobile md:py-16 bg-gradient-to-r from-brand-primary to-brand-secondary overflow-hidden" id="quick-commerce">
-      <div className="section-container">
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+    <section className="bg-brand-background px-2 py-2" id="quick-commerce">
+      <div className="w-full bg-gradient-to-r from-yellow-50 to-orange-50 shadow-sm p-4 sm:p-6 border border-yellow-200 rounded-sm">
+        <div className="flex flex-col md:flex-row gap-6 items-center">
           {/* Left Text */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="lg:col-span-4"
+            className="w-full md:w-1/3 flex flex-col items-start"
           >
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 rounded-xl bg-brand-accent/20">
-                <Zap size={20} className="text-brand-accent fill-current" />
-              </div>
-              <span className="text-xs font-semibold text-brand-accent uppercase tracking-wider">Lightning Fast</span>
+            <div className="flex items-center gap-2 mb-2 bg-yellow-400 text-black px-3 py-1 rounded-full shadow-sm">
+              <Zap size={16} className="fill-current" />
+              <span className="text-xs font-bold uppercase tracking-wider">10-Minute Delivery</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-display font-bold text-white mb-3">
-              15-Minute Delivery
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 leading-tight">
+              Groceries & More
             </h2>
-            <p className="text-gray-400 text-sm sm:text-base font-medium mb-6 max-w-sm">
-              Get groceries, medicines and daily essentials delivered to your door in minutes.
+            <p className="text-gray-700 text-sm font-medium mb-4 max-w-xs">
+              Everything you need, delivered faster than you can imagine.
             </p>
             <button
               onClick={() => navigate("/quick-commerce")}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-brand-accent text-white font-semibold text-sm rounded-full hover:bg-brand-accent-hover transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-black text-white font-bold text-sm rounded shadow-sm hover:bg-gray-800 transition-colors"
             >
               Order Now <ArrowRight size={16} />
             </button>
           </motion.div>
 
-          {/* Right Cards */}
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {quickCategories.map((cat, i) => (
-              <motion.div
-                key={cat.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1, duration: 0.4 }}
-                viewport={{ once: true }}
-                onClick={() => navigate("/quick-commerce")}
-                className={`${cat.bg} rounded-card p-6 cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group`}
-              >
-                <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  {cat.icon}
+          {/* Right Cards Grid */}
+          <div className="w-full md:w-2/3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+             {[
+                { name: "Vegetables", img: "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?q=80&w=200&auto=format&fit=crop" },
+                { name: "Fruits", img: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=200&auto=format&fit=crop" },
+                { name: "Dairy", img: "https://images.unsplash.com/photo-1628088062854-d1870b4553da?q=80&w=200&auto=format&fit=crop" },
+                { name: "Snacks", img: "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?q=80&w=200&auto=format&fit=crop" },
+                { name: "Beverages", img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=200&auto=format&fit=crop" },
+             ].map((item, i) => (
+                <div 
+                  key={item.name} 
+                  onClick={() => navigate("/quick-commerce")}
+                  className="bg-white rounded border border-gray-100 p-2 text-center cursor-pointer hover:shadow-md hover:border-yellow-300 transition-all"
+                >
+                  <div className="aspect-square bg-gray-50 rounded mb-2 overflow-hidden">
+                    <img src={item.img} alt={item.name} className="w-full h-full object-cover hover:scale-110 transition-transform" />
+                  </div>
+                  <span className="text-[11px] font-bold text-gray-800 line-clamp-1">{item.name}</span>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-1">{cat.title}</h3>
-                <p className="text-white/70 text-sm font-medium mb-4">{cat.subtitle}</p>
-                <span className="flex items-center gap-1 text-xs font-semibold text-white/80 group-hover:text-white transition-colors">
-                  Order Now <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-                </span>
-              </motion.div>
-            ))}
+             ))}
           </div>
         </div>
       </div>

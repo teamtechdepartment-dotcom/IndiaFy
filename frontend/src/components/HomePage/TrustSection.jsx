@@ -35,38 +35,17 @@ const trustFeatures = [
 
 function TrustSection() {
   return (
-    <section className="py-section-mobile md:py-16 bg-brand-background" id="trust" style={{ maxHeight: '500px' }}>
-      <div className="section-container">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-10"
-        >
-          <h2 className="section-heading mb-2">Why Shop on Indiafy?</h2>
-          <p className="text-brand-text-secondary text-sm sm:text-base font-medium max-w-lg mx-auto">
-            Trust built into every transaction
-          </p>
-        </motion.div>
-
-        {/* Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <section className="bg-brand-background px-2 py-2 pb-6" id="trust">
+      <div className="w-full bg-white border border-gray-200 py-6 px-4">
+        <div className="flex flex-wrap justify-around items-center gap-6 text-center">
           {trustFeatures.map((item, index) => (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.08, duration: 0.4 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-card p-5 sm:p-6 border border-brand-border shadow-card text-center hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className={`w-12 h-12 rounded-2xl ${item.iconBg} ${item.iconColor} flex items-center justify-center mx-auto mb-4`}>
+            <div key={item.title} className="flex flex-col items-center flex-1 min-w-[150px]">
+              <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center mb-3">
                 {item.icon}
               </div>
-              <h3 className="text-sm sm:text-base font-bold text-brand-primary mb-2">{item.title}</h3>
-              <p className="text-xs sm:text-sm text-brand-text-secondary font-medium leading-relaxed">{item.description}</p>
-            </motion.div>
+              <h3 className="text-sm font-bold text-gray-800 mb-1">{item.title}</h3>
+              <p className="text-xs text-gray-500 max-w-[200px]">{item.description}</p>
+            </div>
           ))}
         </div>
       </div>

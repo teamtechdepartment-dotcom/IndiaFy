@@ -162,30 +162,26 @@ export default function TrendingProducts() {
   const displayProducts = products.length > 0 ? products : trendingProducts;
 
   return (
-    <section className="py-section-mobile md:py-section-tablet lg:py-section-desktop bg-brand-background" id="trending">
-      <div className="section-container">
+    <section className="bg-brand-background px-2 py-2" id="trending">
+      <div className="w-full bg-white shadow-sm p-4 sm:p-6 border border-brand-border">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-border/50">
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -15 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="section-heading mb-2">
-              {profile?.interests?.length > 0 ? "Recommended for You" : "Trending Near You"}
+            <h2 className="text-2xl font-bold text-brand-text-primary">
+              {profile?.interests?.length > 0 ? "Recommended for You" : "Trending Deals"}
             </h2>
-            <p className="text-brand-text-secondary font-medium text-sm sm:text-base">
-              {profile?.interests?.length > 0
-                ? "Curated picks based on your interests"
-                : "Most loved products from verified sellers nearby"}
-            </p>
           </motion.div>
 
           <button
             onClick={() => navigate("/search?q=trending")}
-            className="flex items-center gap-2 text-sm font-semibold text-brand-accent hover:text-brand-accent-hover transition-colors"
+            className="flex items-center justify-center bg-brand-primary text-white w-8 h-8 rounded-full hover:bg-blue-800 transition-colors shadow-sm"
+            aria-label="View All"
           >
-            View All <ArrowRight size={16} />
+            <ArrowRight size={18} />
           </button>
         </div>
 
@@ -222,114 +218,74 @@ export default function TrendingProducts() {
                 viewport={{ once: true }}
                 className="group"
               >
-                <div className="card-base overflow-hidden">
+                <div className="group border border-transparent hover:border-gray-200 hover:shadow-md rounded-md overflow-hidden transition-all duration-300 p-2 sm:p-3 relative bg-white">
                   {/* Image */}
                   <div
                     onClick={() => navigate(`/product/${id}`)}
-                    className="relative aspect-square overflow-hidden cursor-pointer bg-gray-50"
+                    className="relative aspect-square overflow-hidden cursor-pointer bg-white mb-3"
                   >
                     <img
                       src={image || "https://placehold.co/400x400?text=Product"}
                       alt={name}
                       loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                     />
 
                     {/* Discount Badge */}
                     {discount && (
-                      <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-brand-error text-white text-[10px] font-bold">
+                      <div className="absolute top-0 left-0 px-2 py-1 bg-brand-accent text-white text-[10px] font-bold shadow-sm rounded-br-md">
                         {discount}% OFF
                       </div>
                     )}
-
+                    
                     {/* Wishlist */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate("/profile");
                       }}
-                      aria-label={`Add ${name} to wishlist`}
-                      className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm text-brand-text-secondary hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300"
+                      className="absolute top-1 right-1 p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-gray-100 transition-colors"
                     >
                       <Heart size={16} />
                     </button>
-
-                    {/* Add to Cart overlay */}
-                    <div className="absolute inset-x-3 bottom-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isReal) {
-                            toast.info("This is a demo product.");
-                            return;
-                          }
-                          addToCart(id, 1);
-                        }}
-                        className="w-full py-2.5 bg-brand-primary text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-brand-secondary transition-colors shadow-lg"
-                      >
-                        <ShoppingCart size={15} /> Add to Cart
-                      </button>
-                    </div>
                   </div>
 
                   {/* Info */}
-                  <div className="p-3.5 sm:p-4">
-                    {/* Seller */}
-                    <button
-                      onClick={() => {
-                        if (isReal && product.sellerId?._id) {
-                          navigate(`/store/${product.sellerId._id}`);
-                        } else {
-                          toast.info("Store page coming soon for this demo seller.");
-                        }
-                      }}
-                      className="flex items-center gap-1 mb-1"
-                    >
-                      <ShieldCheck size={12} className="text-brand-accent" />
-                      <span className="text-[10px] font-semibold text-brand-text-secondary hover:text-brand-primary transition-colors truncate">
-                        {sellerName}
-                      </span>
-                    </button>
-
-                    {/* Name */}
+                  <div className="flex flex-col h-full">
                     <h3
                       onClick={() => navigate(`/product/${id}`)}
-                      className="text-sm font-semibold text-brand-primary mb-2 line-clamp-2 leading-snug cursor-pointer hover:text-brand-accent transition-colors min-h-[2.5rem]"
+                      className="text-sm text-brand-text-primary mb-1 line-clamp-2 cursor-pointer hover:text-brand-primary transition-colors min-h-[40px]"
                     >
                       {name}
                     </h3>
 
                     {/* Rating */}
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-50 border border-amber-100">
-                        <Star size={11} fill="#F59E0B" className="text-amber-400" />
-                        <span className="text-[11px] font-bold text-amber-700">{rating}</span>
+                    <div className="flex items-center gap-1 mb-2">
+                      <div className="flex items-center gap-0.5 px-1 bg-green-700 text-white rounded-[3px]">
+                        <span className="text-[10px] font-bold">{rating}</span>
+                        <Star size={8} fill="white" className="text-white" />
                       </div>
-                      {reviews > 0 && (
-                        <span className="text-[10px] text-brand-text-secondary">({reviews})</span>
-                      )}
+                      <span className="text-[10px] text-brand-text-secondary">({reviews})</span>
+                      <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png" alt="assured" className="h-4 ml-auto" />
                     </div>
 
                     {/* Price */}
-                    <div className="flex items-baseline gap-2 mb-2.5">
-                      <span className="text-base font-bold text-brand-primary">₹{price}</span>
+                    <div className="flex items-baseline gap-2 mb-2 mt-auto">
+                      <span className="text-base font-bold text-brand-text-primary">₹{price}</span>
                       {oldPrice && oldPrice !== price && (
-                        <span className="text-xs text-brand-text-secondary line-through">₹{oldPrice}</span>
+                        <span className="text-[11px] text-brand-text-secondary line-through">₹{oldPrice}</span>
+                      )}
+                      {discount && (
+                         <span className="text-[11px] font-bold text-green-600">{discount}% off</span>
                       )}
                     </div>
 
                     {/* Delivery Badge */}
-                    <div className="flex items-center gap-1.5">
+                    <div className="text-[10px] text-brand-text-secondary">
                       {tag === "Quick Commerce" ? (
-                        <>
-                          <Zap size={12} className="text-brand-accent" />
-                          <span className="text-[11px] font-semibold text-brand-accent">{deliveryTime} delivery</span>
-                        </>
+                        <span className="font-semibold text-brand-text-primary">Delivery in {deliveryTime}</span>
                       ) : (
-                        <>
-                          <Truck size={12} className="text-brand-text-secondary" />
-                          <span className="text-[11px] font-medium text-brand-text-secondary">Free Delivery</span>
-                        </>
+                        <span>Free delivery</span>
                       )}
                     </div>
                   </div>

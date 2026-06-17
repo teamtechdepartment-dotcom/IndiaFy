@@ -9,15 +9,15 @@ export default {
     extend: {
       colors: {
         brand: {
-          primary: '#0F172A',
+          primary: '#2874F0',
           secondary: '#111827',
-          accent: '#10B981',
-          'accent-hover': '#059669',
+          accent: '#FB641B',
+          'accent-hover': '#F0570F',
           surface: '#FFFFFF',
-          background: '#F8FAFC',
-          'text-primary': '#0F172A',
-          'text-secondary': '#475569',
-          border: '#E2E8F0',
+          background: '#F1F3F6',
+          'text-primary': '#212121',
+          'text-secondary': '#64748B',
+          border: '#E0E0E0',
           success: '#10B981',
           warning: '#F59E0B',
           error: '#EF4444',
