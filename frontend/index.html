@@ -43,15 +43,56 @@
 
     <!-- Structured Data: Organization -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Indiafy",
-      "url": "https://india-fy.vercel.app",
-      "logo": "https://india-fy.vercel.app/Images/logo.png",
-      "description": "Indiafy is a trust-first hyperlocal commerce infrastructure. Discover local sellers, quick commerce, and wholesale B2B.",
-      "sameAs": []
-    }
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Indiafy",
+        "url": "https://india-fy.vercel.app",
+        "logo": "https://india-fy.vercel.app/Images/logo.png",
+        "description": "Indiafy is a trust-first hyperlocal commerce infrastructure. Discover local sellers, quick commerce, and wholesale B2B.",
+        "sameAs": []
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Indiafy",
+        "url": "https://india-fy.vercel.app",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://india-fy.vercel.app/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Site Navigation",
+        "itemListElement": [
+          {
+            "@type": "SiteNavigationElement",
+            "position": 1,
+            "name": "Ecommerce",
+            "description": "Shop from verified local sellers in Gurugram.",
+            "url": "https://india-fy.vercel.app/"
+          },
+          {
+            "@type": "SiteNavigationElement",
+            "position": 2,
+            "name": "Quick Commerce",
+            "description": "Get groceries and essentials delivered in 10 minutes.",
+            "url": "https://india-fy.vercel.app/quick-commerce"
+          },
+          {
+            "@type": "SiteNavigationElement",
+            "position": 3,
+            "name": "Wholesale",
+            "description": "B2B bulk sourcing for retail stores in Gurugram.",
+            "url": "https://india-fy.vercel.app/wholesale"
+          }
+        ]
+      }
+    ]
     </script>
   </head>
   <body class="antialiased bg-[#F8FAFC] text-[#0F172A] transition-colors duration-300">
