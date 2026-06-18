@@ -21,6 +21,25 @@ export default function BlogList() {
   const featuredPost = filteredPosts.length > 0 ? filteredPosts[0] : null;
   const standardPosts = filteredPosts.slice(1);
 
+  const schemas = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "Indiafy Blog",
+      "description": "Insights, guides, and stories about hyper-local commerce, verified sellers, and the future of shopping in Gurugram.",
+      "url": "https://india-fy.vercel.app/blog"
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "itemListElement": filteredPosts.map((post, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "url": `https://india-fy.vercel.app/blog/${post.slug}`
+      }))
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-zinc-50 pt-24 pb-20">
       <SEOHead 
@@ -28,6 +47,7 @@ export default function BlogList() {
         description="Read the latest insights on quick commerce, local shopping, wholesale, and seller growth in Gurugram on the Indiafy Blog."
         canonical="https://india-fy.vercel.app/blog"
         type="website"
+        schemas={schemas}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
