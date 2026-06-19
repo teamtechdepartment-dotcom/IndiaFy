@@ -246,6 +246,61 @@ export default function App() {
     initializeSeller();
   }, [initializeSeller]);
 
+  // Global Magnetic Buttons Effect
+  useEffect(() => {
+    const handleMouseEnter = (e) => {
+      const btn = e.target.closest("button, .btn, .magnetic");
+      if (!btn) return;
+      if (btn.classList.contains("no-magnetic")) return;
+
+      // Skip elements that are too small to prevent layout breaking on tiny buttons (e.g. small close icons)
+      const rect = btn.getBoundingClientRect();
+      if (rect.width < 32 || rect.height < 32) return;
+
+      // Avoid double-binding
+      if (btn.dataset.magneticBound) return;
+      btn.dataset.magneticBound = "true";
+
+      const strength = parseFloat(btn.dataset.magneticStrength) || 0.35;
+      const radius = parseFloat(btn.dataset.magneticRadius) || 60;
+
+      const onMouseMove = (moveEvent) => {
+        const currentRect = btn.getBoundingClientRect();
+        const centerX = currentRect.left + currentRect.width / 2;
+        const centerY = currentRect.top + currentRect.height / 2;
+
+        const distX = moveEvent.clientX - centerX;
+        const distY = moveEvent.clientY - centerY;
+        const dist = Math.sqrt(distX * distX + distY * distY);
+
+        if (dist < radius) {
+          // Smooth transition using cubic-bezier for spring-like responsiveness
+          btn.style.transition = "transform 0.15s cubic-bezier(0.25, 1, 0.5, 1)";
+          btn.style.transform = `translate(${distX * strength}px, ${distY * strength}px)`;
+        } else {
+          btn.style.transition = "transform 0.3s ease";
+          btn.style.transform = "translate(0, 0)";
+        }
+      };
+
+      const onMouseLeave = () => {
+        btn.style.transition = "transform 0.3s ease";
+        btn.style.transform = "translate(0, 0)";
+        btn.removeEventListener("mousemove", onMouseMove);
+        btn.removeEventListener("mouseleave", onMouseLeave);
+        delete btn.dataset.magneticBound;
+      };
+
+      btn.addEventListener("mousemove", onMouseMove);
+      btn.addEventListener("mouseleave", onMouseLeave);
+    };
+
+    document.addEventListener("mouseenter", handleMouseEnter, true);
+    return () => {
+      document.removeEventListener("mouseenter", handleMouseEnter, true);
+    };
+  }, []);
+
   /* =========================================================
      ROUTES
   ========================================================= */

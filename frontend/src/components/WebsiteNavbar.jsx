@@ -30,6 +30,7 @@ import { useSellerAuthStore } from "../store/sellerAuthStore";
 import { useAdminAuthStore } from "../store/adminAuthStore";
 import { useCartStore } from "../store/cartStore";
 import { toast } from "react-toastify";
+import { MagneticButton } from "./lightswind/magnetic-button";
 
 const categoryPills = [
   { label: "Groceries", path: "/category/grocery", icon: <ShoppingBasket size={16} /> },
@@ -326,7 +327,11 @@ function WebsiteNavbar() {
                   onMouseEnter={() => setMegaOpen(true)}
                   onMouseLeave={() => setMegaOpen(false)}
                 >
-                  <button
+                  <MagneticButton
+                    variant="custom"
+                    size="custom"
+                    radius={32}
+                    strength={0.25}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
                     aria-expanded={megaOpen}
                     aria-haspopup="true"
@@ -334,7 +339,7 @@ function WebsiteNavbar() {
                     <Menu size={14} />
                     All Categories
                     <ChevronDown size={12} className={`transition-transform ${megaOpen ? "rotate-180" : ""}`} />
-                  </button>
+                  </MagneticButton>
 
                   {megaOpen && (
                     <div
@@ -369,41 +374,76 @@ function WebsiteNavbar() {
               </div>
 
               {/* Middle: Category Pills */}
-              <div className="flex items-center justify-around flex-1 px-8">
-                {categoryPills.map((pill) => (
-                  <Link
-                    key={pill.label}
-                    to={pill.path}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
-                  >
-                    {pill.icon}
-                    {pill.label}
-                  </Link>
-                ))}
+              <div className="flex items-center justify-around flex-1 px-8 overflow-x-auto no-scrollbar whitespace-nowrap">
+                {categoryPills.map((pill) => {
+                  const active = location.pathname === pill.path;
+                  return (
+                    <MagneticButton
+                      key={pill.label}
+                      variant="custom"
+                      size="custom"
+                      radius={32}
+                      strength={0.25}
+                      onClick={() => navigate(pill.path)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors rounded-lg ${
+                        active
+                          ? "text-brand-primary bg-brand-background font-bold shadow-sm"
+                          : "text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background"
+                      }`}
+                    >
+                      {pill.icon}
+                      {pill.label}
+                    </MagneticButton>
+                  );
+                })}
 
-                <Link
-                  to="/quick-commerce"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-bold text-brand-accent hover:bg-brand-accent/5 rounded-lg transition-colors"
+                <MagneticButton
+                  variant="custom"
+                  size="custom"
+                  radius={32}
+                  strength={0.25}
+                  onClick={() => navigate("/quick-commerce")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] transition-colors rounded-lg ${
+                    location.pathname === "/quick-commerce"
+                      ? "text-brand-accent bg-brand-accent/10 font-bold shadow-sm"
+                      : "font-bold text-brand-accent hover:bg-brand-accent/5"
+                  }`}
                 >
                   <Zap size={16} className="fill-brand-accent" />
                   15-Min Delivery
-                </Link>
+                </MagneticButton>
 
-                <Link
-                  to="/wholesale"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
+                <MagneticButton
+                  variant="custom"
+                  size="custom"
+                  radius={32}
+                  strength={0.25}
+                  onClick={() => navigate("/wholesale")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors rounded-lg ${
+                    location.pathname === "/wholesale"
+                      ? "text-brand-primary bg-brand-background font-bold shadow-sm"
+                      : "text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background"
+                  }`}
                 >
                   <Package size={16} />
                   Wholesale
-                </Link>
+                </MagneticButton>
 
-                <Link
-                  to="/stores"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
+                <MagneticButton
+                  variant="custom"
+                  size="custom"
+                  radius={32}
+                  strength={0.25}
+                  onClick={() => navigate("/stores")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors rounded-lg ${
+                    location.pathname === "/stores"
+                      ? "text-brand-primary bg-brand-background font-bold shadow-sm"
+                      : "text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background"
+                  }`}
                 >
                   <Store size={16} />
                   Stores
-                </Link>
+                </MagneticButton>
               </div>
             </div>
           </div>

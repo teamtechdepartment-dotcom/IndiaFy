@@ -219,8 +219,8 @@ const SellerLogin = () => {
                 <AnimatePresence>
                   {errors.email && (
                     <motion.p 
-                      initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-                      className="absolute -bottom-5 left-1 text-[11px] text-red-500 font-bold uppercase tracking-wider"
+                      initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                      className="text-[12px] text-red-500 font-semibold mt-1.5 ml-1 block"
                     >
                       {errors.email.message}
                     </motion.p>
@@ -269,8 +269,8 @@ const SellerLogin = () => {
                 <AnimatePresence>
                   {errors.password && (
                     <motion.p 
-                      initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-                      className="absolute -bottom-5 left-1 text-[11px] text-red-500 font-bold uppercase tracking-wider"
+                      initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                      className="text-[12px] text-red-500 font-semibold mt-1.5 ml-1 block"
                     >
                       {errors.password.message}
                     </motion.p>

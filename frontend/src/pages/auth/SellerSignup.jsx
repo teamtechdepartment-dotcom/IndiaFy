@@ -178,8 +178,8 @@ const SellerSignup = () => {
         <AnimatePresence>
           {hasError && (
             <motion.p 
-              initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-              className="absolute -bottom-5 left-1 text-[11px] text-red-500 font-bold uppercase tracking-wider"
+              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              className="text-[12px] text-red-500 font-semibold mt-1.5 ml-1 block"
             >
               {errors[name].message}
             </motion.p>
@@ -249,7 +249,7 @@ const SellerSignup = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit(onSignup)} className="space-y-6 relative h-[250px] overflow-visible">
+            <form onSubmit={handleSubmit(onSignup)} className="space-y-6">
               <AnimatePresence custom={direction} mode="wait">
                 
                 {step === 1 && (
@@ -261,7 +261,7 @@ const SellerSignup = () => {
                     animate="center"
                     exit="exit"
                     transition={{ type: "tween", duration: 0.3 }}
-                    className="space-y-4 absolute inset-0"
+                    className="space-y-4"
                   >
                     <div className="space-y-1 mb-4">
                       <h2 className="text-3xl font-black text-brand-primary tracking-tight">Setup Your Account</h2>
@@ -281,7 +281,7 @@ const SellerSignup = () => {
                     animate="center"
                     exit="exit"
                     transition={{ type: "tween", duration: 0.3 }}
-                    className="space-y-5 absolute inset-0"
+                    className="space-y-5"
                   >
                     <div className="space-y-1 mb-4">
                       <h2 className="text-3xl font-black text-brand-primary tracking-tight">Security</h2>
@@ -296,7 +296,7 @@ const SellerSignup = () => {
                 )}
               </AnimatePresence>
 
-              <div className="mt-8 pt-4 flex gap-3 relative z-10 translate-y-[240px]">
+              <div className="mt-8 pt-4 flex gap-3 relative z-10">
                 {step > 1 && (
                   <motion.button
                     whileHover={{ scale: 1.02 }}
