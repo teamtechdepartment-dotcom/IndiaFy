@@ -77,12 +77,20 @@ function Hero() {
               <p className="text-lg md:text-2xl text-white/90 mb-8 max-w-xl">
                 {banners[currentIndex].subtitle}
               </p>
-              <button 
-                onClick={() => navigate('/search')}
-                className="bg-white text-brand-primary px-8 py-3 rounded-sm font-bold shadow-md hover:bg-gray-100 transition-colors"
-              >
-                Shop Now
-              </button>
+              <div className="flex items-center gap-4 flex-wrap">
+                <button 
+                  onClick={() => navigate('/search')}
+                  className="bg-white text-brand-primary px-8 py-3 rounded-sm font-bold shadow-md hover:bg-gray-100 transition-colors"
+                >
+                  Shop Now
+                </button>
+                <button 
+                  onClick={() => navigate('/gurugram-market-survey')}
+                  className="bg-brand-accent text-white px-8 py-3 rounded-sm font-bold shadow-md hover:bg-[#e55a18] transition-colors"
+                >
+                  Join IndiaFy Growth Network
+                </button>
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>

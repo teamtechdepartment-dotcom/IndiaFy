@@ -76,6 +76,7 @@ const TrustSafety = lazy(() => import("./pages/public/TrustSafety"));
 const BecomeSellerInfo = lazy(() => import("./pages/public/BecomeSellerInfo"));
 const HelpCenter = lazy(() => import("./pages/public/HelpCenter"));
 const FAQ = lazy(() => import("./pages/public/FAQ"));
+const GurugramSurvey = lazy(() => import("./pages/public/GurugramSurvey"));
 
 // ADDED: Quick Commerce Hero Component
 const Hero = lazy(() => import("./components/QuickCommerce/Hero"));
@@ -341,6 +342,7 @@ export default function App() {
             <Route path="/become-seller-info" element={<BecomeSellerInfo />} />
             <Route path="/help-center" element={<HelpCenter />} />
             <Route path="/faq" element={<FAQ />} />
+            <Route path="/gurugram-market-survey" element={<GurugramSurvey />} />
 
             {/* ADDED: Hero standalone preview route */}
             <Route path="/hero" element={<Suspense fallback={<HeroSkeleton />}><Hero /></Suspense>} />

@@ -414,6 +414,14 @@ export default function QuickCommerce() {
         onDec={handleDec}
         onRemove={handleRemove}
       />
+
+      <div 
+        onClick={() => navigate('/gurugram-market-survey')}
+        className="fixed bottom-0 md:bottom-0 left-0 w-full z-40 bg-brand-accent text-white py-3 px-4 flex items-center justify-center gap-2 cursor-pointer shadow-[0_-4px_10px_rgba(0,0,0,0.15)] hover:bg-[#e05a18] transition-colors"
+      >
+        <span className="font-extrabold text-sm md:text-base uppercase tracking-wider">Partner with IndiaFy</span>
+        <ArrowRight size={18} strokeWidth={3} />
+      </div>
       
       <div className="hidden md:block">
         <BottomNavigation />

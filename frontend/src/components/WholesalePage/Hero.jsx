@@ -41,6 +41,13 @@ function Hero() {
                 <FileText size={18} />
                 Post RFQ
               </button>
+              <button 
+                onClick={() => navigate("/gurugram-market-survey")}
+                className="flex items-center gap-2 bg-brand-accent text-white py-3 px-8 rounded-md font-semibold hover:bg-[#e05a18] transition-colors shadow-sm"
+              >
+                Become a Verified Supplier
+                <ArrowRight size={18} />
+              </button>
             </div>
 
             {/* Trust Badges */}
