@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   MapPin, 
   ChevronDown, 
@@ -9,10 +9,29 @@ import {
   Search, 
   Navigation, 
   Map as MapIcon,
-  Loader2
+  Loader2,
+  Menu,
+  ShoppingCart,
+  ShoppingBasket,
+  ShoppingBag,
+  Laptop,
+  Sparkles,
+  Package,
+  Truck,
+  Home,
+  Pill,
+  Store,
+  ChevronRight,
+  LogOut
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { MagneticButton } from "../lightswind/magnetic-button";
+
+// Store Imports (Adjust path if needed)
+import { useAuthStore } from "../../store/authStore";
+import { useSellerAuthStore } from "../../store/sellerAuthStore";
+import { useAdminAuthStore } from "../../store/adminAuthStore";
 
 // Map Libraries
 import { MapContainer, TileLayer, useMapEvents, useMap } from "react-leaflet";
@@ -40,9 +59,32 @@ function MapCenterTracker({ setPosition }) {
   return null;
 }
 
+const categoryPills = [
+  { label: "Groceries", path: "/category/grocery", icon: <ShoppingBasket size={16} /> },
+  { label: "Fashion", path: "/category/garments", icon: <ShoppingBag size={16} /> },
+  { label: "Electronics", path: "/category/electronics", icon: <Laptop size={16} /> },
+  { label: "Beauty", path: "/category/beauty", icon: <Sparkles size={16} /> },
+];
+
+const megaMenuCategories = [
+  { icon: <Zap size={18} className="text-brand-accent" />, label: "Quick Commerce", sub: "15-min Delivery", path: "/quick-commerce" },
+  { icon: <Package size={18} className="text-amber-500" />, label: "Wholesale", sub: "Bulk B2B Pricing", path: "/wholesale" },
+  { icon: <Truck size={18} className="text-blue-500" />, label: "Local Sellers", sub: "Verified Stores", path: "/local-sellers" },
+  { icon: <Home size={18} className="text-purple-500" />, label: "Home & Living", sub: "Kitchen & Decor", path: "/category/home-decor" },
+  { icon: <Laptop size={18} className="text-slate-600" />, label: "Electronics", sub: "Mobiles & Audio", path: "/category/electronics" },
+  { icon: <Sparkles size={18} className="text-pink-500" />, label: "Personal Care", sub: "Beauty & Wellness", path: "/category/beauty" },
+  { icon: <ShoppingBasket size={18} className="text-brand-accent" />, label: "Groceries", sub: "Fresh & Daily Needs", path: "/category/grocery" },
+  { icon: <Pill size={18} className="text-red-500" />, label: "Healthcare", sub: "Medicines & Supplies", path: "/category/pharmacy" },
+];
+
 export default function QuickHeader() {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // UI States
   const [locationOpen, setLocationOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false); // <--- Added Menu State
   
   // Header Display Address
   const [currentAddress, setCurrentAddress] = useState("Sector 45, Gurugram");
@@ -52,6 +94,39 @@ export default function QuickHeader() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+
+  // Store Hooks
+  const { user: customerUser, isAuthenticated: isCustomerAuthenticated, logout: logoutCustomer } = useAuthStore();
+  const { user: sellerUser, isAuthenticated: isSellerAuthenticated, logout: logoutSeller } = useSellerAuthStore();
+  const { isAuthenticated: isAdminAuthenticated } = useAdminAuthStore();
+
+  const isAuthenticated = isCustomerAuthenticated || isSellerAuthenticated;
+  const user = isSellerAuthenticated ? sellerUser : customerUser;
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "unset";
+    return () => { document.body.style.overflow = "unset"; };
+  }, [menuOpen]);
+
+  // Close menus on route change
+  useEffect(() => {
+    setMenuOpen(false);
+    setMegaOpen(false);
+  }, [location.pathname]);
+
+  const handleLogout = useCallback(async () => {
+    setMenuOpen(false);
+    try {
+      await Promise.allSettled([
+        logoutSeller(),
+        logoutCustomer()
+      ]);
+    } catch (_err) {
+      console.error("Logout clearing issues:", _err);
+    }
+    navigate("/", { replace: true });
+  }, [logoutCustomer, logoutSeller, navigate]);
 
   // Auto-Detect GPS Location
   const locateUser = () => {
@@ -106,7 +181,6 @@ export default function QuickHeader() {
       const data = await res.json();
       
       if (data && data.address) {
-         // Create a clean short address (e.g. "Sector 45, Gurugram")
          const area = data.address.suburb || data.address.neighbourhood || data.address.residential || data.address.road || "Selected Location";
          const city = data.address.city || data.address.town || data.address.state_district || "";
          
@@ -124,74 +198,368 @@ export default function QuickHeader() {
 
   return (
     <>
-      {/* Main Sticky Header - Blue Theme */}
-      <header className="sticky top-0 z-50 bg-brand-primary shadow-sm border-b border-white/10 transition-colors">
-        <div className="max-w-[1440px] mx-auto px-4 h-14 flex items-center justify-between gap-3 relative">
-          
-          {/* Left: Back + Logo + Location */}
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-            <div className="flex items-center gap-2 shrink-0">
-              <button 
-                onClick={() => navigate(-1)} 
-                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all"
-              >
-                <ArrowLeft size={16} className="text-white" />
-              </button>
-              
-              {/* Added Logo */}
-              <img 
-                loading="lazy" 
-                decoding="async"
-                src="/Images/logo.png" 
-                alt="Indiafy" 
-                onClick={() => navigate("/")}
-                className="h-6 lg:h-7 w-auto object-contain cursor-pointer hidden sm:block hover:opacity-90 transition-opacity"
-              />
-            </div>
-
-            <div className="h-6 w-px bg-white/20 hidden sm:block mx-1"></div>
-
-            <button onClick={() => setLocationOpen(true)} className="flex items-center gap-1.5 min-w-0 group">
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 group-hover:bg-white/20 transition-colors">
-                <MapPin size={16} className="text-white" />
+      {/* Main Sticky Header Framework */}
+      <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm transition-colors">
+        
+        {/* Top Section - Blue Theme */}
+        <div className="bg-brand-primary border-b border-white/10 w-full">
+          <div className="max-w-[1440px] mx-auto px-4 h-14 flex items-center justify-between gap-3 relative">
+            
+            {/* Left: Back + Logo + Location */}
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <div className="flex items-center gap-2 shrink-0">
+                <button 
+                  onClick={() => navigate(-1)} 
+                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all"
+                >
+                  <ArrowLeft size={16} className="text-white" />
+                </button>
+                
+                {/* Added Logo */}
+                <img 
+                  loading="lazy" 
+                  decoding="async"
+                  src="/Images/logo.png" 
+                  alt="Indiafy" 
+                  onClick={() => navigate("/")}
+                  className="h-6 lg:h-7 w-auto object-contain cursor-pointer hidden sm:block hover:opacity-90 transition-opacity"
+                />
               </div>
-              <div className="text-left min-w-0">
-                <div className="flex items-center gap-0.5">
-                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider">Deliver to</span>
-                  <ChevronDown size={12} className="text-white/70 group-hover:text-white transition-colors" />
+
+              <div className="h-6 w-px bg-white/20 hidden sm:block mx-1"></div>
+
+              <button onClick={() => setLocationOpen(true)} className="flex items-center gap-1.5 min-w-0 group">
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 group-hover:bg-white/20 transition-colors">
+                  <MapPin size={16} className="text-white" />
                 </div>
-                <p className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[140px] sm:max-w-[220px]">
-                  {currentAddress}
-                </p>
-              </div>
-            </button>
-          </div>
-
-          {/* Center: ETA Badge */}
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }} 
-            className="hidden sm:flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-full shrink-0"
-          >
-            <Zap size={12} className="text-yellow-400 fill-yellow-400" />
-            <span className="text-[11px] font-extrabold text-white whitespace-nowrap">12 min</span>
-          </motion.div>
-
-          {/* Right: Profile & Mobile ETA */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="sm:hidden flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md">
-               <Zap size={10} className="text-yellow-400 fill-yellow-400" />
-               <span className="text-[10px] font-extrabold text-white">12m</span>
+                <div className="text-left min-w-0">
+                  <div className="flex items-center gap-0.5">
+                    <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider">Deliver to</span>
+                    <ChevronDown size={12} className="text-white/70 group-hover:text-white transition-colors" />
+                  </div>
+                  <p className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[140px] sm:max-w-[220px]">
+                    {currentAddress}
+                  </p>
+                </div>
+              </button>
             </div>
-            <button 
-              onClick={() => navigate("/profile")} 
-              className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-zinc-100 active:scale-95 transition-all shadow-sm"
+
+            {/* Center: ETA Badge (Desktop Only) */}
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              className="hidden sm:flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-full shrink-0"
             >
-              <User size={14} className="text-brand-primary" />
-            </button>
+              <Zap size={12} className="text-yellow-400 fill-yellow-400" />
+              <span className="text-[11px] font-extrabold text-white whitespace-nowrap">12 min</span>
+            </motion.div>
+
+            {/* Right: Cart, Profile & Mobile Menu */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 text-white">
+              
+              {/* Cart Icon */}
+              <button 
+                onClick={() => navigate("/cart")} 
+                className="p-1.5 hover:text-white/80 transition-colors relative"
+                aria-label="Shopping Cart"
+              >
+                <ShoppingCart size={22} strokeWidth={2} />
+              </button>
+
+              {/* Desktop Profile Icon (Hidden on mobile) */}
+              <button 
+                onClick={() => navigate("/profile")} 
+                className="hidden lg:flex w-8 h-8 rounded-full bg-white items-center justify-center hover:bg-zinc-100 active:scale-95 transition-all shadow-sm"
+              >
+                <User size={14} className="text-brand-primary" />
+              </button>
+
+              {/* Mobile Hamburger Menu Toggle */}
+              <button
+                onClick={() => setMenuOpen(true)}
+                aria-expanded={menuOpen}
+                className="lg:hidden p-1.5 hover:text-white/80 transition-colors"
+                aria-label="Open menu"
+              >
+                <Menu size={24} strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Category Bar (Desktop Only) */}
+        <div className="hidden lg:block bg-white border-b border-brand-border w-full">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-12">
+              {/* Left Side: All Categories */}
+              <div className="flex items-center">
+                <div
+                  className="relative"
+                  onMouseEnter={() => setMegaOpen(true)}
+                  onMouseLeave={() => setMegaOpen(false)}
+                >
+                  <MagneticButton
+                    variant="custom"
+                    size="custom"
+                    radius={32}
+                    strength={0.25}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
+                    aria-expanded={megaOpen}
+                    aria-haspopup="true"
+                  >
+                    <Menu size={14} />
+                    All Categories
+                    <ChevronDown size={12} className={`transition-transform ${megaOpen ? "rotate-180" : ""}`} />
+                  </MagneticButton>
+
+                  {megaOpen && (
+                    <div
+                      className="absolute top-full left-0 w-[580px] pt-2 z-50 transition-all duration-200"
+                      role="menu"
+                      aria-label="All categories"
+                    >
+                        <div className="bg-white rounded-2xl shadow-xl border border-brand-border overflow-hidden grid grid-cols-2 p-3 gap-1">
+                          {megaMenuCategories.map((cat) => (
+                            <button
+                              key={cat.label}
+                              role="menuitem"
+                              onClick={() => {
+                                setMegaOpen(false);
+                                navigate(cat.path);
+                              }}
+                              className="flex items-center gap-3 p-3 rounded-xl hover:bg-brand-background transition-all text-left w-full group"
+                            >
+                              <div className="w-10 h-10 rounded-xl bg-brand-background flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                                {cat.icon}
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-brand-primary leading-tight">{cat.label}</p>
+                                <p className="text-[11px] text-brand-text-secondary mt-0.5">{cat.sub}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Middle: Category Pills */}
+              <div className="flex items-center justify-around flex-1 px-8 overflow-x-auto no-scrollbar whitespace-nowrap">
+                {categoryPills.map((pill) => {
+                  const active = location.pathname === pill.path;
+                  return (
+                    <MagneticButton
+                      key={pill.label}
+                      variant="custom"
+                      size="custom"
+                      radius={32}
+                      strength={0.25}
+                      onClick={() => navigate(pill.path)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors rounded-lg ${
+                        active
+                          ? "text-brand-primary bg-brand-background font-bold shadow-sm"
+                          : "text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background"
+                      }`}
+                    >
+                      {pill.icon}
+                      {pill.label}
+                    </MagneticButton>
+                  );
+                })}
+
+                <MagneticButton
+                  variant="custom"
+                  size="custom"
+                  radius={32}
+                  strength={0.25}
+                  onClick={() => navigate("/quick-commerce")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] transition-colors rounded-lg ${
+                    location.pathname === "/quick-commerce"
+                      ? "text-brand-accent bg-brand-accent/10 font-bold shadow-sm"
+                      : "font-bold text-brand-accent hover:bg-brand-accent/5"
+                  }`}
+                >
+                  <Zap size={16} className="fill-brand-accent" />
+                  15-Min Delivery
+                </MagneticButton>
+
+                <MagneticButton
+                  variant="custom"
+                  size="custom"
+                  radius={32}
+                  strength={0.25}
+                  onClick={() => navigate("/wholesale")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors rounded-lg ${
+                    location.pathname === "/wholesale"
+                      ? "text-brand-primary bg-brand-background font-bold shadow-sm"
+                      : "text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background"
+                  }`}
+                >
+                  <Package size={16} />
+                  Wholesale
+                </MagneticButton>
+
+                <MagneticButton
+                  variant="custom"
+                  size="custom"
+                  radius={32}
+                  strength={0.25}
+                  onClick={() => navigate("/stores")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors rounded-lg ${
+                    location.pathname === "/stores"
+                      ? "text-brand-primary bg-brand-background font-bold shadow-sm"
+                      : "text-brand-text-secondary hover:text-brand-primary hover:bg-brand-background"
+                  }`}
+                >
+                  <Store size={16} />
+                  Stores
+                </MagneticButton>
+              </div>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* MOBILE SIDEBAR MODAL */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 bg-brand-primary/40 backdrop-blur-sm z-[999] lg:hidden transition-all duration-300"
+          onClick={() => setMenuOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation menu"
+        >
+          <div
+            className="absolute right-0 top-0 h-[100dvh] w-[85%] max-w-[360px] bg-white shadow-2xl flex flex-col pointer-events-auto transition-transform duration-300 translate-x-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-brand-border">
+                <img loading="lazy" decoding="async" src="/Images/logo.png" alt="Indiafy" width={96} height={24} className="h-6 w-auto" />
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Close navigation menu"
+                  className="p-2 bg-brand-background hover:bg-gray-100 text-brand-primary rounded-full transition-colors"
+                >
+                  <X size={18} strokeWidth={2} aria-hidden="true" />
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="px-5 pt-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const q = e.target.search.value;
+                    if (q) {
+                      navigate(`/search?q=${q}`);
+                      setMenuOpen(false);
+                    }
+                  }}
+                  role="search"
+                  aria-label="Search products"
+                >
+                  <div className="relative">
+                    <label htmlFor="mobile-search" className="sr-only">Search products</label>
+                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-text-secondary" aria-hidden="true" />
+                    <input
+                      id="mobile-search"
+                      name="search"
+                      type="text"
+                      placeholder="Search products..."
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-brand-background border border-brand-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent/30 transition-all"
+                    />
+                  </div>
+                </form>
+              </div>
+
+              {/* Links */}
+              <div className="flex-1 overflow-y-auto py-4 px-5 flex flex-col gap-1 no-scrollbar">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-brand-text-secondary mb-2 px-1">Quick Links</p>
+
+                <Link to="/" onClick={() => setMenuOpen(false)} className="flex items-center justify-between px-3 py-3 text-sm font-semibold text-brand-primary hover:bg-brand-background rounded-xl transition-colors">
+                  Home <ChevronRight size={16} className="text-brand-text-secondary" />
+                </Link>
+
+                <Link to="/quick-commerce" onClick={() => setMenuOpen(false)} className="flex items-center justify-between px-3 py-3 text-sm font-semibold text-brand-accent hover:bg-emerald-50 rounded-xl transition-colors">
+                  <span className="flex items-center gap-2"><Zap size={16} className="fill-current" /> 15-Min Delivery</span>
+                  <ChevronRight size={16} />
+                </Link>
+
+                {isCustomerAuthenticated && (
+                  <Link to="/order-history" onClick={() => setMenuOpen(false)} className="flex items-center justify-between px-3 py-3 text-sm font-semibold text-brand-primary hover:bg-brand-background rounded-xl transition-colors">
+                    <span className="flex items-center gap-2"><Package size={16} /> Orders</span>
+                    <ChevronRight size={16} className="text-brand-text-secondary" />
+                  </Link>
+                )}
+
+                <div className="h-px bg-brand-border my-2" />
+
+                <p className="text-[10px] font-bold uppercase tracking-wider text-brand-text-secondary mb-2 px-1">Categories</p>
+
+                {megaMenuCategories.map(cat => (
+                  <Link
+                    key={cat.label}
+                    to={cat.path}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-brand-primary hover:bg-brand-background rounded-xl transition-colors"
+                  >
+                    <span className="p-1.5 bg-brand-background rounded-lg">{cat.icon}</span>
+                    <span>{cat.label}</span>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Footer Actions */}
+              <div className="p-5 border-t border-brand-border bg-brand-background/50 flex flex-col gap-2.5">
+                <button
+                  onClick={() => { navigate(isAdminAuthenticated ? "/admin/dashboard" : "/admin/login"); setMenuOpen(false); }}
+                  className="w-full py-3 text-sm font-semibold bg-brand-accent text-white rounded-xl hover:bg-brand-accent-hover transition-colors flex items-center justify-center gap-2"
+                >
+                  Admin Panel
+                </button>
+
+                {isAuthenticated && user ? (
+                  <>
+                    <button
+                      onClick={() => { navigate(user?.role?.toLowerCase() === 'seller' ? "/seller-hub" : "/profile"); setMenuOpen(false); }}
+                      aria-label={`Go to ${user.firstName || 'your'} profile`}
+                      className="w-full py-3 text-sm font-semibold bg-brand-primary text-white rounded-xl hover:bg-brand-secondary transition-colors flex items-center justify-center gap-2"
+                    >
+                      {user?.role?.toLowerCase() === 'seller' ? <Store size={16} /> : <User size={16} />}
+                      {user.firstName || "Dashboard"}
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      aria-label="Logout from your account"
+                      className="w-full py-3 text-sm font-semibold bg-white text-brand-error border border-red-200 rounded-xl hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <LogOut size={16} /> Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => { navigate("/seller/login"); setMenuOpen(false); }}
+                      aria-label="Become a seller on Indiafy"
+                      className="w-full py-3 text-sm font-semibold bg-brand-accent text-white rounded-xl hover:bg-brand-accent-hover transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Store size={16} /> Sell on Indiafy
+                    </button>
+                    <button
+                      onClick={() => { navigate("/login"); setMenuOpen(false); }}
+                      aria-label="Login or signup as customer"
+                      className="w-full py-3 text-sm font-semibold bg-brand-primary text-white rounded-xl hover:bg-brand-secondary transition-colors"
+                    >
+                      Login / Sign Up
+                    </button>
+                  </>
+                )}
+              </div>
+          </div>
+        </div>
+      )}
 
       {/* Location Map Selection Modal */}
       <AnimatePresence>
@@ -205,7 +573,6 @@ export default function QuickHeader() {
 
             <motion.div
               initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 15 }} transition={{ duration: 0.2 }}
-              /* FIX: Replaced max-h with strict h-[92dvh] on mobile to perfectly lock the layout into the screen */
               className="fixed bottom-0 left-0 right-0 md:bottom-auto md:top-[72px] md:left-4 lg:left-[calc(50%-720px+1rem)] w-full md:w-[420px] bg-white z-[101] rounded-t-3xl md:rounded-2xl shadow-2xl md:border md:border-zinc-200 flex flex-col overflow-hidden h-[92dvh] md:h-auto md:max-h-[80vh]"
             >
               <div className="p-4 border-b border-zinc-100 flex items-center justify-between bg-white shrink-0">
@@ -218,7 +585,6 @@ export default function QuickHeader() {
                 </button>
               </div>
 
-              {/* FIX: min-h-0 forces this container to scroll instead of pushing the footer out of bounds */}
               <div className="flex-1 min-h-0 p-4 flex flex-col gap-4 overflow-y-auto no-scrollbar">
                 
                 {/* Manual Search Bar */}
@@ -252,7 +618,6 @@ export default function QuickHeader() {
                 <div className="flex flex-col gap-2 shrink-0 h-full">
                   <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Or Pin Point on Map</h4>
                   
-                  {/* FIX: Added min-h to prevent the map from squishing too far on small screens */}
                   <div className="relative w-full flex-1 min-h-[220px] md:min-h-[280px] bg-[#e5e3df] rounded-2xl overflow-hidden border border-zinc-200 cursor-crosshair">
                     <div className="w-full h-full absolute inset-0 z-0">
                       <MapContainer 
