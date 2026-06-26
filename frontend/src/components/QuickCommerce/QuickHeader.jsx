@@ -198,11 +198,29 @@ export default function QuickHeader() {
 
   return (
     <>
+    <style>
+        {`
+          @keyframes smooth-gradient-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          .animate-smooth-bg {
+            background: linear-gradient(90deg, #065f46, #047857, #0d9488, #0f766e, #065f46);
+            background-size: 300% 300%;
+            animation: smooth-gradient-bg 12s ease-in-out infinite;
+          }
+        `}
+      </style>
       {/* Main Sticky Header Framework */}
       <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm transition-colors">
         
         {/* Top Section - Blue Theme */}
-        <div className="bg-brand-primary border-b border-white/10 w-full">
+        {/* <div className="bg-brand-primary border-b border-white/10 w-full">
+          <div className="max-w-[1440px] mx-auto px-4 h-14 flex items-center justify-between gap-3 relative"> */}
+
+          {/* Top Section - Now with smooth emerald gradient */}
+        <div className="animate-smooth-bg border-b border-white/10 w-full">
           <div className="max-w-[1440px] mx-auto px-4 h-14 flex items-center justify-between gap-3 relative">
             
             {/* Left: Back + Logo + Location */}

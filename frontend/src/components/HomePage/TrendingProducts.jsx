@@ -266,7 +266,7 @@ export default function TrendingProducts() {
                         <Star size={8} fill="white" className="text-white" />
                       </div>
                       <span className="text-[10px] text-brand-text-secondary">({reviews})</span>
-                      <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png" alt="assured" className="h-4 ml-auto" />
+                      {/* <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png" alt="assured" className="h-4 ml-auto" /> */}
                     </div>
 
                     {/* Price */}

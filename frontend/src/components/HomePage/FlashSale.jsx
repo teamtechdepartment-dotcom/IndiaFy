@@ -157,7 +157,7 @@ export default function FlashSale() {
                         <span className="text-[10px] font-bold">{product.rating}</span>
                         <Star size={8} fill="white" className="text-white" />
                       </div>
-                      <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png" alt="assured" className="h-4 ml-auto" />
+                      {/* <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png" alt="assured" className="h-4 ml-auto" /> */}
                     </div>
                     <div className="flex items-baseline gap-2 mb-2">
                       <span className="text-base font-bold text-brand-text-primary">₹{product.price}</span>
