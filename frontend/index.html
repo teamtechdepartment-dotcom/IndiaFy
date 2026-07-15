@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    
+    <!-- SEO Meta Tags -->
+    <title>Indiafy - Gurugram's #1 Hyperlocal Marketplace & Quick Commerce</title>
+    <meta name="description" content="Shop from verified local sellers, wholesale suppliers, and enjoy under 30-minute quick commerce delivery in Gurugram. Experience the best local marketplace with Indiafy." />
+    <meta name="keywords" content="marketplace, online shopping, ecommerce, local sellers, quick commerce, Indiafy, wholesale, Gurugram shopping, under 30 minute delivery" />
+    <meta name="author" content="Indiafy" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#10B981" />
+    <meta name="google-site-verification" content="CEg1FKoq8TiBK1XCzSGX7tmJjs3M9timqxJxumKy1dY" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="canonical" href="https://india-fy.vercel.app/" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://india-fy.vercel.app/" />
+    <meta property="og:title" content="Indiafy - The Modern Marketplace for Everything" />
+    <meta property="og:description" content="Indiafy is your premier destination for local shopping, quick commerce, and premium products." />
+    <meta property="og:site_name" content="Indiafy" />
+    <meta property="og:locale" content="en_IN" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://india-fy.vercel.app/" />
+    <meta name="twitter:title" content="Indiafy - The Modern Marketplace for Everything" />
+    <meta name="twitter:description" content="Indiafy is your premier destination for local shopping, quick commerce, and premium products." />
+
+    <!-- Fonts: preconnect + preload critical font for LCP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inter+Tight:wght@400;500;600;700;800;900&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inter+Tight:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    
+    <link rel="icon" type="image/png" href="/fabicon.png" />
+
+    <!-- Structured Data: Organization -->
+    <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Indiafy",
+        "url": "https://india-fy.vercel.app",
+        "logo": "https://india-fy.vercel.app/Images/logo.png",
+        "description": "Indiafy is a trust-first hyperlocal commerce infrastructure. Discover local sellers, quick commerce, and wholesale B2B.",
+        "sameAs": []
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Indiafy",
+        "url": "https://india-fy.vercel.app",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://india-fy.vercel.app/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Site Navigation",
+        "itemListElement": [
+          {
+            "@type": "SiteNavigationElement",
+            "position": 1,
+            "name": "Ecommerce",
+            "description": "Shop from verified local sellers in Gurugram.",
+            "url": "https://india-fy.vercel.app/"
+          },
+          {
+            "@type": "SiteNavigationElement",
+            "position": 2,
+            "name": "Quick Commerce",
+            "description": "Get groceries and essentials delivered in under 30 minutes.",
+            "url": "https://india-fy.vercel.app/quick-commerce"
+          },
+          {
+            "@type": "SiteNavigationElement",
+            "position": 3,
+            "name": "Wholesale",
+            "description": "B2B bulk sourcing for retail stores in Gurugram.",
+            "url": "https://india-fy.vercel.app/wholesale"
+          }
+        ]
+      }
+    ]
+    </script>
+  </head>
+  <body class="antialiased bg-[#F8FAFC] text-[#0F172A] transition-colors duration-300">
+    <div id="root">
+      <style>
+        body { margin: 0; padding: 0; background-color: #F8FAFC; overflow-x: hidden; font-family: 'Inter', sans-serif; }
+        .skeleton-shimmer {
+          background: #e2e8f0;
+          background-image: linear-gradient(90deg, #e2e8f0 0px, #f1f5f9 40px, #e2e8f0 80px);
+          background-size: 600px;
+          animation: shimmer 1.5s infinite linear;
+        }
+        @keyframes shimmer {
+          0% { background-position: -200px 0; }
+          100% { background-position: calc(200px + 100%) 0; }
+        }
+        /* Navbar Skeleton */
+        .sk-nav {
+          height: 72px; width: 100%; background: white; border-bottom: 1px solid #e2e8f0;
+          display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-sizing: border-box;
+          position: sticky; top: 0; z-index: 50;
+        }
+        .sk-nav-logo { width: 140px; height: 32px; border-radius: 6px; }
+        .sk-nav-search { width: 40%; max-width: 500px; height: 44px; border-radius: 24px; display: none; }
+        .sk-nav-icons { display: flex; gap: 20px; }
+        .sk-nav-icon { width: 36px; height: 36px; border-radius: 50%; }
+        @media (min-width: 768px) { .sk-nav-search { display: block; } }
+        .sk-hide-mobile { display: none; }
+        @media (min-width: 768px) { .sk-hide-mobile { display: block; } }
+        
+        /* Container */
+        .sk-container { max-width: 1280px; margin: 0 auto; padding: 40px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 48px; }
+        
+        /* Hero Skeleton */
+        .sk-hero { display: flex; gap: 40px; align-items: center; flex-wrap: wrap; }
+        .sk-hero-left { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 24px; }
+        .sk-hero-right { flex: 1; min-width: 300px; height: 400px; border-radius: 24px; }
+        
+        /* Text Lines */
+        .sk-title { width: 85%; height: 64px; border-radius: 8px; }
+        .sk-title-short { width: 60%; height: 64px; border-radius: 8px; }
+        .sk-text { width: 95%; height: 20px; border-radius: 4px; }
+        .sk-text-short { width: 70%; height: 20px; border-radius: 4px; }
+        .sk-btn { width: 180px; height: 56px; border-radius: 12px; }
+        
+        /* Grid Skeleton */
+        .sk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+        .sk-card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .sk-card-img { width: 100%; height: 160px; border-radius: 12px; margin-bottom: 16px; }
+        .sk-card-title { width: 80%; height: 16px; border-radius: 4px; margin-bottom: 12px; }
+        .sk-card-price { width: 40%; height: 20px; border-radius: 4px; }
+      </style>
+      <div id="initial-skeleton">
+        <div class="sk-nav">
+          <div class="skeleton-shimmer sk-nav-logo"></div>
+          <div class="skeleton-shimmer sk-nav-search"></div>
+          <div class="sk-nav-icons">
+            <div class="skeleton-shimmer sk-nav-icon"></div>
+            <div class="skeleton-shimmer sk-nav-icon"></div>
+            <div class="skeleton-shimmer sk-nav-icon" style="display: none;"></div>
+          </div>
+        </div>
+        <div class="sk-container">
+          <div class="sk-hero">
+            <div class="sk-hero-left">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="skeleton-shimmer sk-title"></div>
+                <div class="skeleton-shimmer sk-title-short"></div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+                <div class="skeleton-shimmer sk-text"></div>
+                <div class="skeleton-shimmer sk-text"></div>
+                <div class="skeleton-shimmer sk-text-short"></div>
+              </div>
+              <div class="skeleton-shimmer sk-btn" style="margin-top: 16px;"></div>
+            </div>
+            <div class="skeleton-shimmer sk-hero-right"></div>
+          </div>
+          <div class="sk-grid">
+            <div class="sk-card"><div class="skeleton-shimmer sk-card-img"></div><div class="skeleton-shimmer sk-card-title"></div><div class="skeleton-shimmer sk-card-price"></div></div>
+            <div class="sk-card"><div class="skeleton-shimmer sk-card-img"></div><div class="skeleton-shimmer sk-card-title"></div><div class="skeleton-shimmer sk-card-price"></div></div>
+            <div class="sk-card"><div class="skeleton-shimmer sk-card-img"></div><div class="skeleton-shimmer sk-card-title"></div><div class="skeleton-shimmer sk-card-price"></div></div>
+            <div class="sk-card sk-hide-mobile"><div class="skeleton-shimmer sk-card-img"></div><div class="skeleton-shimmer sk-card-title"></div><div class="skeleton-shimmer sk-card-price"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

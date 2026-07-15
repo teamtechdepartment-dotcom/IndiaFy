@@ -1,0 +1,51 @@
+import ApiError from "./apiError.js";
+import jwtToken from "./jwt.js";
+import CustomerModel from "../models/customers/auth.model.js";
+import SellerModel from "../models/sellers/auth.model.js";
+import AdminModel from "../models/admins/auth.model.js";
+
+const userCookies = async (res, user) => {
+  try {
+    const { message, accessToken, refreshToken } = await jwtToken(user);
+
+    if (!message) {
+      throw new Error("Token generation failed");
+    }
+
+    // Save refresh token to database for session persistence
+    if (user.role === "Customer") {
+      await CustomerModel.findByIdAndUpdate(user._id, { refreshToken });
+    } else if (user.role === "Seller") {
+      await SellerModel.findByIdAndUpdate(user._id, { refreshToken });
+    } else if (user.role === "Admin") {
+      await AdminModel.findByIdAndUpdate(user._id, { refreshToken });
+    }
+
+    const rolePrefix = user.role ? user.role : "";
+    const accessCookieName = `${rolePrefix}AccessToken`;
+    const refreshCookieName = `${rolePrefix}RefreshToken`;
+
+    const isProd = process.env.NODE_ENV === "production";
+    const baseCookieOptions = {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "None" : "Lax",
+    };
+
+    res.cookie(accessCookieName, accessToken, {
+      ...baseCookieOptions,
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+    res.cookie(refreshCookieName, refreshToken, {
+      ...baseCookieOptions,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
+    return { accessToken, refreshToken };
+  } catch (err) {
+    console.error("Token Save Error:", err);
+    throw err;
+  }
+};
+
+export default userCookies;

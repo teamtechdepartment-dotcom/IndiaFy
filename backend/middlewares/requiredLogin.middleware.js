@@ -1,0 +1,80 @@
+import jwt from "jsonwebtoken";
+import ApiError from "../utils/apiError.js";
+import userCookies from "../utils/userCookies.js";
+
+const requiredLogin = async (req, res, next) => {
+  const securityKey = process.env.SecurityKey;
+  if (!securityKey) {
+    return res.status(500).json(new ApiError(500, "Server misconfiguration: SecurityKey not set."));
+  }
+  try {
+    // 1. If Authorization header is present, prioritize it
+    if (req.headers.authorization) {
+      const token = req.headers.authorization.split(" ")[1];
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, securityKey);
+          req.user = decoded;
+          return next();
+        } catch (err) {
+          return res
+            .status(401)
+            .set("Cache-Control", "no-store")
+            .json(new ApiError(401, "Token Expired", [
+              { message: err.message, name: err.name },
+            ]));
+        }
+      }
+    }
+
+    // 2. Fallback to cookie verification
+    const isSellerRoute = req.originalUrl.includes('/seller') || req.originalUrl.includes('/wholesale') || req.originalUrl.includes('/local') || req.originalUrl.includes('sellerorders') || req.originalUrl.includes('upload-video');
+    const isAdminRoute = req.originalUrl.includes('/admin');
+    
+    let order = ["Customer", "Seller", "Admin"];
+    if (isSellerRoute) order = ["Seller", "Customer", "Admin"];
+    if (isAdminRoute) order = ["Admin", "Seller", "Customer"];
+
+    let lastError = null;
+    for (const prefix of order) {
+      const token = req?.cookies?.[`${prefix}AccessToken`];
+      if (token) {
+        try {
+          const result = jwt.verify(token, securityKey);
+          if (result) {
+            req.user = result;
+            return next();
+          }
+        } catch (err) {
+          lastError = err;
+          // Continue loop to check other cookies if available
+        }
+      }
+    }
+
+    if (lastError) {
+      return res
+        .status(401)
+        .set("Cache-Control", "no-store")
+        .json(new ApiError(401, "Token Expired", [
+          { message: lastError.message, name: lastError.name },
+        ]));
+    }
+
+    return res
+      .status(401)
+      .set("Cache-Control", "no-store")
+      .json(new ApiError(401, "Please Login (No Token Found)"));
+  } catch (err) {
+    return res
+      .status(401)
+      .set("Cache-Control", "no-store")
+      .json(
+        new ApiError(401, "Please Login", [
+          { message: err.message, name: err.name },
+        ]),
+      );
+  }
+};
+
+export default requiredLogin;

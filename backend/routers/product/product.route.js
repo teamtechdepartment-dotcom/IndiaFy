@@ -1,0 +1,40 @@
+import { Router } from "express";
+import { 
+    createProduct, 
+    getAllProducts, 
+    getProductById, 
+    updateProduct, 
+    deleteProduct, 
+    getAvailableCategories, 
+    seedProducts,
+    getLatestProducts,
+    getFeaturedProducts,
+    getProductsByCategory,
+    searchProducts
+} from "../../controllers/products/product.controllers.js";
+import requiredLogin from "../../middlewares/requiredLogin.middleware.js";
+import roleGuard from "../../middlewares/roleGuard.middleware.js";
+import { uploadProductImages } from "../../middlewares/upload.middleware.js";
+
+const router = Router();
+
+// Public routes (Customers can browse products without logging in, but typically they would)
+router.route("/seed").get(seedProducts).post(seedProducts);
+router.route("/").get(getAllProducts);
+router.route("/latest").get(getLatestProducts);
+router.route("/featured").get(getFeaturedProducts);
+router.route("/category/:slug").get(getProductsByCategory);
+router.route("/search").get(searchProducts);
+router.route("/categories").get(getAvailableCategories);
+router.route("/:id").get(getProductById);
+
+// Protected routes (Only Sellers and Admins)
+// We chain requiredLogin to ensure they have a valid token, then roleGuard to ensure they are a Seller or Admin
+router.route("/")
+    .post(requiredLogin, roleGuard(["Seller", "Admin"]), uploadProductImages, createProduct);
+
+router.route("/:id")
+    .put(requiredLogin, roleGuard(["Seller", "Admin"]), updateProduct)
+    .delete(requiredLogin, roleGuard(["Seller", "Admin"]), deleteProduct);
+
+export default router;

@@ -1,0 +1,21 @@
+{
+  "name": "Indiafy",
+  "short_name": "Indiafy",
+  "description": "Hyperlocal Commerce & Verified Sellers Marketplace",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#10B981",
+  "icons": [
+    {
+      "src": "/fabicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/fabicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

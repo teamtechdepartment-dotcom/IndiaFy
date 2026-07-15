@@ -1,0 +1,173 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          primary: '#2874F0',
+          secondary: '#111827',
+          accent: '#FB641B',
+          'accent-hover': '#F0570F',
+          surface: '#FFFFFF',
+          background: '#F1F3F6',
+          'text-primary': '#212121',
+          'text-secondary': '#64748B',
+          border: '#E0E0E0',
+          success: '#10B981',
+          warning: '#F59E0B',
+          error: '#EF4444',
+        },
+        // ─── Admin Panel Premium Dark Design System ───────────────
+        admin: {
+          bg: '#050811',
+          'bg-secondary': '#080C1A',
+          surface: 'rgba(10, 15, 30, 0.85)',
+          'surface-hover': 'rgba(15, 23, 42, 0.95)',
+          border: 'rgba(255, 255, 255, 0.06)',
+          'border-accent': 'rgba(40, 116, 240, 0.25)',
+          accent: '#2874F0',
+          'accent-dim': 'rgba(40, 116, 240, 0.12)',
+          'accent-glow': 'rgba(40, 116, 240, 0.3)',
+          gold: '#FB641B',
+          text: '#E2E8F0',
+          'text-dim': '#94A3B8',
+          'text-muted': '#475569',
+          danger: '#EF4444',
+          warning: '#FB641B',
+          info: '#2874F0',
+          success: '#10B981',
+        },
+        primary: {
+          DEFAULT: "#0F172A",
+          50: "#f8fafc",
+          100: "#f1f5f9",
+          600: "#475569",
+          900: "#0f172a",
+        },
+        indigo: {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#3730a3',
+          900: '#312e81',
+        },
+        neutral: {
+          surface: "#ffffff",
+          border: "#e2e8f0",
+          text: {
+            main: "#0F172A",
+            sub: "#475569",
+          }
+        },
+        background: {
+          light: "#F8FAFC",
+          dark: "#0F172A",
+        },
+        accent: {
+          success: "#10B981",
+          recording: "#ef4444",
+        },
+      },
+      fontFamily: {
+        sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Inter Tight"', '"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      fontSize: {
+        'hero': ['4.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '800' }],
+        'hero-mobile': ['2.75rem', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '800' }],
+        'section': ['3rem', { lineHeight: '1.15', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'section-mobile': ['2rem', { lineHeight: '1.2', letterSpacing: '-0.01em', fontWeight: '700' }],
+      },
+      spacing: {
+        'section-desktop': '120px',
+        'section-tablet': '80px',
+        'section-mobile': '64px',
+        'container': '1440px',
+      },
+      maxWidth: {
+        'container': '1440px',
+      },
+      borderRadius: {
+        'card': '24px',
+        'card-sm': '16px',
+        'pill': '9999px',
+      },
+      boxShadow: {
+        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
+        'card-hover': '0 20px 40px -12px rgba(0, 0, 0, 0.08)',
+        'nav': '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+        'nav-scroll': '0 4px 20px -2px rgba(0, 0, 0, 0.06)',
+        'glass': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+        'glass-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025)',
+        'glow': '0 0 15px rgba(40, 116, 240, 0.3)',
+        'glow-accent': '0 0 30px rgba(40, 116, 240, 0.15)',
+        // Admin premium shadows
+        'admin-card': '0 0 0 1px rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.5)',
+        'admin-card-hover': '0 0 0 1px rgba(40, 116, 240, 0.25), 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(40, 116, 240, 0.08)',
+        'admin-sidebar': '4px 0 30px rgba(0,0,0,0.5)',
+        'admin-navbar': '0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.4)',
+        'admin-glow': '0 0 30px rgba(40, 116, 240, 0.25), 0 0 60px rgba(40, 116, 240, 0.10)',
+        'admin-glow-lg': '0 0 60px rgba(40, 116, 240, 0.3), 0 0 120px rgba(40, 116, 240, 0.15)',
+        'admin-input': 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.08)',
+        'admin-input-focus': 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 2px rgba(40, 116, 240, 0.4)',
+        'admin-btn': '0 4px 14px rgba(40, 116, 240, 0.4), 0 2px 6px rgba(0,0,0,0.3)',
+      },
+      backgroundImage: {
+        'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4))',
+        'hero-gradient': 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 50%, #F0FDF4 100%)',
+        'accent-gradient': 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+        // Admin premium gradients
+        'admin-bg': 'radial-gradient(ellipse at 20% 50%, rgba(40, 116, 240, 0.07) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(251, 100, 27, 0.05) 0%, transparent 60%), linear-gradient(135deg, #060A13 0%, #090E1C 50%, #060A13 100%)',
+        'admin-glass': 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+        'admin-card': 'linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%)',
+        'admin-accent-gradient': 'linear-gradient(135deg, #2874F0 0%, #1D4ED8 100%)',
+        'admin-sidebar-bg': 'linear-gradient(180deg, #050811 0%, #080C19 100%)',
+        'sidebar-active': 'linear-gradient(135deg, rgba(40, 116, 240, 0.15) 0%, rgba(40, 116, 240, 0.05) 100%)',
+        'stat-card-revenue': 'linear-gradient(135deg, rgba(40, 116, 240, 0.12) 0%, rgba(29, 78, 216, 0.06) 100%)',
+        'stat-card-orders': 'linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.06) 100%)',
+        'stat-card-warn': 'linear-gradient(135deg, rgba(251, 100, 27, 0.12) 0%, rgba(240, 87, 15, 0.06) 100%)',
+        'stat-card-danger': 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%)',
+      },
+      animation: {
+        'float': 'float 6s ease-in-out infinite',
+        'float-delayed': 'float 6s ease-in-out 2s infinite',
+        'float-slow': 'float 8s ease-in-out 1s infinite',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in': 'fadeIn 0.5s ease-out forwards',
+        'slide-up': 'slideUp 0.5s ease-out forwards',
+        'shimmer': 'shimmer 2s linear infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-12px)' },
+        },
+        fadeIn: {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        slideUp: {
+          from: { opacity: '0', transform: 'translateY(20px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+      },
+    },
+  },
+  plugins: [
+    require('lightswind/plugin'),],
+}
