@@ -2,13 +2,8 @@
 import axios from "axios";
 
 
-// Dynamic resolution of backend API URL
 const getBaseURL = () => {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-    // If running in production (not localhost) and no env var, fallback to Render backend
-    if (!import.meta.env.VITE_API_URL && typeof window !== "undefined" && !window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1")) {
-        return "https://indiafy-1.onrender.com/api/v1/indiafy";
-    }
     if (API_URL.endsWith('/api/v1/indiafy')) {
         return API_URL;
     }

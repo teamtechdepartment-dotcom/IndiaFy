@@ -8,11 +8,7 @@ import { toast } from 'react-toastify';
 // The URL where your socket server is running
 // E.g., 'http://localhost:8000' or 'https://your-backend.com'
 const getSocketURL = () => {
-    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-    if (typeof window !== "undefined" && !window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1")) {
-        return "https://indiafy-1.onrender.com";
-    }
-    return "http://localhost:8000";
+    return import.meta.env.VITE_API_URL || "http://localhost:8000";
 };
 
 export const useSocket = (activeNode) => {

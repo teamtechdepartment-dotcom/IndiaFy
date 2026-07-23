@@ -9,11 +9,7 @@ import { useSellerAuthStore } from "../store/sellerAuthStore";
  * and shopping flows. Redirects them back to the seller hub.
  */
 export default function MarketplaceGuard() {
-  const { isAuthenticated, user } = useSellerAuthStore();
-
-  if (isAuthenticated && user) {
-    return <Navigate to="/seller-hub" replace />;
-  }
-
+  // Allow everyone to view the marketplace, including sellers.
+  // The user reported that the landing page wasn't opening because this guard redirected to /seller-hub.
   return <Outlet />;
 }

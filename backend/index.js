@@ -47,8 +47,10 @@ async function connectWithRetry() {
     try {
         await databaseConfig();
         // Run seeder after successful connection
-        const { seedDatabase } = await import('./services/seeder.service.js');
-        await seedDatabase(false);
+        if (process.env.NODE_ENV !== "production") {
+            const { seedDatabase } = await import('./services/seeder.service.js');
+            await seedDatabase(false);
+        }
 
         // Run DB Migration to match new ACTIVE enums format
         const { default: SellerNode } = await import('./models/sellerNodes/sellerNode.model.js');
