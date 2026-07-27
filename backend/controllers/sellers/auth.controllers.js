@@ -151,70 +151,26 @@ const Login = async (req, res) => {
       return res.status(403).json(new ApiError(403, "Please verify your email address before logging in."));
     }
 
-    // STEP 7 - Verify JWT
-    const jwt = (await import("jsonwebtoken")).default;
-    const secret = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
-    
-    // We sign both a standard 7-day token and set standard app cookies for backward compatibility
-    const token = jwt.sign(
-      {
-        sellerId: sellerDetails._id,
-        role: "seller"
-      },
-      secret,
-      {
-        expiresIn: "7d"
-      }
-    );
-    console.log("[AUTH LOGGER] JWT Created: true");
-
-    // STEP 8 - Cookie
-    const isProd = process.env.NODE_ENV === "production";
-    const cookieOpts = {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: isProd,
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    };
-    
-    res.cookie("SellerAccessToken", token, cookieOpts);
-    console.log("[AUTH LOGGER] Cookie Sent: true");
-
     // Clear password and other sensitive fields
     sellerDetails.password = undefined;
     sellerDetails.securityKeyId = undefined;
 
     let tokenData = sellerDetails.toObject();
     tokenData.role = "Seller";
-    tokenData.accessToken = token;
 
-    // Save refresh token to database for compatibility with other endpoints (like /refresh)
-    const refreshToken = jwt.sign(
-      {
-        _id: sellerDetails._id,
-        role: "Seller",
-        email: sellerDetails.email
-      },
-      secret,
-      {
-        expiresIn: "30d"
-      }
-    );
-    sellerDetails.refreshToken = refreshToken;
-    await SellerModel.findByIdAndUpdate(sellerDetails._id, { refreshToken });
-    res.cookie("SellerRefreshToken", refreshToken, {
-      ...cookieOpts,
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
+    const { accessToken, refreshToken } = await userCookies(res, tokenData);
+    tokenData.accessToken = accessToken;
+    tokenData.refreshToken = refreshToken;
 
+    console.log("[AUTH LOGGER] JWT Created & Cookie Sent: true");
     console.log("[AUTH LOGGER] Redirect Success: true");
 
     // STEP 9 - Response
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      token,
-      accessToken: token, // compatibility
+      token: accessToken,
+      accessToken: accessToken, // compatibility
       refreshToken,       // compatibility
       seller: tokenData,
       data: tokenData     // compatibility
@@ -593,56 +549,21 @@ const googleAuth = async (req, res) => {
       await sellerDetails.save();
     }
 
-    const jwt = (await import("jsonwebtoken")).default;
-    const secret = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
-
-    const token = jwt.sign(
-      {
-        sellerId: sellerDetails._id,
-        role: "seller"
-      },
-      secret,
-      { expiresIn: "7d" }
-    );
-
-    const isProd = process.env.NODE_ENV === "production";
-    const cookieOpts = {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: isProd,
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    };
-
-    res.cookie("SellerAccessToken", token, cookieOpts);
-
     sellerDetails.password = undefined;
     sellerDetails.securityKeyId = undefined;
 
     let tokenData = sellerDetails.toObject();
     tokenData.role = "Seller";
-    tokenData.accessToken = token;
 
-    const refreshToken = jwt.sign(
-      {
-        _id: sellerDetails._id,
-        role: "Seller",
-        email: sellerDetails.email
-      },
-      secret,
-      { expiresIn: "30d" }
-    );
-    sellerDetails.refreshToken = refreshToken;
-    await SellerModel.findByIdAndUpdate(sellerDetails._id, { refreshToken });
-    res.cookie("SellerRefreshToken", refreshToken, {
-      ...cookieOpts,
-      maxAge: 30 * 24 * 60 * 60 * 1000
-    });
+    const { accessToken, refreshToken } = await userCookies(res, tokenData);
+    tokenData.accessToken = accessToken;
+    tokenData.refreshToken = refreshToken;
 
     return res.status(200).json({
       success: true,
       message: "Google Login successful",
-      token,
-      accessToken: token,
+      token: accessToken,
+      accessToken: accessToken,
       refreshToken,
       seller: tokenData,
       data: tokenData

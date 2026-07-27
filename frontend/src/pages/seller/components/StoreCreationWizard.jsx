@@ -39,21 +39,23 @@ const fileToBase64 = (file) =>
 function PreviewModal({ fileUrl, onClose }) {
   if (!fileUrl) return null;
   return (
-    <div className="fixed inset-0 z-[10010] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
-      <div className="relative max-w-3xl w-full bg-white rounded-3xl overflow-hidden p-2 flex flex-col items-center">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-slate-900/60 hover:bg-slate-900 transition-colors text-white rounded-full z-10"
-        >
-          <X size={20} />
-        </button>
+    <div className="fixed inset-0 z-[10010] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+      <div className="relative max-w-4xl w-full bg-white rounded-3xl overflow-hidden p-3 flex flex-col items-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-100 px-2">
+          <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <Eye size={16} className="text-emerald-500" /> Document Preview
+          </span>
+          <button
+            onClick={onClose}
+            className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-full transition-colors font-bold"
+          >
+            <X size={18} />
+          </button>
+        </div>
         {fileUrl.startsWith("data:application/pdf") || fileUrl.endsWith(".pdf") ? (
-          <div className="w-full h-[70vh] flex flex-col items-center justify-center bg-slate-100 text-slate-500 font-bold p-6">
-            <FileText size={48} className="text-slate-400 mb-2" />
-            PDF document preview not available directly in base64. Submit to verify.
-          </div>
+          <iframe title="PDF Document Preview" src={fileUrl} className="w-full h-[75vh] rounded-2xl bg-slate-50 border border-slate-200" />
         ) : (
-          <img src={fileUrl} alt="Preview" className="max-h-[80vh] w-auto max-w-full object-contain rounded-2xl" />
+          <img src={fileUrl} alt="Preview" className="max-h-[75vh] w-auto max-w-full object-contain rounded-2xl bg-slate-50" />
         )}
       </div>
     </div>
@@ -61,7 +63,7 @@ function PreviewModal({ fileUrl, onClose }) {
 }
 
 /* ============================================================
-   DRAG-AND-DROP FILE UPLOADER WITH VALIDATIONS
+   DRAG-AND-DROP FILE UPLOADER WITH VALIDATIONS & BASE64 PREVIEW
    ============================================================ */
 function DocumentUploader({ label, value, onChange, hint = "PDF, PNG, JPG (max 10MB)", onPreview, error, id }) {
   const fileInputRef = useRef(null);
@@ -85,14 +87,12 @@ function DocumentUploader({ label, value, onChange, hint = "PDF, PNG, JPG (max 1
     }
 
     setIsReading(true);
-    const toastId = toast.loading(`Scanning ${file.name} for security...`);
+    const toastId = toast.loading(`Scanning & processing ${file.name}...`);
     
     try {
-      const previewUrl = URL.createObjectURL(file);
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
+      const base64Url = await fileToBase64(file);
       toast.dismiss(toastId);
-      onChange(previewUrl, file);
+      onChange(base64Url, file);
       toast.success(`${label} loaded & verified!`);
     } catch (_err) {
       toast.dismiss(toastId);
@@ -125,10 +125,17 @@ function DocumentUploader({ label, value, onChange, hint = "PDF, PNG, JPG (max 1
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
         onDrop={handleDrop}
-        onClick={() => !isReading && fileInputRef.current?.click()}
-        className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-4 flex flex-col items-center justify-center text-center transition-all h-28 overflow-hidden
-          ${dragActive ? "border-emerald-500 bg-emerald-50/50" : "border-slate-200 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-50"}
-          ${value ? "border-emerald-250 bg-emerald-50/10" : ""}
+        onClick={() => {
+          if (isReading) return;
+          if (value && onPreview) {
+            onPreview(value);
+          } else if (!value) {
+            fileInputRef.current?.click();
+          }
+        }}
+        className={`relative rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center transition-all h-32 overflow-hidden
+          ${value ? "cursor-default border-emerald-300 bg-emerald-50/10" : "cursor-pointer border-slate-200 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-50 p-4"}
+          ${dragActive ? "border-emerald-500 bg-emerald-50/50" : ""}
           ${error ? "border-red-400 bg-red-50/10" : ""}`}
       >
         {isReading ? (
@@ -137,42 +144,66 @@ function DocumentUploader({ label, value, onChange, hint = "PDF, PNG, JPG (max 1
             <span className="text-[10px] font-bold">Scanning Document...</span>
           </div>
         ) : value ? (
-          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-50/90 group">
-            {value.startsWith("data:application/pdf") ? (
-              <div className="flex flex-col items-center p-2 text-slate-650 font-bold">
-                <FileText size={22} className="text-emerald-500 mb-1" />
-                <span className="text-[10px] truncate max-w-[130px]">PDF Document</span>
+          <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-slate-100 group select-none">
+            {value.startsWith("data:application/pdf") || value.endsWith(".pdf") ? (
+              <div 
+                onClick={() => onPreview && onPreview(value)}
+                className="flex flex-col items-center justify-center p-2 text-slate-700 font-bold cursor-pointer w-full h-full hover:bg-slate-200/50 transition pb-10"
+              >
+                <FileText size={28} className="text-emerald-600 mb-1" />
+                <span className="text-[11px] truncate max-w-[170px] text-slate-800">PDF Document Uploaded</span>
+                <span className="text-[9px] text-emerald-600 font-bold">Tap to Preview</span>
               </div>
             ) : (
-              <img src={value} alt={label} className="w-full h-full object-cover" />
+              <div 
+                onClick={() => onPreview && onPreview(value)}
+                className="w-full h-full relative cursor-pointer overflow-hidden pb-8 bg-slate-200/50 flex items-center justify-center"
+              >
+                <img src={value} alt={label} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              </div>
             )}
-            <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPreview(value);
-                }}
-                className="p-1.5 bg-white text-slate-800 rounded-full hover:bg-slate-100 transition shadow"
-              >
-                <Eye size={12} />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange("");
-                }}
-                className="p-1.5 bg-red-600 rounded-full text-white hover:bg-red-700 transition shadow"
-              >
-                <Trash2 size={12} />
-              </button>
+            {/* Always visible, tap-safe bottom control bar */}
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="absolute inset-x-0 bottom-0 bg-slate-900/90 backdrop-blur-md px-2.5 py-1.5 flex items-center justify-between gap-1 z-20 border-t border-slate-800"
+            >
+              <span className="text-[10px] text-emerald-400 font-black flex items-center gap-1 uppercase tracking-wider">
+                <CheckCircle2 size={12} className="text-emerald-400 shrink-0" /> Ready
+              </span>
+              <div className="flex items-center gap-1.5">
+                {onPreview && (
+                  <button
+                    type="button"
+                    onClick={() => onPreview(value)}
+                    title="View Full Preview"
+                    className="px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold rounded-lg transition flex items-center gap-1 active:scale-95"
+                  >
+                    <Eye size={11} /> View
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Change Document"
+                  className="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-lg transition shadow flex items-center gap-1 active:scale-95"
+                >
+                  Change
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onChange("")}
+                  title="Remove Document"
+                  className="p-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition shadow flex items-center justify-center active:scale-95"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
             </div>
           </div>
         ) : (
           <>
-            <Upload size={18} className="text-slate-400 mb-1" />
-            <span className="text-[11px] font-bold text-slate-700">Drag & Drop file</span>
+            <Upload size={20} className="text-slate-400 mb-1" />
+            <span className="text-[11px] font-black text-slate-700">Drag & Drop file</span>
             <span className="text-[9px] text-slate-400 font-medium mt-0.5">{hint}</span>
           </>
         )}
@@ -184,7 +215,7 @@ function DocumentUploader({ label, value, onChange, hint = "PDF, PNG, JPG (max 1
           onChange={(e) => handleFile(e.target.files[0])}
         />
       </div>
-      {error && <span className="text-[9px] text-red-500 font-bold">{error}</span>}
+      {error && <span className="text-[10px] text-red-500 font-bold block mt-0.5">{error}</span>}
     </div>
   );
 }
@@ -213,7 +244,7 @@ function KYCInput({ label, error, ...props }) {
 /* ============================================================
    IMAGE FIELD UPLOADER (Store Photo / Banner)
    ============================================================ */
-function ImageFieldUploader({ label, value, onChange, isLogo, error, id }) {
+function ImageFieldUploader({ label, value, onChange, isLogo, error, id, onPreview }) {
   const fileInputRef = useRef(null);
   const handleFile = async (e) => {
     const file = e.target.files[0];
@@ -239,25 +270,71 @@ function ImageFieldUploader({ label, value, onChange, isLogo, error, id }) {
   };
 
   return (
-    <div id={id} className="space-y-1.5 flex-1">
+    <div id={id} className="space-y-1.5 flex-1 min-w-[140px]">
       <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label} *</label>
       <div 
-        onClick={() => fileInputRef.current?.click()}
-        className={`relative cursor-pointer rounded-2xl border-2 border-dashed bg-slate-50/50 hover:bg-slate-50 flex items-center justify-center overflow-hidden transition-all h-24 
-          ${error ? "border-red-400" : "border-slate-200 hover:border-slate-400"}
-          ${isLogo ? 'w-24' : 'w-full'}`}
+        onClick={() => {
+          if (value && onPreview) {
+            onPreview(value);
+          } else if (!value) {
+            fileInputRef.current?.click();
+          }
+        }}
+        className={`relative rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all h-28 
+          ${value ? "cursor-default border-emerald-300 bg-emerald-50/10" : "cursor-pointer border-slate-200 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-50"}
+          ${error ? "border-red-400" : ""}
+          ${isLogo ? 'w-28' : 'w-full'}`}
       >
         {value ? (
-          <div className="relative w-full h-full group">
-            <img src={value} alt={label} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <span className="text-[10px] text-white font-bold">Change</span>
+          <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-slate-100 group select-none">
+            <div 
+              onClick={() => onPreview && onPreview(value)}
+              className="w-full h-full relative cursor-pointer overflow-hidden pb-7 bg-slate-200/50 flex items-center justify-center"
+            >
+              <img src={value} alt={label} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+            </div>
+            {/* Always visible bottom control bar */}
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="absolute inset-x-0 bottom-0 bg-slate-900/90 backdrop-blur-md px-2 py-1 flex items-center justify-between gap-1 z-20 border-t border-slate-800"
+            >
+              <span className="text-[9px] text-emerald-400 font-extrabold flex items-center gap-0.5 uppercase tracking-wider">
+                <CheckCircle2 size={10} />
+              </span>
+              <div className="flex items-center gap-1">
+                {onPreview && (
+                  <button
+                    type="button"
+                    onClick={() => onPreview(value)}
+                    title="View Preview"
+                    className="px-1.5 py-0.5 bg-white/10 hover:bg-white/20 text-white text-[9px] font-bold rounded transition flex items-center gap-0.5 active:scale-95"
+                  >
+                    <Eye size={10} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Change Image"
+                  className="px-1.5 py-0.5 bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-bold rounded transition shadow flex items-center gap-0.5 active:scale-95"
+                >
+                  Change
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onChange("", null)}
+                  title="Remove Image"
+                  className="p-0.5 bg-rose-600 hover:bg-rose-500 text-white rounded transition shadow flex items-center justify-center active:scale-95"
+                >
+                  <Trash2 size={10} />
+                </button>
+              </div>
             </div>
           </div>
         ) : (
           <div className="text-center p-2 text-slate-400">
             <Upload size={16} className="mx-auto mb-1" />
-            <span className="text-[10px] font-bold">Upload</span>
+            <span className="text-[10px] font-bold text-slate-700">Upload</span>
           </div>
         )}
         <input 
@@ -268,7 +345,7 @@ function ImageFieldUploader({ label, value, onChange, isLogo, error, id }) {
           onChange={handleFile}
         />
       </div>
-      {error && <p className="text-[9px] text-red-500 font-bold mt-1">{error}</p>}
+      {error && <p className="text-[10px] text-red-500 font-bold mt-0.5">{error}</p>}
     </div>
   );
 }
@@ -285,6 +362,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedNode, setSubmittedNode] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   // Consolidated Onboarding & KYC Form State
   const [form, setForm] = useState({
@@ -358,6 +436,31 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
     }
+  };
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+    setIsDetectingLocation(true);
+    const toastId = toast.loading("Detecting your current shop location...");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude.toFixed(6);
+        const lng = position.coords.longitude.toFixed(6);
+        setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+        toast.dismiss(toastId);
+        toast.success("Shop location detected successfully!");
+        setIsDetectingLocation(false);
+      },
+      (err) => {
+        toast.dismiss(toastId);
+        toast.error(`Could not detect location: ${err.message || "Permission denied"}`);
+        setIsDetectingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   const handleSaveDraft = () => {
@@ -604,9 +707,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
 
       setUploadProgress(65);
       
-      const response = await axiosInstance.post("/seller/store/submit", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const response = await axiosInstance.post("/seller/store/submit", formData);
 
       setUploadProgress(90);
 
@@ -752,19 +853,107 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <KYCInput
-                      label="Latitude"
-                      name="latitude" value={form.latitude} onChange={handleInputChange}
-                      placeholder="28.6139"
-                      error={errors.latitude}
-                    />
-                    <KYCInput
-                      label="Longitude"
-                      name="longitude" value={form.longitude} onChange={handleInputChange}
-                      placeholder="77.2090"
-                      error={errors.longitude}
-                    />
+                  {/* STORE GPS LOCATION (MAP PIN) */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <MapPin size={14} className="text-emerald-500" /> Store GPS Location *
+                      </label>
+                      {(form.latitude && form.longitude) && (
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <CheckCircle2 size={11} className="text-emerald-500" /> Pinned ({form.latitude}, {form.longitude})
+                        </span>
+                      )}
+                    </div>
+
+                    {!form.latitude || !form.longitude ? (
+                      <div 
+                        onClick={handleDetectLocation}
+                        className="w-full py-6 px-4 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50 cursor-pointer transition-all flex flex-col items-center justify-center text-center group shadow-sm hover:shadow"
+                      >
+                        {isDetectingLocation ? (
+                          <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm py-2">
+                            <Loader2 size={20} className="animate-spin text-emerald-600" />
+                            Detecting GPS Coordinates...
+                          </div>
+                        ) : (
+                          <>
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mb-2.5 shadow-md group-hover:scale-105 transition-transform">
+                              <MapPin size={24} />
+                            </div>
+                            <span className="text-sm font-black text-slate-800">Pin Current Shop Location on Map</span>
+                            <span className="text-[11px] text-slate-500 font-medium mt-1 max-w-sm">
+                              Click here to automatically detect and pin your shop's exact GPS latitude & longitude
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="border border-slate-200 rounded-2xl p-3.5 bg-slate-50/50 space-y-3 shadow-inner">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                              <MapPin size={20} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-black text-slate-800 truncate">Store Pinned Successfully</p>
+                              <p className="text-[10px] text-slate-500 font-semibold font-mono mt-0.5">
+                                Lat: {form.latitude} | Lng: {form.longitude}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleDetectLocation}
+                            disabled={isDetectingLocation}
+                            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm"
+                          >
+                            {isDetectingLocation ? <Loader2 size={14} className="animate-spin text-emerald-600" /> : <MapPin size={14} className="text-emerald-600" />}
+                            Re-detect GPS
+                          </button>
+                        </div>
+
+                        {/* Interactive Google Map Preview */}
+                        <div className="w-full h-48 rounded-xl overflow-hidden border border-slate-200 shadow-inner bg-slate-200/50 relative">
+                          <iframe
+                            title="Store GPS Map"
+                            width="100%"
+                            height="100%"
+                            frameBorder="0"
+                            scrolling="no"
+                            marginHeight="0"
+                            marginWidth="0"
+                            src={`https://maps.google.com/maps?q=${form.latitude},${form.longitude}&hl=en&z=16&output=embed`}
+                          />
+                        </div>
+
+                        {/* Manual Override Toggle */}
+                        <details className="text-[11px] text-slate-500 pt-1">
+                          <summary className="cursor-pointer font-bold hover:text-slate-800 select-none transition-colors">
+                            Need to enter or tweak coordinates manually?
+                          </summary>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2.5 pt-2.5 border-t border-slate-200">
+                            <KYCInput
+                              label="Latitude"
+                              name="latitude" value={form.latitude} onChange={handleInputChange}
+                              placeholder="28.6139"
+                              error={errors.latitude}
+                            />
+                            <KYCInput
+                              label="Longitude"
+                              name="longitude" value={form.longitude} onChange={handleInputChange}
+                              placeholder="77.2090"
+                              error={errors.longitude}
+                            />
+                          </div>
+                        </details>
+                      </div>
+                    )}
+                    {(errors.latitude || errors.longitude) && (
+                      <span className="text-[10px] font-medium text-rose-500 block">
+                        {errors.latitude || errors.longitude}
+                      </span>
+                    )}
                   </div>
                 </div>
 

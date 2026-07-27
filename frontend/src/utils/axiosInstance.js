@@ -46,6 +46,10 @@ const processQueue = (error, token = null) => {
 // Request Interceptor
 axiosInstance.interceptors.request.use(
     (config) => {
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+            delete config.headers['content-type'];
+        }
         // Fallback for mobile/cross-domain cookie issues: use Bearer token from localStorage
         try {
             const url = config.url || "";

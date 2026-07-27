@@ -122,19 +122,38 @@ export const submitStoreApplication = async (req, res) => {
       throw new ApiError(400, "All onboarding information fields are required.");
     }
 
-    // Process & Upload documents
-    const uploadedDocs = {};
-    uploadedDocs.aadhaarFront = await processDocumentUpload(req, "aadhaarFront", bodyAadhaarFront, "seller-documents");
-    uploadedDocs.aadhaarBack = await processDocumentUpload(req, "aadhaarBack", bodyAadhaarBack, "seller-documents");
-    uploadedDocs.panCard = await processDocumentUpload(req, "panCard", bodyPanCard, "seller-documents");
-    uploadedDocs.gstCertificate = await processDocumentUpload(req, "gstCertificate", bodyGstCertificate, "seller-documents");
-    uploadedDocs.cancelledCheque = await processDocumentUpload(req, "cancelledCheque", bodyCancelledCheque, "seller-documents");
-    uploadedDocs.bankStatement = await processDocumentUpload(req, "bankStatement", bodyBankStatement, "seller-documents");
-    const foodLic = await processDocumentUpload(req, "foodLicense", bodyFoodLicense, "seller-documents");
-    uploadedDocs.foodLicense = foodLic || "";
+    // Process & Upload documents in parallel for 10x speedup and timeout prevention
+    const [
+      aadhaarFrontUrl,
+      aadhaarBackUrl,
+      panCardUrl,
+      gstCertificateUrl,
+      cancelledChequeUrl,
+      bankStatementUrl,
+      foodLicenseUrl,
+      uploadedStorePhoto,
+      uploadedStoreBanner
+    ] = await Promise.all([
+      processDocumentUpload(req, "aadhaarFront", bodyAadhaarFront, "seller-documents"),
+      processDocumentUpload(req, "aadhaarBack", bodyAadhaarBack, "seller-documents"),
+      processDocumentUpload(req, "panCard", bodyPanCard, "seller-documents"),
+      processDocumentUpload(req, "gstCertificate", bodyGstCertificate, "seller-documents"),
+      processDocumentUpload(req, "cancelledCheque", bodyCancelledCheque, "seller-documents"),
+      processDocumentUpload(req, "bankStatement", bodyBankStatement, "seller-documents"),
+      processDocumentUpload(req, "foodLicense", bodyFoodLicense, "seller-documents"),
+      processDocumentUpload(req, "storePhoto", bodyStorePhoto, "store-images"),
+      processDocumentUpload(req, "storeBanner", bodyStoreBanner, "store-banners")
+    ]);
 
-    const uploadedStorePhoto = await processDocumentUpload(req, "storePhoto", bodyStorePhoto, "store-images");
-    const uploadedStoreBanner = await processDocumentUpload(req, "storeBanner", bodyStoreBanner, "store-banners");
+    const uploadedDocs = {
+      aadhaarFront: aadhaarFrontUrl,
+      aadhaarBack: aadhaarBackUrl,
+      panCard: panCardUrl,
+      gstCertificate: gstCertificateUrl,
+      cancelledCheque: cancelledChequeUrl,
+      bankStatement: bankStatementUrl,
+      foodLicense: foodLicenseUrl || ""
+    };
 
     // Ensure all mandatory files are uploaded
     if (

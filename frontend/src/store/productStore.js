@@ -34,9 +34,7 @@ export const useProductStore = create((set) => ({
   createProduct: async (formData) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axiosInstance.post('/products', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await axiosInstance.post('/products', formData);
       // Refresh products after creation
       return res.data;
     } catch (_err) {
@@ -61,9 +59,7 @@ export const useProductStore = create((set) => ({
   updateProduct: async (id, formData) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axiosInstance.put(`/products/${id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await axiosInstance.put(`/products/${id}`, formData);
       return res.data;
     } catch (_err) {
       const errorMsg = _err?.response?.data?.message || 'Failed to update product';

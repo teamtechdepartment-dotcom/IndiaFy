@@ -183,9 +183,7 @@ const VideoVerification = () => {
       const extension = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
       formData.append('video', videoBlob, `packing_video.${extension}`);
 
-      await axiosInstance.post(`/orders/${id}/upload-video`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await axiosInstance.post(`/orders/${id}/upload-video`, formData);
 
       toast.success("Video verified & Order Shipped!");
       if (fetchSellerOrders) fetchSellerOrders();
