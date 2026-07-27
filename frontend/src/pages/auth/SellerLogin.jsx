@@ -8,6 +8,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import { useSellerAuthStore } from "../../store/sellerAuthStore";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import GoogleAuthModal from "../../components/auth/GoogleAuthModal";
 
