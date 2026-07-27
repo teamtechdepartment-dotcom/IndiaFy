@@ -1,58 +1,73 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Mail, User, Shield, ArrowRight, Loader2 } from "lucide-react";
+import { X, Mail, User, Shield, ArrowRight, Loader2, Trash2, PlusCircle } from "lucide-react";
 
 const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", loading = false }) => {
+  const storageKey = `indiafy_saved_google_accounts_${role}`;
+
+  const [savedAccounts, setSavedAccounts] = useState([]);
   const [customEmail, setCustomEmail] = useState("");
   const [customName, setCustomName] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setSavedAccounts(parsed);
+            setShowCustomInput(false);
+            return;
+          }
+        }
+      } catch (_e) {
+        // Ignore parsing errors
+      }
+      // If no accounts have been created/saved yet on this device, directly show the Enter Details form!
+      setSavedAccounts([]);
+      setShowCustomInput(true);
+    }
+  }, [isOpen, storageKey]);
+
   if (!isOpen) return null;
 
-  const defaultAccounts =
-    role === "seller"
-      ? [
-          {
-            name: "Mukund Enterprises",
-            email: "mukun.seller@gmail.com",
-            picture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-          },
-          {
-            name: "Bharat Traders & Co.",
-            email: "bharat.traders@gmail.com",
-            picture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-          },
-          {
-            name: "TechMart Wholesale",
-            email: "techmart.store@gmail.com",
-            picture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-          },
-        ]
-      : [
-          {
-            name: "Mukund Sharma",
-            email: "mukun.sharma@gmail.com",
-            picture: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-          },
-          {
-            name: "Rahul Kumar",
-            email: "rahul.indiafy@gmail.com",
-            picture: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80",
-          },
-          {
-            name: "Ananya Singh",
-            email: "ananya.shop@gmail.com",
-            picture: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-          },
-        ];
+  const saveAccountToStorage = (account) => {
+    try {
+      const existing = [...savedAccounts];
+      // Remove if already exists to move to top
+      const filtered = existing.filter((acc) => acc.email.toLowerCase() !== account.email.toLowerCase());
+      const updated = [account, ...filtered].slice(0, 5); // Keep up to 5 recent accounts
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+      setSavedAccounts(updated);
+    } catch (_e) {
+      // Ignore storage error
+    }
+  };
+
+  const removeAccountFromStorage = (e, emailToRemove) => {
+    e.stopPropagation();
+    try {
+      const updated = savedAccounts.filter((acc) => acc.email.toLowerCase() !== emailToRemove.toLowerCase());
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+      setSavedAccounts(updated);
+      if (updated.length === 0) {
+        setShowCustomInput(true);
+      }
+    } catch (_e) {
+      // Ignore
+    }
+  };
 
   const handleAccountClick = (account) => {
+    saveAccountToStorage(account);
     onSelectAccount({
       email: account.email,
       name: account.name,
       picture: account.picture,
-      googleId: "gid_" + account.email.replace(/[^a-zA-Z0-9]/g, ""),
+      googleId: account.googleId || "gid_" + account.email.replace(/[^a-zA-Z0-9]/g, ""),
     });
   };
 
@@ -63,13 +78,18 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
       return;
     }
     setError("");
-    const defaultName = customName.trim() || customEmail.split("@")[0] || "Google User";
-    onSelectAccount({
-      email: customEmail.trim().toLowerCase(),
+    const cleanEmail = customEmail.trim().toLowerCase();
+    const defaultName = customName.trim() || cleanEmail.split("@")[0] || "Google User";
+    
+    const newAccount = {
+      email: cleanEmail,
       name: defaultName,
       picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=0D8ABC&color=fff`,
-      googleId: "gid_" + customEmail.replace(/[^a-zA-Z0-9]/g, ""),
-    });
+      googleId: "gid_" + cleanEmail.replace(/[^a-zA-Z0-9]/g, ""),
+    };
+
+    saveAccountToStorage(newAccount);
+    onSelectAccount(newAccount);
   };
 
   return (
@@ -115,21 +135,21 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
                   <p className="text-xs text-slate-500 mt-1">Please wait while we secure your session.</p>
                 </div>
               </div>
-            ) : !showCustomInput ? (
+            ) : !showCustomInput && savedAccounts.length > 0 ? (
               <div className="space-y-4">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Choose an account</p>
                 
-                <div className="space-y-2">
-                  {defaultAccounts.map((acc, idx) => (
-                    <button
+                <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
+                  {savedAccounts.map((acc, idx) => (
+                    <div
                       key={idx}
                       onClick={() => handleAccountClick(acc)}
-                      className="w-full p-3.5 rounded-xl border border-slate-200 hover:border-brand-accent hover:bg-emerald-50/40 transition-all flex items-center gap-3.5 text-left group"
+                      className="w-full p-3.5 rounded-xl border border-slate-200 hover:border-brand-accent hover:bg-emerald-50/40 transition-all flex items-center gap-3.5 text-left group cursor-pointer relative"
                     >
                       <img
                         src={acc.picture}
                         alt={acc.name}
-                        className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm"
+                        className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-sm text-slate-900 group-hover:text-brand-accent transition-colors truncate">
@@ -137,17 +157,29 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
                         </p>
                         <p className="text-xs text-slate-500 truncate">{acc.email}</p>
                       </div>
-                      <ArrowRight size={16} className="text-slate-300 group-hover:text-brand-accent group-hover:translate-x-0.5 transition-all" />
-                    </button>
+                      <button
+                        type="button"
+                        onClick={(e) => removeAccountFromStorage(e, acc.email)}
+                        title="Remove from saved accounts"
+                        className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                      <ArrowRight size={16} className="text-slate-300 group-hover:text-brand-accent group-hover:translate-x-0.5 transition-all ml-1 shrink-0" />
+                    </div>
                   ))}
                 </div>
 
                 <div className="pt-2">
                   <button
-                    onClick={() => setShowCustomInput(true)}
+                    onClick={() => {
+                      setCustomEmail("");
+                      setCustomName("");
+                      setShowCustomInput(true);
+                    }}
                     className="w-full py-3 px-4 rounded-xl border border-dashed border-slate-300 hover:border-slate-400 text-slate-600 hover:text-slate-800 font-semibold text-sm transition-all flex items-center justify-center gap-2"
                   >
-                    <User size={16} />
+                    <PlusCircle size={16} className="text-brand-accent" />
                     Use another Google Account...
                   </button>
                 </div>
@@ -155,18 +187,22 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
             ) : (
               <form onSubmit={handleCustomSubmit} className="space-y-4">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-slate-700">Enter Google Account Details</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomInput(false)}
-                    className="text-xs font-bold text-brand-accent hover:underline"
-                  >
-                    Back to list
-                  </button>
+                  <span className="text-xs font-bold text-slate-700">
+                    {savedAccounts.length === 0 ? "Sign in with your Google Email" : "Add Google Account"}
+                  </span>
+                  {savedAccounts.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomInput(false)}
+                      className="text-xs font-bold text-brand-accent hover:underline"
+                    >
+                      Back to saved list
+                    </button>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Email address</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Google Email Address</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                     <input
@@ -174,10 +210,12 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
                       required
                       value={customEmail}
                       onChange={(e) => setCustomEmail(e.target.value)}
-                      placeholder="name@gmail.com"
+                      placeholder="e.g. business@gmail.com"
+                      autoFocus
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent font-medium text-sm text-slate-800 placeholder:text-slate-400"
                     />
                   </div>
+                  <p className="text-[11px] text-slate-400 mt-1">Enter your Gmail address to securely sign in or register.</p>
                 </div>
 
                 <div>
@@ -188,7 +226,7 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
                       type="text"
                       value={customName}
                       onChange={(e) => setCustomName(e.target.value)}
-                      placeholder="John Doe"
+                      placeholder="e.g. Mukund Sharma"
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent font-medium text-sm text-slate-800 placeholder:text-slate-400"
                     />
                   </div>
@@ -199,7 +237,13 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
                 <div className="pt-2 flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowCustomInput(false)}
+                    onClick={() => {
+                      if (savedAccounts.length > 0) {
+                        setShowCustomInput(false);
+                      } else {
+                        onClose();
+                      }
+                    }}
                     className="flex-1 py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 font-bold text-sm text-slate-700 transition-colors"
                   >
                     Cancel
@@ -208,7 +252,7 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
                     type="submit"
                     className="flex-1 py-3 px-4 rounded-xl bg-brand-accent hover:bg-brand-accent-hover text-white font-bold text-sm transition-all shadow-md shadow-brand-accent/20 flex items-center justify-center gap-1.5"
                   >
-                    Sign In <ArrowRight size={16} />
+                    Continue <ArrowRight size={16} />
                   </button>
                 </div>
               </form>
