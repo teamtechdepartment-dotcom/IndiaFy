@@ -225,7 +225,7 @@ export default function TermsAndConditions() {
               <ul>
                 <li>Every product listing must display: name & description, images, price (inclusive of GST), country of origin, manufacturer details, net quantity, expiry date (if applicable), warranty information, and return/exchange policy.</li>
                 <li><strong>Pre-purchase Information:</strong> Total price including delivery charges, handling fees, and all applicable taxes must be disclosed before checkout.</li>
-                <li><strong>No Dark Patterns:</strong> The Platform does not use false urgency, hidden charges, forced bundling, subscription traps, or other manipulative UI patterns prohibited under the <strong>Guidelines for Prevention and Regulation of Dark Patterns, 2023</strong> issued by CCPA.</li>
+                <li><strong>No Dark Patterns & Free Consent (No Auto-Tick):</strong> The Platform strictly prohibits false urgency, hidden charges, forced bundling, subscription traps, pre-checked/auto-ticked consent boxes, or implied opt-in routing under the <strong>Guidelines for Prevention and Regulation of Dark Patterns, 2023</strong> issued by CCPA and Section 6 of the DPDP Act, 2023. All user agreements require explicit, un-checked, affirmative opt-in action.</li>
               </ul>
 
               <h3>5.3 Cancellation & Return (Rule 4(4))</h3>

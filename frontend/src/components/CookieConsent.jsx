@@ -37,9 +37,9 @@ export default function CookieConsent() {
             <ShieldCheck className="w-6 h-6 text-emerald-400" />
           </div>
           <div>
-            <h3 className="text-white font-bold text-lg mb-1 tracking-tight">Your Privacy Matters</h3>
+            <h3 className="text-white font-bold text-lg mb-1 tracking-tight">Your Privacy Matters (DPDP Act 2023)</h3>
             <p className="text-zinc-400 text-sm font-medium leading-relaxed max-w-2xl">
-              Indiafy uses cookies to enhance your browsing experience, serve personalized ads or content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies.
+              In strict compliance with Section 6 of India's Digital Personal Data Protection Act, 2023, Indiafy requires your explicit, affirmative, and unconditional consent before deploying analytical cookies. We never use pre-ticked boxes or cross-site advertising trackers.
             </p>
           </div>
         </div>

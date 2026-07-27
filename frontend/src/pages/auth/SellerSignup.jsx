@@ -58,6 +58,7 @@ const SellerSignup = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // ── Submit guard ─────────────────────────────────────────────────
   const isSubmittingRef = useRef(false);
@@ -132,6 +133,10 @@ const SellerSignup = () => {
   };
 
   const onSignup = useCallback(async (data) => {
+    if (!agreedToTerms) {
+      toast.error("Please explicitly consent to the Terms of Service & DPDP Privacy Policy to register.");
+      return;
+    }
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
 
@@ -461,13 +466,27 @@ const SellerSignup = () => {
                       isVisible: showConfirm,
                       onToggle: () => setShowConfirm((p) => !p),
                     })}
-                    <p className="text-[11px] text-slate-500 font-medium pt-2 leading-relaxed">
-                      By registering, you agree to our{" "}
-                      <Link to="/terms-and-conditions" className="text-brand-accent hover:underline">Terms of Service</Link>
-                      {" "}and{" "}
-                      <Link to="/seller-guidelines" className="text-brand-accent hover:underline">Seller Guidelines</Link>.
-                      You can set up your specific store type in the dashboard after signing up.
-                    </p>
+                    <div className="pt-3">
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={agreedToTerms}
+                          onChange={(e) => setAgreedToTerms(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-accent focus:ring-brand-accent transition-colors cursor-pointer shrink-0"
+                        />
+                        <span className="text-[11px] text-slate-600 font-medium leading-relaxed select-none group-hover:text-slate-900 transition-colors">
+                          I explicitly consent and agree to the{" "}
+                          <Link to="/terms-and-conditions" target="_blank" className="text-brand-accent font-bold hover:underline">Terms of Service</Link>,{" "}
+                          <Link to="/privacy-policy" target="_blank" className="text-brand-accent font-bold hover:underline">Privacy Policy (DPDP Act 2023)</Link>, and{" "}
+                          <Link to="/seller-policy" target="_blank" className="text-brand-accent font-bold hover:underline">Seller Policy</Link> (No default auto-check).
+                        </span>
+                      </label>
+                      {!agreedToTerms && (
+                        <p className="text-[10px] text-amber-600 font-semibold mt-1 pl-7">
+                          * Mandatory under DPDP Act 2023 & E-Commerce Rules (Explicit opt-in required).
+                        </p>
+                      )}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -500,13 +519,13 @@ const SellerSignup = () => {
                   </motion.button>
                 ) : (
                   <motion.button
-                    whileHover={!loading ? { scale: 1.01 } : {}}
-                    whileTap={!loading ? { scale: 0.98 } : {}}
+                    whileHover={!loading && agreedToTerms ? { scale: 1.01 } : {}}
+                    whileTap={!loading && agreedToTerms ? { scale: 0.98 } : {}}
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !agreedToTerms}
                     aria-busy={loading}
                     aria-label={loading ? "Creating your account, please wait" : "Complete registration"}
-                    className="flex-grow bg-brand-accent hover:bg-brand-accent-hover text-white rounded-xl py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex-grow bg-brand-accent hover:bg-brand-accent-hover text-white rounded-xl py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <>

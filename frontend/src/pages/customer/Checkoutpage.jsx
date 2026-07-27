@@ -36,6 +36,7 @@ export default function CheckoutPage() {
   const [selectedAddr, setSelectedAddr] = useState(1);
   const [payMethod, setPayMethod] = useState("test");
   const [isPlacing, setIsPlacing] = useState(false);
+  const [agreedToPolicies, setAgreedToPolicies] = useState(false);
   const orderPlacedRef = useRef(false);
 
   const { cartItems, fetchCart, clearCartStore } = useCartStore();
@@ -138,6 +139,9 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    if (!agreedToPolicies) {
+      return toast.error("Please explicitly consent to the Terms & Conditions and Refund Policy before placing your order.");
+    }
     if (displayItems.length === 0) {
       return toast.error("Your cart is empty");
     }
@@ -779,8 +783,24 @@ export default function CheckoutPage() {
                   <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Payable Amount</p>
                   <p className="text-3xl font-black text-slate-900">{fmt(total)}</p>
                 </div>
+                <div className="pt-2">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={agreedToPolicies}
+                      onChange={(e) => setAgreedToPolicies(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 transition-colors cursor-pointer shrink-0"
+                    />
+                    <span className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                      I explicitly agree to the <a href="/terms-and-conditions" target="_blank" className="font-bold text-slate-900 underline">Terms</a> & <a href="/refund-policy" target="_blank" className="font-bold text-slate-900 underline">Refund Policy</a> (No default auto-check).
+                    </span>
+                  </label>
+                  {!agreedToPolicies && (
+                    <p className="text-[10px] text-amber-600 font-semibold mt-1 pl-6.5">* Explicit consent required under E-Commerce Rules 2020.</p>
+                  )}
+                </div>
                 <button
-                  disabled={isPlacing}
+                  disabled={isPlacing || !agreedToPolicies}
                   onClick={handlePlaceOrder}
                   className="w-full py-4 bg-slate-900 text-white rounded-full font-bold uppercase tracking-widest text-[12px] flex items-center justify-center gap-3 hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-slate-900/20"
                 >
@@ -866,8 +886,24 @@ export default function CheckoutPage() {
 
                 {/* DESKTOP CTA */}
                 <div className="hidden lg:block space-y-4">
+                  <div className="pt-2">
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={agreedToPolicies}
+                        onChange={(e) => setAgreedToPolicies(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 transition-colors cursor-pointer shrink-0"
+                      />
+                      <span className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                        I explicitly agree to the <a href="/terms-and-conditions" target="_blank" className="font-bold text-slate-900 underline">Terms</a> & <a href="/refund-policy" target="_blank" className="font-bold text-slate-900 underline">Refund Policy</a> (No default auto-check).
+                      </span>
+                    </label>
+                    {!agreedToPolicies && (
+                      <p className="text-[10px] text-amber-600 font-semibold mt-1 pl-6.5">* Explicit consent required under E-Commerce Rules 2020.</p>
+                    )}
+                  </div>
                   <button
-                    disabled={step !== 2 || isPlacing}
+                    disabled={step !== 2 || isPlacing || !agreedToPolicies}
                     onClick={handlePlaceOrder}
                     className="w-full py-4 bg-slate-900 text-white rounded-full font-bold uppercase tracking-widest text-[12px] flex items-center justify-center gap-3 hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-slate-900/20"
                   >

@@ -599,7 +599,7 @@ export default function SellerPolicy() {
                 <li>Indiafy reserves the right to amend this Seller Policy at any time.</li>
                 <li><strong>Material Changes:</strong> For changes affecting commission rates, settlement terms, or SLA requirements, Indiafy will provide <strong>30 days' advance notice</strong> via email and seller dashboard.</li>
                 <li><strong>Minor Changes:</strong> Clarifications, formatting updates, or non-material amendments may be made without prior notice. The "Last Updated" date at the top of this document will always reflect the most recent revision.</li>
-                <li><strong>Acceptance:</strong> Continued use of the Indiafy seller platform after the effective date of any amendment constitutes your acceptance of the updated policy.</li>
+                <li><strong>Explicit Re-Consent (No Auto-Tick):</strong> In strict compliance with Indian regulatory standards (DPDP Act 2023 & CCPA Guidelines for Prevention of Dark Patterns 2023), Indiafy never relies on pre-ticked checkboxes or implied default consent. For material amendments affecting financial terms or data privacy, sellers must provide explicit, affirmative opt-in consent via an un-ticked dashboard notification prompt prior to continuing platform operations.</li>
                 <li><strong>Disagreement:</strong> If you disagree with any material policy change, you may terminate your seller account by providing 30 days' written notice. All pending orders must be fulfilled, and the settlement cycle will complete before account closure.</li>
               </ul>
             </section>
@@ -619,7 +619,7 @@ export default function SellerPolicy() {
             <div className="mt-12 bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 text-center not-prose shadow-sm">
               <h3 className="text-2xl font-black tracking-tight mb-3">Ready to sell on Indiafy?</h3>
               <p className="text-slate-500 font-medium text-sm mb-8 max-w-lg mx-auto">
-                By registering as a seller, you agree to abide by this Seller Policy, our Terms & Conditions, and all related guidelines.
+                By registering as a seller, you explicitly opt-in and consent via an un-ticked verification box to abide by this Seller Policy, our Terms & Conditions, and DPDP Act Privacy Policy.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
