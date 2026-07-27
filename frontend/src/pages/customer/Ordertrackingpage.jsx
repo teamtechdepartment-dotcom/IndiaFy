@@ -179,7 +179,7 @@ export default function OrderTrackingPage() {
   useEffect(() => {
     if (!orderId || !order) return;
 
-    const socketUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    const socketUrl = import.meta.env.VITE_API_URL || (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:8000" : "https://indiafy-1.onrender.com");
     console.log(`[Socket] Connecting to server at ${socketUrl}`);
     const socket = io(socketUrl, {
       withCredentials: true

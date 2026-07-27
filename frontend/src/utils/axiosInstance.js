@@ -3,7 +3,14 @@ import axios from "axios";
 
 
 const getBaseURL = () => {
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    let API_URL = import.meta.env.VITE_API_URL;
+    if (!API_URL || API_URL.trim() === "") {
+        if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+            API_URL = "http://localhost:8000";
+        } else {
+            API_URL = "https://indiafy-1.onrender.com";
+        }
+    }
     if (API_URL.endsWith('/api/v1/indiafy')) {
         return API_URL;
     }

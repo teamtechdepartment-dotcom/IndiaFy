@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useCartStore } from "../../store/cartStore";
 import { motion, AnimatePresence } from "framer-motion";
+import GoogleAuthModal from "../../components/auth/GoogleAuthModal";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format").min(1, "Email is required"),
@@ -43,6 +44,52 @@ const UserLogin = () => {
 
   const loginAuth = useAuthStore((state) => state.login);
   const addToCart = useCartStore((state) => state.addToCart);
+
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleAuthSuccess = async (accountData) => {
+    setGoogleLoading(true);
+    try {
+      const res = await axiosInstance.post("/customer/auth/google-login", accountData);
+      if (res && (res.success || res.data || res.token || res.accessToken)) {
+        const userData = res.data || res.customer || res;
+        const token = res.token || res.accessToken || userData?.accessToken;
+        loginAuth(userData, token);
+        toast.success(`Welcome, ${userData?.firstName || accountData.name}! 🚀`);
+        setIsGoogleModalOpen(false);
+
+        if (redirectTo) {
+          navigate(redirectTo, { replace: true });
+          return;
+        }
+
+        const pendingPurchase = localStorage.getItem("pending_purchase");
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get("redirect");
+
+        if (pendingPurchase && redirect === "checkout") {
+          const { productId, quantity, product } = JSON.parse(pendingPurchase);
+          localStorage.removeItem("pending_purchase");
+          try {
+            await addToCart(productId, quantity);
+            navigate("/checkout", { state: { testProduct: product }, replace: true });
+          } catch (_err) {
+            navigate("/checkout", { state: { testProduct: product }, replace: true });
+          }
+        } else {
+          navigate("/", { replace: true });
+        }
+      } else {
+        toast.error(res?.message || "Google login failed");
+      }
+    } catch (err) {
+      console.error("Google login error:", err);
+      toast.error(err?.response?.data?.message || "Google authentication failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const {
     register,
@@ -348,6 +395,7 @@ const UserLogin = () => {
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
+                  onClick={() => setIsGoogleModalOpen(true)}
                   className="w-full bg-white border border-slate-200 text-brand-primary rounded-xl py-4 font-bold text-[15px] hover:bg-slate-50 transition-all flex items-center justify-center gap-3 shadow-sm"
                 >
                   <svg className="w-[20px] h-[20px]" viewBox="0 0 24 24">
@@ -375,6 +423,14 @@ const UserLogin = () => {
           </div>
         </div>
       </motion.div>
+
+      <GoogleAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => !googleLoading && setIsGoogleModalOpen(false)}
+        onSelectAccount={handleGoogleAuthSuccess}
+        role="customer"
+        loading={googleLoading}
+      />
     </div>
   );
 };

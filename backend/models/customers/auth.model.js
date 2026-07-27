@@ -33,6 +33,16 @@ const authSchema = new Schema({
     isEmailVerified: {
         type: Boolean,
         default: false
+    },
+    googleId: {
+        type: String
+    },
+    avatar: {
+        type: String
+    },
+    authProvider: {
+        type: String,
+        default: "local"
     }
 },
     { timestamps: true }

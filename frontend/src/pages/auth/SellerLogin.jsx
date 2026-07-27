@@ -8,8 +8,8 @@ import axiosInstance from "../../utils/axiosInstance";
 import { useSellerAuthStore } from "../../store/sellerAuthStore";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
+import GoogleAuthModal from "../../components/auth/GoogleAuthModal";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format").min(1, "Email is required"),
@@ -42,6 +42,48 @@ const SellerLogin = () => {
 
   const loginAuth = useSellerAuthStore((state) => state.login);
   const clearSession = useSellerAuthStore((state) => state.clearSession);
+
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleAuthSuccess = async (accountData) => {
+    setGoogleLoading(true);
+    try {
+      const res = await axiosInstance.post("/seller/auth/google-login", accountData);
+      const sellerData = res?.seller || res?.data || res;
+      const accessToken = res?.token || res?.accessToken || sellerData?.accessToken || null;
+      const refreshToken = res?.refreshToken || sellerData?.refreshToken || null;
+
+      if (sellerData && (sellerData._id || sellerData.email)) {
+        clearSession();
+        loginAuth(sellerData, accessToken, refreshToken);
+        toast.success(`Welcome to Seller Dashboard, ${sellerData.name || accountData.name}! 🏪`);
+        setIsGoogleModalOpen(false);
+
+        try {
+          const statusRes = await axiosInstance.get("/seller/node/status");
+          if (statusRes && statusRes.status === "ACTIVE" && statusRes.nodeId) {
+            navigate(`/seller/dashboard/${statusRes.nodeId}/dashboard`, { replace: true });
+          } else {
+            const searchParams = new URLSearchParams(window.location.search);
+            const redirectPath = searchParams.get("redirect") || "/seller-hub";
+            navigate(redirectPath, { replace: true });
+          }
+        } catch (err) {
+          const searchParams = new URLSearchParams(window.location.search);
+          const redirectPath = searchParams.get("redirect") || "/seller-hub";
+          navigate(redirectPath, { replace: true });
+        }
+      } else {
+        toast.error(res?.message || "Google login failed");
+      }
+    } catch (err) {
+      console.error("Seller Google login error:", err);
+      toast.error(err?.response?.data?.message || "Google authentication failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const {
     register,
@@ -342,6 +384,7 @@ const SellerLogin = () => {
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
+                  onClick={() => setIsGoogleModalOpen(true)}
                   className="w-full bg-white border border-slate-200 text-brand-primary rounded-xl py-4 font-bold text-[15px] hover:bg-slate-50 transition-all flex items-center justify-center gap-3 shadow-sm"
                 >
                   <svg className="w-[20px] h-[20px]" viewBox="0 0 24 24">
@@ -369,6 +412,14 @@ const SellerLogin = () => {
           </div>
         </div>
       </motion.div>
+
+      <GoogleAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => !googleLoading && setIsGoogleModalOpen(false)}
+        onSelectAccount={handleGoogleAuthSuccess}
+        role="seller"
+        loading={googleLoading}
+      />
     </div>
   );
 };

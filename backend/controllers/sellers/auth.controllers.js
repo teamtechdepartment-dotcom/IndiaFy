@@ -552,6 +552,107 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+const googleAuth = async (req, res) => {
+  try {
+    const { email, name, picture, googleId } = req.body;
+    if (!email) {
+      return res.status(400).json(new ApiError(400, "Email is required for Google login"));
+    }
+
+    let sellerDetails = await SellerModel.findOne({
+      $or: [{ email: email.trim().toLowerCase() }, ...(googleId ? [{ googleId }] : [])]
+    });
+
+    if (!sellerDetails) {
+      const nameParts = (name || "Google Seller").trim().split(" ");
+      const firstName = nameParts[0] || "Google";
+      const lastName = nameParts.slice(1).join(" ") || "Seller";
+      const randomPassword = crypto.randomBytes(16).toString("hex") + "Gg1!";
+
+      sellerDetails = new SellerModel({
+        email: email.trim().toLowerCase(),
+        firstName,
+        lastName,
+        name: name || `${firstName} ${lastName}`,
+        password: randomPassword,
+        googleId: googleId || "google_seller_" + Date.now(),
+        isEmailVerified: true,
+        isVerified: true,
+        isApproved: true,
+        status: "active",
+        logo: picture || "",
+        authProvider: "google"
+      });
+      await sellerDetails.save();
+    } else {
+      if (googleId && !sellerDetails.googleId) sellerDetails.googleId = googleId;
+      if (picture && !sellerDetails.logo) sellerDetails.logo = picture;
+      sellerDetails.isEmailVerified = true;
+      if (sellerDetails.status !== "active") sellerDetails.status = "active";
+      if (!sellerDetails.isApproved) sellerDetails.isApproved = true;
+      await sellerDetails.save();
+    }
+
+    const jwt = (await import("jsonwebtoken")).default;
+    const secret = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
+
+    const token = jwt.sign(
+      {
+        sellerId: sellerDetails._id,
+        role: "seller"
+      },
+      secret,
+      { expiresIn: "7d" }
+    );
+
+    const isProd = process.env.NODE_ENV === "production";
+    const cookieOpts = {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isProd,
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    };
+
+    res.cookie("SellerAccessToken", token, cookieOpts);
+
+    sellerDetails.password = undefined;
+    sellerDetails.securityKeyId = undefined;
+
+    let tokenData = sellerDetails.toObject();
+    tokenData.role = "Seller";
+    tokenData.accessToken = token;
+
+    const refreshToken = jwt.sign(
+      {
+        _id: sellerDetails._id,
+        role: "Seller",
+        email: sellerDetails.email
+      },
+      secret,
+      { expiresIn: "30d" }
+    );
+    sellerDetails.refreshToken = refreshToken;
+    await SellerModel.findByIdAndUpdate(sellerDetails._id, { refreshToken });
+    res.cookie("SellerRefreshToken", refreshToken, {
+      ...cookieOpts,
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Google Login successful",
+      token,
+      accessToken: token,
+      refreshToken,
+      seller: tokenData,
+      data: tokenData
+    });
+  } catch (err) {
+    console.error("[Seller GoogleAuth Error]:", err);
+    return res.status(500).json(new ApiError(500, err.message || "Google authentication failed"));
+  }
+};
+
 export {
   Signup,
   Login,
@@ -563,5 +664,6 @@ export {
   getAllSellers,
   Logout,
   refreshTokenHandler,
-  verifyEmail
+  verifyEmail,
+  googleAuth
 };
