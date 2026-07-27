@@ -35,6 +35,7 @@ const footerSections = [
     links: [
       { label: "Sell on Indiafy", path: "/become-seller-info" },
       { label: "Seller Guidelines", path: "/seller-guidelines" },
+      { label: "Seller Policy", path: "/seller-policy" },
       { label: "Seller Dashboard", path: "/seller-hub" },
     ],
   },
@@ -133,6 +134,7 @@ function Footer() {
               <Link to="/privacy-policy" className="hover:text-brand-primary transition-colors">Privacy Policy</Link>
               <Link to="/terms-and-conditions" className="hover:text-brand-primary transition-colors">Terms of Service</Link>
               <Link to="/refund-policy" className="hover:text-brand-primary transition-colors">Refund Policy</Link>
+              <Link to="/seller-policy" className="hover:text-brand-primary transition-colors">Seller Policy</Link>
               <Link to="/community-standards" className="hover:text-brand-primary transition-colors">Community Standards</Link>
             </div>
           </div>

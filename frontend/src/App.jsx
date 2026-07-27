@@ -73,6 +73,7 @@ const TermsAndConditions = lazy(() => import("./pages/public/TermsAndConditions"
 const Contact = lazy(() => import("./pages/public/Contact"));
 const RefundPolicy = lazy(() => import("./pages/public/RefundPolicy"));
 const SellerGuidelines = lazy(() => import("./pages/public/SellerGuidelines"));
+const SellerPolicy = lazy(() => import("./pages/public/SellerPolicy"));
 const CommunityStandards = lazy(() => import("./pages/public/CommunityStandards"));
 const TrustSafety = lazy(() => import("./pages/public/TrustSafety"));
 const BecomeSellerInfo = lazy(() => import("./pages/public/BecomeSellerInfo"));
@@ -372,6 +373,7 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/refund-policy" element={<RefundPolicy />} />
               <Route path="/seller-guidelines" element={<SellerGuidelines />} />
+              <Route path="/seller-policy" element={<SellerPolicy />} />
               <Route path="/community-standards" element={<CommunityStandards />} />
               <Route path="/trust-safety" element={<TrustSafety />} />
               <Route path="/become-seller-info" element={<BecomeSellerInfo />} />
