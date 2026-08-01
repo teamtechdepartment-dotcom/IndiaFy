@@ -381,6 +381,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
     panNumber: "",
     gstNumber: "",
     foodLicenseNumber: "",
+    sellsPackagedFood: false,
     businessType: "Proprietorship",
     bankAccountNumber: "",
     confirmBankAccountNumber: "",
@@ -413,11 +414,11 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
   }, [nodeType]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    let formattedVal = value;
+    const { name, value, type, checked } = e.target;
+    let formattedVal = type === "checkbox" ? checked : value;
 
     if (name === "panNumber" || name === "gstNumber") {
-      formattedVal = value.toUpperCase();
+      formattedVal = (value || "").toUpperCase();
     }
 
     setForm(prev => ({ ...prev, [name]: formattedVal }));
@@ -459,7 +460,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
         toast.error(`Could not detect location: ${err.message || "Permission denied"}`);
         setIsDetectingLocation(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
     );
   };
 
@@ -606,9 +607,9 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
     if (!form.storePhoto) { tempErrors.storePhoto = "Store front photo required"; missing.push("Store Photo"); isValid = false; }
     if (!form.storeBanner) { tempErrors.storeBanner = "Store banner image required"; missing.push("Store Banner"); isValid = false; }
 
-    // Food License required for Grocery and Q-Commerce
-    if ((nodeType === "QUICK_COMMERCE" || nodeType === "HOME_ESSENTIALS") && !form.foodLicense) {
-      tempErrors.foodLicense = "Food License (FSSAI) is mandatory for this store node";
+    // Food License required if selling packaged food items
+    if (form.sellsPackagedFood && !form.foodLicense) {
+      tempErrors.foodLicense = "Food License (FSSAI) is mandatory for stores selling packaged food items";
       missing.push("Food License Scan");
       isValid = false;
     }
@@ -707,9 +708,20 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
 
       setUploadProgress(65);
       
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 95) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 800);
+      
       const response = await axiosInstance.post("/seller/store/submit", formData);
 
-      setUploadProgress(90);
+      clearInterval(progressInterval);
+      setUploadProgress(99);
 
       toast.dismiss(loadingToastId);
 
@@ -1015,12 +1027,23 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
                       error={errors.gstNumber}
                     />
                     <KYCInput
-                      label="Food License Number (Optional / Mandatory by node)"
+                      label="Food License Number"
                       name="foodLicenseNumber" value={form.foodLicenseNumber} onChange={handleInputChange}
                       placeholder="14-digit FSSAI Code"
                       error={errors.foodLicenseNumber}
                     />
                   </div>
+
+                  <label className="flex items-center gap-3 cursor-pointer bg-slate-50/50 p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition shadow-sm">
+                    <input 
+                      type="checkbox" 
+                      name="sellsPackagedFood"
+                      checked={form.sellsPackagedFood}
+                      onChange={handleInputChange}
+                      className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                    />
+                    <span className="text-xs font-black text-slate-700">Does this store sell packaged food items? (FSSAI is mandatory if checked)</span>
+                  </label>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
@@ -1193,24 +1216,24 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
             ) : (
               /* SUCCESS SCREEN */
               <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center text-center p-6 h-full space-y-6">
-                <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 shadow-inner">
-                  <CheckCircle2 size={36} className="animate-bounce" />
+                <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 shadow-inner">
+                  <CheckCircle2 size={48} className="animate-bounce" />
                 </div>
-                <div>
-                  <h3 className="text-xl font-black text-slate-900">🎉 Application Submitted Successfully</h3>
-                  <p className="text-slate-500 text-xs mt-2 leading-relaxed max-w-sm mx-auto">
-                      Your business activation records and compliance documents were submitted for admin review. Store tools stay locked until approval.
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">Application in Queue</h3>
+                  <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-md mx-auto">
+                      Your store details have been safely received and placed in the review queue. Once approved by our admin team, your shop will automatically go LIVE!
                   </p>
                 </div>
                 
-                <div className="border border-slate-100 bg-slate-50/50 rounded-2xl p-4 w-full text-left grid grid-cols-2 gap-4 text-xs font-semibold text-slate-650">
+                <div className="border border-slate-200 bg-white rounded-2xl p-5 w-full max-w-sm text-left grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 shadow-sm">
                   <div>
-                    <span className="text-[9px] text-slate-450 uppercase block">Application Status</span>
-                    <span className="text-slate-800 font-black mt-0.5 flex items-center gap-1"><Clock size={12} className="text-amber-500" /> Pending Approval</span>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Current Status</span>
+                    <span className="text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg font-black inline-flex items-center gap-1.5"><Clock size={12} /> Pending Admin Approval</span>
                   </div>
                   <div>
-                    <span className="text-[9px] text-slate-450 uppercase block">Estimated Review Time</span>
-                    <span className="text-slate-850 font-black mt-0.5">24-48 hours</span>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Estimated Time</span>
+                    <span className="text-slate-800 font-black px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 inline-block">24-48 hours</span>
                   </div>
                 </div>
 
@@ -1224,9 +1247,9 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
                       window.location.href = "/seller-hub";
                     }
                   }}
-                  className="w-full py-3.5 bg-slate-900 text-white font-black uppercase rounded-xl hover:bg-slate-800 transition active:scale-95 text-xs shadow-md"
+                  className="w-full max-w-sm py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black uppercase rounded-2xl hover:opacity-90 transition active:scale-95 text-xs shadow-lg shadow-emerald-500/30"
                 >
-                  Go To Seller Dashboard
+                  Go To Verification Dashboard
                 </button>
               </motion.div>
             )}

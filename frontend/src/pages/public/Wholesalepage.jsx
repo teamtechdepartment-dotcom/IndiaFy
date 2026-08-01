@@ -26,7 +26,7 @@ function WholesaleSubNav() {
   ];
 
   return (
-    <div className="w-full bg-white border-b border-gray-200/80 sticky top-[64px] lg:top-[72px] z-30 shadow-xs">
+    <div className="w-full bg-white border-b border-gray-200/80 sticky top-[64px] lg:top-[120px] z-30 shadow-xs">
       <div className="max-w-[1600px] 2xl:max-w-[1800px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 flex items-center justify-between h-13 gap-6 overflow-x-auto no-scrollbar">
         
         {/* Left Links */}
@@ -73,6 +73,7 @@ export default function WholesalePage() {
         description="Join Indiafy's B2B marketplace in India. Source wholesale inventory in bulk directly from verified wholesale shops, dealers, and trusted stockists at dealer prices."
       />
       <WebsiteNavbar />
+      <div className="h-[64px] lg:h-[120px] w-full shrink-0" aria-hidden="true" />
       <WholesaleSubNav />
       
       <main className="w-full flex flex-col">

@@ -49,7 +49,7 @@ export default function CommunityStandards() {
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
-      <SEOHead 
+      <SEOHead
         title="Community Standards | Indiafy – Indian Legal Code Compliant"
         description="Indiafy's Community Standards governed by the IT Act 2000, Indian Penal Code, Consumer Protection Act, and POCSO. Our commitment to respect, safety, and legal compliance."
       />
@@ -71,7 +71,7 @@ export default function CommunityStandards() {
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-16 lg:py-24">
-        
+
         {/* INTRODUCTION */}
         <section className="mb-16 text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-widest mb-4 border border-blue-200">
@@ -99,7 +99,7 @@ export default function CommunityStandards() {
                 <p className="text-xs font-bold text-brand-primary uppercase tracking-wider mb-4">{std.subtitle}</p>
                 <p className="text-slate-600 text-sm font-medium leading-relaxed mb-6">{std.desc}</p>
               </div>
-              
+
               <div className="pt-4 border-t border-slate-100 bg-slate-50/60 -mx-8 -mb-8 p-6 rounded-b-3xl">
                 <div className="flex items-start gap-2">
                   <Gavel size={14} className="text-slate-500 mt-0.5 shrink-0" />
