@@ -134,7 +134,7 @@ const SellerSignup = () => {
 
   const onSignup = useCallback(async (data) => {
     if (!agreedToTerms) {
-      toast.error("Please explicitly consent to the Terms of Service & DPDP Privacy Policy to register.");
+      toast.error("Please explicitly consent to the Terms of Service & DPDP Privacy Policy to register.", { id: "terms-consent", duration: 3000 });
       return;
     }
     if (isSubmittingRef.current) return;
@@ -217,7 +217,7 @@ const SellerSignup = () => {
       setLoading(false);
       isSubmittingRef.current = false;
     }
-  }, [loginAuth, navigate, setError, setFocus]);
+  }, [agreedToTerms, loginAuth, navigate, setError, setFocus]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && step === 1) {

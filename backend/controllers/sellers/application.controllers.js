@@ -81,8 +81,6 @@ const validateStoreSubmission = (payload) => {
     ["city", "City"],
     ["state", "State"],
     ["pincode", "Pincode"],
-    ["latitude", "Latitude"],
-    ["longitude", "Longitude"],
     ["ownerFullName", "Owner name"],
     ["ownerEmail", "Business email"],
     ["ownerPhone", "Phone"],
@@ -98,13 +96,20 @@ const validateStoreSubmission = (payload) => {
     .filter(([key]) => isBlank(payload[key]))
     .map(([, label]) => label);
 
-  const latitude = Number(payload.latitude);
-  const longitude = Number(payload.longitude);
-  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
-    missing.push("Valid latitude");
+  // Latitude/Longitude are optional — only validate format if provided
+  const latVal = payload.latitude;
+  const lngVal = payload.longitude;
+  if (latVal !== undefined && latVal !== null && String(latVal).trim() !== "" && String(latVal).trim() !== "0") {
+    const latitude = Number(latVal);
+    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+      missing.push("Valid latitude");
+    }
   }
-  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
-    missing.push("Valid longitude");
+  if (lngVal !== undefined && lngVal !== null && String(lngVal).trim() !== "" && String(lngVal).trim() !== "0") {
+    const longitude = Number(lngVal);
+    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      missing.push("Valid longitude");
+    }
   }
 
   return missing;

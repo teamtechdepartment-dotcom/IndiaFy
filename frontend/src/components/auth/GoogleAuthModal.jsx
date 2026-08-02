@@ -1,131 +1,166 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, User, Shield, ArrowRight, Loader2, UserPlus, Trash2, CheckCircle2 } from "lucide-react";
+import { X, Loader2, AlertCircle } from "lucide-react";
 
-const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", loading = false }) => {
-  const storageKey = `indiafy_saved_google_accounts_${role}`;
+/**
+ * GoogleAuthModal — Real Google OAuth using Google Identity Services (GSI)
+ * 
+ * Loads the official Google GSI script dynamically.
+ * Renders Google's real Sign-In button inside a clean modal.
+ * Decodes the JWT credential to extract user info (email, name, picture, sub).
+ * Passes the real Google user data to onSelectAccount.
+ * 
+ * Requires VITE_GOOGLE_CLIENT_ID in frontend .env
+ */
 
-  const [savedAccounts, setSavedAccounts] = useState([]);
-  const [customEmail, setCustomEmail] = useState("");
-  const [customName, setCustomName] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
-  const [error, setError] = useState("");
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
-  const defaultAccounts =
-    role === "seller"
-      ? [
-          {
-            name: "Mukund Enterprises (Seller)",
-            email: "mukund.seller@gmail.com",
-            picture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-            isDefault: true,
-          },
-          {
-            name: "IndiaFy Official Supplier",
-            email: "supplier.indiafy@gmail.com",
-            picture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-            isDefault: true,
-          }
-        ]
-      : [
-          {
-            name: "Mukund Sharma",
-            email: "mukund.sharma@gmail.com",
-            picture: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-            isDefault: true,
-          },
-          {
-            name: "Rahul Verma",
-            email: "rahul.verma@gmail.com",
-            picture: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80",
-            isDefault: true,
-          }
-        ];
+// Decode a JWT payload without external libraries
+const decodeJwtPayload = (token) => {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch (_e) {
+    return null;
+  }
+};
 
-  useEffect(() => {
-    if (isOpen) {
-      setShowCustomInput(false);
-      setError("");
-      try {
-        const stored = localStorage.getItem(storageKey);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            setSavedAccounts(parsed);
-            return;
-          }
-        }
-      } catch (_e) {
-        // Ignore storage parsing errors
-      }
-      setSavedAccounts([]);
-    }
-  }, [isOpen, storageKey]);
+// Load the Google GSI script once
+let gsiScriptLoaded = false;
+let gsiScriptLoading = false;
+const gsiLoadCallbacks = [];
 
-  if (!isOpen) return null;
-
-  // Combine user saved accounts with realistic default accounts (avoiding duplicates)
-  const allAccounts = [
-    ...savedAccounts,
-    ...defaultAccounts.filter(
-      (def) => !savedAccounts.some((saved) => saved.email.toLowerCase() === def.email.toLowerCase())
-    ),
-  ];
-
-  const saveAccountToStorage = (account) => {
-    try {
-      const existing = [...savedAccounts];
-      const filtered = existing.filter((acc) => acc.email.toLowerCase() !== account.email.toLowerCase());
-      const updated = [account, ...filtered].slice(0, 5); // Keep up to 5 recent accounts
-      localStorage.setItem(storageKey, JSON.stringify(updated));
-      setSavedAccounts(updated);
-    } catch (_e) {
-      // Ignore storage errors
-    }
-  };
-
-  const removeAccountFromStorage = (e, emailToRemove) => {
-    e.stopPropagation();
-    try {
-      const updated = savedAccounts.filter((acc) => acc.email.toLowerCase() !== emailToRemove.toLowerCase());
-      localStorage.setItem(storageKey, JSON.stringify(updated));
-      setSavedAccounts(updated);
-    } catch (_e) {
-      // Ignore
-    }
-  };
-
-  const handleAccountClick = (account) => {
-    saveAccountToStorage(account);
-    onSelectAccount({
-      email: account.email,
-      name: account.name,
-      picture: account.picture,
-      googleId: account.googleId || "gid_" + account.email.replace(/[^a-zA-Z0-9]/g, ""),
-    });
-  };
-
-  const handleCustomSubmit = (e) => {
-    e.preventDefault();
-    if (!customEmail || !customEmail.includes("@")) {
-      setError("Please enter a valid Gmail address.");
+const loadGsiScript = () => {
+  return new Promise((resolve, reject) => {
+    if (gsiScriptLoaded && window.google?.accounts?.id) {
+      resolve();
       return;
     }
-    setError("");
-    const cleanEmail = customEmail.trim().toLowerCase();
-    const defaultName = customName.trim() || cleanEmail.split("@")[0] || "Google User";
 
-    const newAccount = {
-      email: cleanEmail,
-      name: defaultName,
-      picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=0D8ABC&color=fff`,
-      googleId: "gid_" + cleanEmail.replace(/[^a-zA-Z0-9]/g, ""),
-      isDefault: false,
+    gsiLoadCallbacks.push({ resolve, reject });
+
+    if (gsiScriptLoading) return; // Already loading, just wait for callbacks
+    gsiScriptLoading = true;
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      gsiScriptLoaded = true;
+      gsiScriptLoading = false;
+      gsiLoadCallbacks.forEach((cb) => cb.resolve());
+      gsiLoadCallbacks.length = 0;
+    };
+    script.onerror = () => {
+      gsiScriptLoading = false;
+      const err = new Error("Failed to load Google Identity Services script");
+      gsiLoadCallbacks.forEach((cb) => cb.reject(err));
+      gsiLoadCallbacks.length = 0;
+    };
+    document.head.appendChild(script);
+  });
+};
+
+const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", loading = false }) => {
+  const [gsiReady, setGsiReady] = useState(false);
+  const [gsiError, setGsiError] = useState("");
+  const [isInitializing, setIsInitializing] = useState(false);
+  const buttonContainerRef = useRef(null);
+  const initializedRef = useRef(false);
+
+  const handleCredentialResponse = useCallback((response) => {
+    if (!response?.credential) {
+      setGsiError("Google sign-in failed. Please try again.");
+      return;
+    }
+
+    const payload = decodeJwtPayload(response.credential);
+    if (!payload || !payload.email) {
+      setGsiError("Could not decode Google credentials. Please try again.");
+      return;
+    }
+
+    // Pass real Google user data to the parent component
+    onSelectAccount({
+      email: payload.email,
+      name: payload.name || payload.email.split("@")[0],
+      picture: payload.picture || "",
+      googleId: payload.sub, // Google's unique user ID
+      credential: response.credential, // Raw JWT for backend verification if needed
+    });
+  }, [onSelectAccount]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      initializedRef.current = false;
+      return;
+    }
+
+    if (!GOOGLE_CLIENT_ID) {
+      setGsiError("Google Client ID is not configured. Please add VITE_GOOGLE_CLIENT_ID to your .env file.");
+      return;
+    }
+
+    setGsiError("");
+    setIsInitializing(true);
+
+    const initGsi = async () => {
+      try {
+        await loadGsiScript();
+        setGsiReady(true);
+        setIsInitializing(false);
+      } catch (err) {
+        setGsiError(err.message || "Failed to load Google authentication.");
+        setIsInitializing(false);
+      }
     };
 
-    saveAccountToStorage(newAccount);
-    onSelectAccount(newAccount);
-  };
+    initGsi();
+  }, [isOpen]);
+
+  // Render the Google Sign-In button once GSI is ready and container is mounted
+  useEffect(() => {
+    if (!isOpen || !gsiReady || !buttonContainerRef.current || initializedRef.current || loading) return;
+    if (!window.google?.accounts?.id) return;
+
+    try {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: false,
+        ux_mode: "popup",
+      });
+
+      // Clear any previous button content
+      buttonContainerRef.current.innerHTML = "";
+
+      window.google.accounts.id.renderButton(buttonContainerRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: role === "seller" ? "signin_with" : "continue_with",
+        shape: "rectangular",
+        width: buttonContainerRef.current.offsetWidth || 352,
+        logo_alignment: "left",
+      });
+
+      initializedRef.current = true;
+    } catch (err) {
+      console.error("Google GSI initialization error:", err);
+      setGsiError("Failed to initialize Google Sign-In. Please refresh and try again.");
+    }
+  }, [isOpen, gsiReady, loading, handleCredentialResponse, role]);
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -137,7 +172,7 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
           transition={{ duration: 0.2, ease: "easeOut" }}
           className="relative w-full max-w-[420px] bg-white rounded-[24px] shadow-2xl border border-slate-200/80 overflow-hidden text-slate-800"
         >
-          {/* Official Google OAuth Modal Header */}
+          {/* Header */}
           <div className="pt-8 px-8 pb-4 text-center relative">
             <button
               onClick={onClose}
@@ -158,142 +193,62 @@ const GoogleAuthModal = ({ isOpen, onClose, onSelectAccount, role = "customer", 
 
             <h3 className="font-medium text-[22px] leading-tight text-slate-900 tracking-tight">Sign in with Google</h3>
             <p className="text-[14px] text-slate-600 mt-1.5 font-normal">
-              Choose an account to continue to <span className="font-semibold text-brand-primary">IndiaFy {role === "seller" ? "Seller Partner" : ""}</span>
+              {role === "seller" 
+                ? <>Continue to <span className="font-semibold text-brand-primary">IndiaFy Seller Partner</span></>
+                : <>Continue to <span className="font-semibold text-brand-primary">IndiaFy</span></>
+              }
             </p>
           </div>
 
-          {/* Content Area */}
-          <div className="px-6 pb-6 pt-2">
+          {/* Content */}
+          <div className="px-8 pb-8 pt-2">
             {loading ? (
               <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
                 <Loader2 className="w-9 h-9 text-[#4285F4] animate-spin" />
                 <div>
                   <p className="font-semibold text-slate-800 text-base">Signing you in...</p>
-                  <p className="text-xs text-slate-500 mt-1">Verifying credentials with Google Identity Services</p>
+                  <p className="text-xs text-slate-500 mt-1">Verifying credentials with Google</p>
                 </div>
               </div>
-            ) : !showCustomInput ? (
-              <div className="space-y-3">
-                <div className="border border-slate-200/90 rounded-2xl overflow-hidden divide-y divide-slate-100 shadow-sm bg-white">
-                  {allAccounts.map((acc, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => handleAccountClick(acc)}
-                      className="w-full p-4 hover:bg-slate-50/80 transition-all flex items-center gap-3.5 text-left group cursor-pointer relative"
-                    >
-                      <img
-                        src={acc.picture}
-                        alt={acc.name}
-                        className="w-10 h-10 rounded-full object-cover border border-slate-200/60 shadow-sm shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="font-semibold text-[14px] text-slate-900 group-hover:text-[#1a73e8] transition-colors truncate">
-                            {acc.name}
-                          </p>
-                          {!acc.isDefault && (
-                            <span className="text-[10px] bg-blue-50 text-blue-600 font-bold px-1.5 py-0.5 rounded">Saved</span>
-                          )}
-                        </div>
-                        <p className="text-[13px] text-slate-500 truncate">{acc.email}</p>
-                      </div>
-                      {!acc.isDefault && (
-                        <button
-                          type="button"
-                          onClick={(e) => removeAccountFromStorage(e, acc.email)}
-                          title="Remove saved account"
-                          className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      )}
-                      <ArrowRight size={16} className="text-slate-300 group-hover:text-[#1a73e8] group-hover:translate-x-0.5 transition-all ml-1 shrink-0" />
-                    </div>
-                  ))}
-
-                  {/* Standard Google "Use another account" button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomEmail("");
-                      setCustomName("");
-                      setShowCustomInput(true);
-                    }}
-                    className="w-full p-4 hover:bg-slate-50/80 text-left transition-all flex items-center gap-3.5 font-medium text-[14px] text-[#1a73e8] group cursor-pointer"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-blue-50/80 flex items-center justify-center text-[#1a73e8] border border-blue-100 shrink-0 group-hover:bg-blue-100/80 transition-colors">
-                      <UserPlus size={18} />
-                    </div>
-                    <span className="font-semibold">Use another account</span>
-                  </button>
+            ) : gsiError ? (
+              <div className="py-8 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+                  <AlertCircle className="w-7 h-7 text-red-500" />
                 </div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Configuration Required</p>
+                  <p className="text-xs text-slate-500 mt-2 max-w-[300px] leading-relaxed">{gsiError}</p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="mt-2 py-2.5 px-6 rounded-full bg-slate-100 hover:bg-slate-200 font-semibold text-sm text-slate-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            ) : isInitializing ? (
+              <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
+                <Loader2 className="w-7 h-7 text-slate-400 animate-spin" />
+                <p className="text-sm text-slate-500 font-medium">Loading Google Sign-In...</p>
               </div>
             ) : (
-              <form onSubmit={handleCustomSubmit} className="space-y-4 pt-2">
-                <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-                  <span className="text-[13px] font-bold text-slate-800">Use another Google Account</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomInput(false)}
-                    className="text-[12px] font-bold text-[#1a73e8] hover:underline"
-                  >
-                    Back to accounts
-                  </button>
+              <div className="space-y-4">
+                {/* Google's official rendered button will appear here */}
+                <div className="flex items-center justify-center min-h-[48px]">
+                  <div ref={buttonContainerRef} className="w-full flex items-center justify-center" />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email or phone</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                    <input
-                      type="email"
-                      required
-                      value={customEmail}
-                      onChange={(e) => setCustomEmail(e.target.value)}
-                      placeholder="Enter Gmail address"
-                      autoFocus
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/20 focus:border-[#1a73e8] font-medium text-sm text-slate-800 placeholder:text-slate-400 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Your Name (Optional)</label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      value={customName}
-                      onChange={(e) => setCustomName(e.target.value)}
-                      placeholder="e.g. Mukund Sharma"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/20 focus:border-[#1a73e8] font-medium text-sm text-slate-800 placeholder:text-slate-400 transition-all"
-                    />
-                  </div>
-                </div>
-
-                {error && <p className="text-xs font-semibold text-red-500">{error}</p>}
-
-                <div className="pt-3 flex items-center justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomInput(false)}
-                    className="py-2.5 px-5 rounded-full hover:bg-slate-100 font-semibold text-sm text-[#1a73e8] transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="py-2.5 px-6 rounded-full bg-[#1a73e8] hover:bg-blue-600 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5"
-                  >
-                    Next
-                  </button>
-                </div>
-              </form>
+                <p className="text-[11px] text-slate-400 text-center mt-2">
+                  Click the button above to sign in with your Google account
+                </p>
+              </div>
             )}
 
-            {/* Official Google Privacy & Security Disclaimer Footer */}
+            {/* Privacy Disclaimer Footer */}
             <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-500 leading-relaxed text-center">
-              To continue, Google will share your name, email address, and profile picture with IndiaFy. Before using this app, you can review IndiaFy's <a href="/privacy-policy" target="_blank" className="text-[#1a73e8] hover:underline">privacy policy</a> and <a href="/terms-and-conditions" target="_blank" className="text-[#1a73e8] hover:underline">terms of service</a>.
+              To continue, Google will share your name, email address, and profile picture with IndiaFy. Before using this app, you can review IndiaFy's{" "}
+              <a href="/privacy-policy" target="_blank" className="text-[#1a73e8] hover:underline">privacy policy</a> and{" "}
+              <a href="/terms-and-conditions" target="_blank" className="text-[#1a73e8] hover:underline">terms of service</a>.
             </div>
           </div>
         </motion.div>

@@ -642,7 +642,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
           </ul>
         </div>
       );
-      toast.error(errorMsg, { duration: 4000 });
+      toast.error(errorMsg, { duration: 4000, id: "validation-errors" });
 
       // Automatically scroll to the first invalid field and focus it
       setTimeout(() => {
@@ -669,9 +669,10 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
     toast.dismiss();
     const loadingToastId = toast.loading("Submitting onboarding details...");
 
+    let progressInterval = null;
+
     try {
-      await new Promise(r => setTimeout(r, 400));
-      setUploadProgress(35);
+      setUploadProgress(25);
 
       const formData = new FormData();
       formData.append("nodeType", nodeType);
@@ -695,46 +696,48 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
       formData.append("ifscCode", form.ifscCode.trim().toUpperCase());
       formData.append("bankName", form.bankName.trim());
 
-      // Append Raw File Objects if available
-      Object.keys(fileObjects).forEach((fieldName) => {
+      // Append raw File objects from fileObjects (preferred — avoids base64 bloat)
+      // For fields without raw File objects, fall back to base64 strings from form state
+      const documentFields = [
+        "aadhaarFront", "aadhaarBack", "panCard", "gstCertificate",
+        "foodLicense", "cancelledCheque", "bankStatement", "storePhoto", "storeBanner"
+      ];
+
+      documentFields.forEach((fieldName) => {
         if (fileObjects[fieldName]) {
+          // Raw File object available — use it (much smaller payload than base64)
           formData.append(fieldName, fileObjects[fieldName]);
+        } else if (form[fieldName] && typeof form[fieldName] === "string" && form[fieldName].startsWith("data:")) {
+          // No raw file, but we have a base64 string — send it as fallback
+          formData.append(fieldName, form[fieldName]);
         }
       });
 
-      // Fallback base64 strings if not using raw File objects (and not blob URLs)
-      const isBlobUrl = (val) => typeof val === "string" && val.startsWith("blob:");
-      if (!fileObjects.aadhaarFront && form.aadhaarFront && !isBlobUrl(form.aadhaarFront)) formData.append("aadhaarFront", form.aadhaarFront);
-      if (!fileObjects.aadhaarBack && form.aadhaarBack && !isBlobUrl(form.aadhaarBack)) formData.append("aadhaarBack", form.aadhaarBack);
-      if (!fileObjects.panCard && form.panCard && !isBlobUrl(form.panCard)) formData.append("panCard", form.panCard);
-      if (!fileObjects.gstCertificate && form.gstCertificate && !isBlobUrl(form.gstCertificate)) formData.append("gstCertificate", form.gstCertificate);
-      if (!fileObjects.foodLicense && form.foodLicense && !isBlobUrl(form.foodLicense)) formData.append("foodLicense", form.foodLicense);
-      if (!fileObjects.cancelledCheque && form.cancelledCheque && !isBlobUrl(form.cancelledCheque)) formData.append("cancelledCheque", form.cancelledCheque);
-      if (!fileObjects.bankStatement && form.bankStatement && !isBlobUrl(form.bankStatement)) formData.append("bankStatement", form.bankStatement);
-      if (!fileObjects.storePhoto && form.storePhoto && !isBlobUrl(form.storePhoto)) formData.append("storePhoto", form.storePhoto);
-      if (!fileObjects.storeBanner && form.storeBanner && !isBlobUrl(form.storeBanner)) formData.append("storeBanner", form.storeBanner);
-
-      setUploadProgress(65);
+      setUploadProgress(40);
       
-      const progressInterval = setInterval(() => {
+      // Start progress animation (caps at 90% while waiting for server)
+      progressInterval = setInterval(() => {
         setUploadProgress(prev => {
-          if (prev >= 95) {
-            clearInterval(progressInterval);
-            return prev;
+          if (prev >= 90) {
+            return 90; // Cap at 90, real 100 only on success
           }
-          return prev + 1;
+          return prev + 2;
         });
-      }, 800);
+      }, 600);
       
-      const response = await axiosInstance.post("/seller/store/submit", formData);
+      const response = await axiosInstance.post("/seller/store/submit", formData, {
+        timeout: 120000, // 2 minute timeout for large file uploads
+      });
 
+      // Server responded — clear interval and jump to completion
       clearInterval(progressInterval);
-      setUploadProgress(99);
+      progressInterval = null;
 
       toast.dismiss(loadingToastId);
 
       if (!response?.success) {
-        toast.error(response?.message || "Onboarding application failed");
+        toast.error(response?.message || "Onboarding application failed", { id: "submit-error" });
+        setUploadProgress(0);
         setIsSubmitting(false);
         return;
       }
@@ -753,7 +756,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
         }
       }
       setIsSubmitted(true);
-      toast.success("Onboarding Application Submitted!");
+      toast.success("Onboarding Application Submitted!", { id: "submit-success" });
 
       if (onSuccess) {
         setTimeout(() => {
@@ -763,9 +766,21 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
 
     } catch (_error) {
       console.error(_error);
-      const msg = _error?.response?.data?.message || _error?.message || "Failed to submit application details.";
-      toast.error(msg);
+      toast.dismiss(loadingToastId);
+      
+      let msg;
+      if (_error?.code === "ECONNABORTED" || _error?.message?.includes("timeout")) {
+        msg = "Upload timed out. Please check your internet connection and try again.";
+      } else {
+        msg = _error?.response?.data?.message || _error?.message || "Failed to submit application details.";
+      }
+      toast.error(msg, { id: "submit-error" });
+      setUploadProgress(0);
     } finally {
+      // ALWAYS clean up interval — this was the bug causing 95% stuck
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setIsSubmitting(false);
     }
   };
@@ -877,7 +892,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
                   <div className="space-y-2 pt-2 border-t border-slate-100">
                     <div className="flex items-center justify-between">
                       <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        <MapPin size={14} className="text-emerald-500" /> Store GPS Location <span className="text-slate-400 lowercase normal-case">(Optional if not at shop)</span>
+                        <MapPin size={14} className="text-emerald-500" /> Store GPS Location
                       </label>
                       {(form.latitude && form.longitude) && (
                         <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
@@ -904,6 +919,9 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
                             <span className="text-sm font-black text-slate-800">Pin Current Shop Location on Map</span>
                             <span className="text-[11px] text-slate-500 font-medium mt-1 max-w-sm">
                               Click here to automatically detect and pin your shop's exact GPS latitude & longitude
+                            </span>
+                            <span className="text-[10px] text-amber-600 font-semibold mt-2 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+                              Not at your shop? Skip this — we'll use the text address above
                             </span>
                           </>
                         )}
@@ -950,7 +968,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
                         {/* Manual Override Toggle */}
                         <div className="text-[11px] text-slate-500 pt-1">
                           <p className="font-bold text-slate-800 select-none">
-                            Registering from elsewhere? Enter manual coordinates or leave blank to use the text address above.
+                            Not at your shop right now? <span className="text-slate-500 font-medium">You can enter coordinates manually or leave them blank — we'll use the text address you entered above instead.</span>
                           </p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2.5 pt-2.5 border-t border-slate-200">
                             <KYCInput
