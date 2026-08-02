@@ -413,6 +413,14 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
     }
   }, [nodeType]);
 
+  // Auto-detect location on mount if not already present
+  useEffect(() => {
+    // Only attempt if we don't already have coordinates (e.g. from draft)
+    if (!form.latitude && !form.longitude) {
+      handleDetectLocation();
+    }
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     let formattedVal = type === "checkbox" ? checked : value;
@@ -532,12 +540,12 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
       missing.push("Pincode (6-digit)");
       isValid = false; 
     }
-    if (form.latitude && form.latitude.trim() && isNaN(form.latitude)) { 
+    if (form.latitude && form.latitude.toString().trim() !== "" && isNaN(form.latitude)) { 
       tempErrors.latitude = "Latitude must be a number"; 
       missing.push("Latitude (number)");
       isValid = false; 
     }
-    if (form.longitude && form.longitude.trim() && isNaN(form.longitude)) { 
+    if (form.longitude && form.longitude.toString().trim() !== "" && isNaN(form.longitude)) { 
       tempErrors.longitude = "Longitude must be a number"; 
       missing.push("Longitude (number)");
       isValid = false; 
@@ -750,7 +758,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
       if (onSuccess) {
         setTimeout(() => {
           onSuccess(nodeType, response?.node || response?.application);
-        }, 1200);
+        }, 4000);
       }
 
     } catch (_error) {
@@ -777,7 +785,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-slate-900/60 backdrop-blur-sm">
       {previewFile && <PreviewModal fileUrl={previewFile} onClose={() => setPreviewFile(null)} />}
 
-      <div className="w-full max-w-2xl bg-white rounded-2xl overflow-hidden shadow-2xl h-[92vh] sm:h-[88vh] flex flex-col relative border border-slate-100">
+      <div className="w-full max-w-2xl bg-white rounded-2xl overflow-hidden shadow-2xl max-h-[95dvh] sm:max-h-[90dvh] h-[95dvh] sm:h-[90dvh] flex flex-col relative border border-slate-100">
         
         {/* HEADER SECTION */}
         <div className={`p-5 text-white bg-gradient-to-r ${config.gradient} shrink-0`}>
@@ -869,7 +877,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
                   <div className="space-y-2 pt-2 border-t border-slate-100">
                     <div className="flex items-center justify-between">
                       <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        <MapPin size={14} className="text-emerald-500" /> Store GPS Location *
+                        <MapPin size={14} className="text-emerald-500" /> Store GPS Location <span className="text-slate-400 lowercase normal-case">(Optional if not at shop)</span>
                       </label>
                       {(form.latitude && form.longitude) && (
                         <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
@@ -940,10 +948,10 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
                         </div>
 
                         {/* Manual Override Toggle */}
-                        <details className="text-[11px] text-slate-500 pt-1">
-                          <summary className="cursor-pointer font-bold hover:text-slate-800 select-none transition-colors">
-                            Need to enter or tweak coordinates manually?
-                          </summary>
+                        <div className="text-[11px] text-slate-500 pt-1">
+                          <p className="font-bold text-slate-800 select-none">
+                            Registering from elsewhere? Enter manual coordinates or leave blank to use the text address above.
+                          </p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2.5 pt-2.5 border-t border-slate-200">
                             <KYCInput
                               label="Latitude"
@@ -958,7 +966,7 @@ export default function StoreCreationWizard({ nodeType, onClose, onSuccess }) {
                               error={errors.longitude}
                             />
                           </div>
-                        </details>
+                        </div>
                       </div>
                     )}
                     {(errors.latitude || errors.longitude) && (

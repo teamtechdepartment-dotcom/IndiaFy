@@ -21,6 +21,7 @@ const upload = multer({
   storage,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB per file
+    fieldSize: 20 * 1024 * 1024, // 20MB for base64 fallback fields
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
