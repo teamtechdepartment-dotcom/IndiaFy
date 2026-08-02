@@ -4,8 +4,15 @@ import axios from "axios";
 
 const getBaseURL = () => {
     let API_URL = import.meta.env.VITE_API_URL;
+    const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
+    // Fix for production: if hosted on vercel but env var mistakenly points to localhost
+    if (!isLocalhost && API_URL && (API_URL.includes("localhost") || API_URL.includes("127.0.0.1"))) {
+        API_URL = "https://indiafy-1.onrender.com";
+    }
+
     if (!API_URL || API_URL.trim() === "") {
-        if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+        if (isLocalhost) {
             API_URL = "http://localhost:8000";
         } else {
             API_URL = "https://indiafy-1.onrender.com";
