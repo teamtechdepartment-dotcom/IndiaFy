@@ -186,7 +186,7 @@ app.use(hpp());
 // Auth Rate Limiting (Brute Force Protection - Hardened)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: (!process.env.NODE_ENV || process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") ? 1000 : 10, // Higher limit for development/testing to prevent lockouts
+  max: 1000, // Increased limit to prevent lockouts
   handler: (req, res) => {
     res.status(429).json({
       success: false,
