@@ -6,7 +6,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://placehold.co https://res.cloudinary.com https://grainy-gradients.vercel.app; connect-src 'self' https://api.razorpay.com https://indiafy-1.onrender.com http://localhost:8000; frame-src https://api.razorpay.com; object-src 'none'; upgrade-insecure-requests;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://placehold.co https://res.cloudinary.com https://grainy-gradients.vercel.app https://lh3.googleusercontent.com; connect-src 'self' https://api.razorpay.com https://indiafy-1.onrender.com http://localhost:8000 https://accounts.google.com; frame-src https://api.razorpay.com https://accounts.google.com; object-src 'none'; upgrade-insecure-requests;"
         },
         {
           "key": "X-Frame-Options",
@@ -22,11 +22,11 @@
         },
         {
           "key": "Permissions-Policy",
-          "value": "camera=(self), microphone=(self), geolocation=()"
+          "value": "camera=(self), microphone=(self), geolocation=(self)"
         },
         {
           "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
+          "value": "same-origin-allow-popups"
         },
         {
           "key": "Cross-Origin-Embedder-Policy",
