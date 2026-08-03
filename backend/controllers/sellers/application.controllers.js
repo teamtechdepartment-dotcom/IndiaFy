@@ -59,6 +59,7 @@ const ACTIVE_APPLICATION_STATUSES = [
   REVIEW_STATUS.PENDING_REVIEW,
   REVIEW_STATUS.UNDER_REVIEW,
   REVIEW_STATUS.APPROVED,
+  "ACTIVE",
   "pending",
   "approved",
 ];
@@ -630,19 +631,19 @@ export const getStoreStatus = asyncHandler(async (req, res) => {
       {
         key: "UNDER_REVIEW",
         label: "Under Review",
-        completed: [REVIEW_STATUS.UNDER_REVIEW, REVIEW_STATUS.APPROVED, REVIEW_STATUS.REJECTED, REVIEW_STATUS.SUSPENDED, REVIEW_STATUS.CHANGES_REQUESTED].includes(status),
+        completed: [REVIEW_STATUS.UNDER_REVIEW, REVIEW_STATUS.APPROVED, "ACTIVE", REVIEW_STATUS.REJECTED, REVIEW_STATUS.SUSPENDED, REVIEW_STATUS.CHANGES_REQUESTED].includes(status),
       },
       {
         key: "APPROVED",
         label: "Approved",
-        completed: status === REVIEW_STATUS.APPROVED,
+        completed: status === REVIEW_STATUS.APPROVED || status === "ACTIVE",
         failed: [REVIEW_STATUS.REJECTED, REVIEW_STATUS.SUSPENDED].includes(status),
         at: approval?.reviewedAt || application?.reviewedAt || null,
       },
       {
         key: "STORE_ACTIVATED",
         label: "Store Activated",
-        completed: Boolean(store?.isActive && store?.isLive && status === REVIEW_STATUS.APPROVED),
+        completed: Boolean(store?.isActive && store?.isLive && (status === REVIEW_STATUS.APPROVED || status === "ACTIVE")),
       },
     ],
   });

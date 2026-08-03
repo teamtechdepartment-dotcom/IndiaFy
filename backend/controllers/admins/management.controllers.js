@@ -1140,42 +1140,43 @@ export const approveSellerApplication = async (req, res) => {
     await store.save({ session });
 
     // 2. Create/Update SellerProfile (B2B/Wholesale profile)
-    let profile = await SellerProfileModel.findOne({ customerId: application.userId }).session(session);
-    if (!profile) {
-      profile = new SellerProfileModel({
-        customerId: application.userId,
-        firstName: application.ownerName?.split(" ")[0] || "Store",
-        lastName: application.ownerName?.split(" ").slice(1).join(" ") || "Owner",
-        contact: Number(application.ownerPhone) || 1111111111,
-        address: [{
-          street: application.address,
-          nearBy: "Main Area",
-          city: application.city,
-          state: application.state,
-          country: "India"
-        }],
-        sellerType: application.nodeType === "WHOLESALE_B2B" ? "wholesale" : "local",
-        gstVerification: {
-          isVerified: true,
-          gstNumber: application.gstNumber,
-          documentUrl: application.documents.gstCertificate
-        },
-        indiafyVerifiedBadge: true
-      });
-      await profile.save({ session });
-    } else {
-      profile.sellerType = application.nodeType === "WHOLESALE_B2B" ? "wholesale" : "local";
-      profile.gstVerification = {
+    // Use safe phone parsing — strip non-digits, take last 10 digits to avoid NaN/precision issues
+    const rawPhone = String(application.ownerPhone || "").replace(/\D/g, "");
+    const safeContact = rawPhone.length >= 10 ? Number(rawPhone.slice(-10)) : (Number(rawPhone) || 0);
+
+    const profileUpdate = {
+      firstName: application.ownerName?.split(" ")[0] || "Store",
+      lastName: application.ownerName?.split(" ").slice(1).join(" ") || "Owner",
+      contact: safeContact,
+      sellerType: application.nodeType === "WHOLESALE_B2B" ? "wholesale" : "local",
+      gstVerification: {
         isVerified: true,
         gstNumber: application.gstNumber,
         documentUrl: application.documents.gstCertificate
-      };
-      profile.indiafyVerifiedBadge = true;
-      await profile.save({ session });
-    }
+      },
+      indiafyVerifiedBadge: true
+    };
+
+    await SellerProfileModel.findOneAndUpdate(
+      { customerId: application.userId },
+      {
+        $set: profileUpdate,
+        $setOnInsert: {
+          customerId: application.userId,
+          address: [{
+            street: application.address,
+            nearBy: "Main Area",
+            city: application.city,
+            state: application.state,
+            country: "India"
+          }]
+        }
+      },
+      { upsert: true, new: true, session }
+    );
 
     // 3. Update Application status and link storeId
-    application.status = "ACTIVE";
+    application.status = "APPROVED";
     application.storeId = store._id;
     application.reviewedAt = new Date();
     application.approvedAt = new Date();
@@ -1332,16 +1333,20 @@ export const rejectSellerApplication = async (req, res) => {
     });
 
     // Queue Rejection Email Alert
-    const emailHtml = getRejectionTemplate({
-      sellerName: application.ownerName,
-      storeName: application.storeName,
-      reason
-    });
-    await queueEmail(
-      application.ownerEmail,
-      "Your Seller Application Was Rejected",
-      emailHtml
-    );
+    try {
+      const emailHtml = getRejectionTemplate({
+        sellerName: application.ownerName,
+        storeName: application.storeName,
+        reason
+      });
+      await queueEmail(
+        application.ownerEmail,
+        "Your Seller Application Was Rejected",
+        emailHtml
+      );
+    } catch (_emailErr) {
+      console.error("Non-blocking email send failure during rejection:", _emailErr);
+    }
 
     // Emit Socket.IO live update
     try {
@@ -1456,11 +1461,15 @@ export const requestMoreInfoSellerApplication = async (req, res) => {
       </div>
     `;
     
-    await queueEmail(
-      application.ownerEmail,
-      "Indiafy Onboarding Verification - Action Required",
-      emailHtml
-    );
+    try {
+      await queueEmail(
+        application.ownerEmail,
+        "Indiafy Onboarding Verification - Action Required",
+        emailHtml
+      );
+    } catch (_emailErr) {
+      console.error("Non-blocking email send failure during request-changes:", _emailErr);
+    }
 
     // Emit Socket.IO live update
     try {

@@ -308,7 +308,8 @@ axiosInstance.interceptors.response.use(
             }
             
             // Handle 500 Internal Server Error
-            // Skip the redirect for auth routes so signup/login forms are not destroyed
+            // Skip the redirect for auth routes, checkout routes, and admin routes
+            // Admin pages handle errors via toast notifications instead of redirecting
             else if (status >= 500) {
                 const isAuthRoute =
                     error.config?.url?.includes('/signup') ||
@@ -319,7 +320,10 @@ axiosInstance.interceptors.response.use(
                     error.config?.url?.includes('/orders') ||
                     error.config?.url?.includes('/payments') ||
                     error.config?.url?.includes('/checkout');
-                if (!isAuthRoute && !isCheckoutRoute && window.location.pathname !== '/500') {
+                const isAdminRoute =
+                    error.config?.url?.includes('/admin/') ||
+                    window.location.pathname.startsWith('/admin');
+                if (!isAuthRoute && !isCheckoutRoute && !isAdminRoute && window.location.pathname !== '/500') {
                     window.location.href = '/500';
                 }
             }
