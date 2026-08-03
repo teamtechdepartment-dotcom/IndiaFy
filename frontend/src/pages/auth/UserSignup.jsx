@@ -247,7 +247,7 @@ const UserSignup = () => {
       setLoading(false);
       isSubmittingRef.current = false;
     }
-  }, [loginAuth, addToCart, navigate, setError, setFocus]);
+  }, [agreedToTerms, loginAuth, addToCart, navigate, setError, setFocus]);
 
   // ── Keyboard: Enter on step 1 advances, not submits ──────────────
   const handleKeyDown = useCallback((e) => {
