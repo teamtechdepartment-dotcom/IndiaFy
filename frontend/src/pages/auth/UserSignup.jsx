@@ -355,7 +355,7 @@ const UserSignup = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 px-4 py-6 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-white sm:bg-slate-50 p-0 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
       <SEOHead title="Create Account | Indiafy" noindex={true} />
 
       {/* Background blobs */}
@@ -368,10 +368,10 @@ const UserSignup = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded-2xl sm:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-slate-200 overflow-hidden flex flex-col lg:flex-row min-h-[600px]"
+        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded-none sm:rounded-2xl lg:rounded-[2rem] shadow-none sm:shadow-[0_20px_60px_rgba(0,0,0,0.08)] border-0 sm:border border-slate-200 overflow-hidden flex flex-col lg:flex-row min-h-screen sm:min-h-[600px]"
       >
         {/* ── Form side ──────────────────────────────────────────── */}
-        <div className="w-full lg:w-7/12 p-6 sm:p-10 lg:p-14 flex flex-col relative z-20">
+        <div className="w-full lg:w-7/12 px-5 py-8 sm:p-10 lg:p-14 flex flex-col relative z-20 flex-grow justify-center">
 
           <div className="flex justify-between items-center mb-8">
             <img src="/Images/logo.png" alt="Indiafy" className="h-8 lg:hidden" />
@@ -437,7 +437,7 @@ const UserSignup = () => {
                       <h1 className="text-3xl font-black text-brand-primary tracking-tight">Join India's Local Marketplace</h1>
                       <p className="text-sm text-brand-text-secondary font-medium">Let's start with your name.</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {renderField({ name: "firstName", label: "First Name", icon: User, placeholder: "John", autoComplete: "given-name" })}
                       {renderField({ name: "lastName", label: "Last Name", icon: User, placeholder: "Doe", autoComplete: "family-name" })}
                     </div>

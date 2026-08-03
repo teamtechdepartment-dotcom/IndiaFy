@@ -162,7 +162,7 @@ const UserLogin = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 px-4 py-6 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-white sm:bg-slate-50 p-0 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
       <SEOHead title="Login | Indiafy" noindex={true} />
       
       {/* Background Blobs (Hero Theme) */}
@@ -175,7 +175,7 @@ const UserLogin = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded-2xl sm:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-slate-200 overflow-hidden flex flex-col lg:flex-row min-h-[600px]"
+        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded-none sm:rounded-2xl lg:rounded-[2rem] shadow-none sm:shadow-[0_20px_60px_rgba(0,0,0,0.08)] border-0 sm:border border-slate-200 overflow-hidden flex flex-col-reverse lg:flex-row min-h-screen sm:min-h-[600px]"
       >
         {/* --- BRANDING / ILLUSTRATION SIDE --- */}
         <div className="hidden lg:flex lg:w-5/12 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border-r border-slate-100 relative flex-col justify-between p-12 overflow-hidden shrink-0 text-brand-primary">
@@ -242,7 +242,7 @@ const UserLogin = () => {
         </div>
 
         {/* --- FORM SIDE --- */}
-        <div className="w-full lg:w-7/12 flex flex-col justify-center px-6 py-10 sm:px-14 lg:px-20 bg-white">
+        <div className="w-full lg:w-7/12 flex flex-col justify-center px-5 py-8 sm:px-14 lg:px-20 bg-white flex-grow">
           <div className="w-full max-w-[480px] mx-auto space-y-8">
             
             <div className="flex justify-between items-center lg:hidden mb-4">
