@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
-import rateLimit from "express-rate-limit";
+
 import cookieParser from "cookie-parser";
 import hpp from "hpp";
 import mongoSanitize from "express-mongo-sanitize";
@@ -137,19 +137,7 @@ app.use(
 );
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 
-// Global Rate Limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // Limit each IP to 1000 requests per windowMs
-    handler: (req, res) => {
-        res.status(429).json({
-            success: false,
-            message: "Too many requests from this IP, please try again later.",
-            statusCode: 429
-        });
-    }
-});
-app.use(limiter);
+
 
 // Middlewares
 app.use(compression({
@@ -177,19 +165,7 @@ app.use((req, res, next) => {
 // Prevent HTTP parameter pollution
 app.use(hpp());
 
-// Auth Rate Limiting (Brute Force Protection - Hardened)
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: (!process.env.NODE_ENV || process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") ? 1000 : 10, // Higher limit for development/testing to prevent lockouts
-  handler: (req, res) => {
-    res.status(429).json({
-      success: false,
-      message:
-        "Too many authentication attempts from this IP, please try again after 15 minutes.",
-      statusCode: 429,
-    });
-  },
-});
+
 
 // Health Check Endpoint
 app.get("/health", (req, res) => {
@@ -209,11 +185,11 @@ app.get("/api/v1/indiafy/health", (req, res) => {
 });
 
 // Routes
-app.use("/api/v1/indiafy/admin/auth", authLimiter, adminAuthRoutes);
+app.use("/api/v1/indiafy/admin/auth", adminAuthRoutes);
 app.use("/api/v1/indiafy/admin/management", adminManagementRoutes);
 app.use("/api/v1/indiafy/admin", adminManagementRoutes);
-app.use("/api/v1/indiafy/customer/auth", authLimiter, customerAuthRoutes);
-app.use("/api/v1/indiafy/seller/auth", authLimiter, sellerAuthRoutes);
+app.use("/api/v1/indiafy/customer/auth", customerAuthRoutes);
+app.use("/api/v1/indiafy/seller/auth", sellerAuthRoutes);
 app.use("/api/v1/indiafy/seller/nodes", sellerNodeRoutes);
 // app.use("/api/v1/indiafy/seller/applications", sellerApplicationRoutes);
 // app.use("/api/v1/indiafy/seller/store", sellerApplicationRoutes);
