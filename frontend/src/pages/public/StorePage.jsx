@@ -261,15 +261,15 @@ export default function StorePage() {
           </div>
 
           {/* Horizontal Scrollable Categories */}
-          <div className="flex overflow-x-auto hide-scrollbar gap-2 pb-2">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar hide-scrollbar pb-1">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`whitespace-nowrap px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                className={`shrink-0 whitespace-nowrap px-4 sm:px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 border ${
                   activeCategory === cat
-                    ? "bg-white shadow-sm border border-slate-200 text-slate-900 shadow-md shadow-slate-200"
-                    : "bg-white border border-zinc-200 text-slate-500 hover:bg-slate-100"
+                    ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                    : "bg-white border-zinc-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
                 {cat}
