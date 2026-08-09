@@ -13,8 +13,10 @@ import {
   Filter,
   ShieldCheck,
   X,
+  Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-hot-toast";
 import { useOrderStore } from "../../store/orderStore";
 
 // Layout Components
@@ -29,7 +31,7 @@ export default function OrderHistoryPage() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
 
-  const { orders, fetchMyOrders, isLoading } = useOrderStore();
+  const { orders, fetchMyOrders, deleteOrder, isLoading } = useOrderStore();
 
   useEffect(() => {
     fetchMyOrders();
@@ -196,7 +198,7 @@ export default function OrderHistoryPage() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.3, delay: i * 0.05 }}
                   >
-                    <OrderCard order={order} />
+                    <OrderCard order={order} deleteOrder={deleteOrder} />
                   </motion.div>
                 ))
               ) : (
@@ -224,8 +226,9 @@ export default function OrderHistoryPage() {
   );
 }
 
-function OrderCard({ order }) {
+function OrderCard({ order, deleteOrder }) {
   const [expanded, setExpanded] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
 
   const getStatusStyles = (status) => {
@@ -234,6 +237,25 @@ function OrderCard({ order }) {
     if (status === "Accepted") return "bg-blue-50 text-blue-600 border-blue-100";
     return "bg-amber-50 text-amber-600 border-amber-100";
   };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(`Are you sure you want to delete order #${order.id}? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteOrder(order.rawId);
+      toast.success("Order deleted successfully");
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to delete order";
+      toast.error(msg);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Orders that cannot be deleted (actively being processed/shipped)
+  const canDelete = !["Processing", "Shipped"].includes(order.status);
 
   return (
     <div className="bg-white border border-zinc-200/60 shadow-sm rounded-[2rem] overflow-hidden hover:border-emerald-200 hover:shadow-lg transition-all duration-300">
@@ -314,6 +336,16 @@ function OrderCard({ order }) {
           <button className="bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-full font-bold text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2">
             <RotateCcw size={14} className="text-slate-400" /> Reorder
           </button>
+
+          {canDelete && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-white border border-red-200 text-red-600 px-5 py-2.5 rounded-full font-bold text-[11px] uppercase tracking-widest hover:bg-red-50 hover:border-red-300 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 size={14} /> {isDeleting ? "Deleting..." : "Delete"}
+            </button>
+          )}
 
           {order.videoAvailable && (
             <button 
