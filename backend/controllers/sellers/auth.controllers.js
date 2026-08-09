@@ -153,9 +153,9 @@ const Login = async (req, res) => {
     const isProd = process.env.NODE_ENV === "production";
     const cookieOpts = {
       httpOnly: true,
-      sameSite: "lax",
-      secure: isProd,
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      sameSite: isProd ? "None" : "Lax", // Must be None for cross-domain (Vercel <-> Render)
+      secure: isProd,                     // Secure required when sameSite=None
+      maxAge: 7 * 24 * 60 * 60 * 1000   // 7 days
     };
     
     res.cookie("SellerAccessToken", token, cookieOpts);
@@ -458,7 +458,7 @@ const refreshTokenHandler = async (req, res) => {
       return res.status(401).json(new ApiError(401, "No refresh token provided"));
     }
 
-    const securityKey = process.env.SecurityKey;
+    const securityKey = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
     const jwt = (await import("jsonwebtoken")).default;
     
     let result;

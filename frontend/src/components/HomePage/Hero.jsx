@@ -67,19 +67,19 @@ function Hero() {
             />
             
             {/* Banner Content */}
-            <div className="absolute inset-0 z-20 flex flex-col justify-center items-start px-8 md:px-16 lg:px-24">
-              <span className="px-3 py-1 bg-brand-accent text-white text-xs font-bold uppercase rounded-sm mb-4">
+            <div className="absolute inset-0 z-20 flex flex-col justify-center items-start px-4 sm:px-8 md:px-16 lg:px-24">
+              <span className="px-3 py-1 bg-brand-accent text-white text-xs font-bold uppercase rounded-sm mb-3 md:mb-4">
                 Limited Time Offer
               </span>
-              <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 max-w-2xl leading-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 max-w-2xl leading-tight">
                 {banners[currentIndex].title}
               </h2>
-              <p className="text-lg md:text-2xl text-white/90 mb-8 max-w-xl">
+              <p className="text-base sm:text-lg md:text-2xl text-white/90 mb-4 sm:mb-8 max-w-xl">
                 {banners[currentIndex].subtitle}
               </p>
               <button 
                 onClick={() => navigate('/search')}
-                className="bg-white text-brand-primary px-8 py-3 rounded-sm font-bold shadow-md hover:bg-gray-100 transition-colors"
+                className="bg-white text-brand-primary px-6 sm:px-8 py-2.5 sm:py-3 rounded-sm font-bold shadow-md hover:bg-gray-100 transition-colors text-sm sm:text-base"
               >
                 Shop Now
               </button>
@@ -104,7 +104,7 @@ function Hero() {
         </button>
 
         {/* Pagination Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden sm:flex items-center gap-2 z-30">
           {banners.map((_, index) => (
             <button
               key={index}
