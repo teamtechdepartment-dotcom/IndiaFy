@@ -10,7 +10,8 @@ import {
     getLatestProducts,
     getFeaturedProducts,
     getProductsByCategory,
-    searchProducts
+    searchProducts,
+    resolveProductImage
 } from "../../controllers/products/product.controllers.js";
 import requiredLogin from "../../middlewares/requiredLogin.middleware.js";
 import roleGuard from "../../middlewares/roleGuard.middleware.js";
@@ -19,6 +20,7 @@ import { uploadProductImages } from "../../middlewares/upload.middleware.js";
 const router = Router();
 
 // Public routes (Customers can browse products without logging in, but typically they would)
+router.route("/resolve-image").post(resolveProductImage);
 router.route("/seed").get(seedProducts).post(seedProducts);
 router.route("/").get(getAllProducts);
 router.route("/latest").get(getLatestProducts);

@@ -218,33 +218,35 @@ export default function Stores() {
       
 
         {/* HERO */}
-        <section className="bg-white shadow-sm border border-slate-200 pt-20 pb-16 px-4">
+        <section className="bg-white shadow-xs border-b border-slate-200 pt-[140px] sm:pt-[150px] lg:pt-[160px] pb-14 px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <ShoppingBag className="text-blue-400" size={20} />
-              <span className="text-xs font-bold uppercase tracking-widest text-blue-400">Indiafy Marketplace</span>
+            <div className="inline-flex items-center justify-center gap-2 mb-3 bg-emerald-50 text-emerald-700 px-3.5 py-1.5 rounded-full border border-emerald-100">
+              <ShoppingBag size={14} className="text-emerald-600" />
+              <span className="text-[11px] font-extrabold uppercase tracking-widest">Indiafy Marketplace</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-900 mb-4 leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 mb-3 leading-tight tracking-tight">
               Discover Local Stores
             </h1>
-            <p className="text-slate-600 text-lg mb-8 max-w-xl mx-auto">
+            <p className="text-slate-500 text-sm sm:text-base font-medium mb-8 max-w-xl mx-auto leading-relaxed">
               Browse {total > 0 ? `${total} live` : "hundreds of"} stores across categories — from quick commerce to wholesale.
             </p>
 
             {/* Search */}
             <div className="relative max-w-xl mx-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search stores, categories..."
-                className="w-full pl-11 pr-12 py-4 bg-white/10 backdrop-blur border border-white/20 text-slate-900 placeholder:text-slate-500 rounded-2xl font-medium text-sm outline-none focus:bg-white/15 focus:border-white/40 transition-all"
+                className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-2xl font-semibold text-sm outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 shadow-xs transition-all"
               />
               {search && (
-                <button onClick={() => setSearch("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900">
-                  <X size={16} />
+                <button 
+                  onClick={() => setSearch("")}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 bg-slate-200/80 rounded-full text-slate-500 hover:text-slate-900 transition-colors"
+                >
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -252,7 +254,7 @@ export default function Stores() {
         </section>
 
         {/* FILTERS */}
-        <div className="sticky top-16 z-30 bg-white border-b border-zinc-200 shadow-sm">
+        <div className="sticky top-[116px] lg:top-[124px] z-30 bg-white border-b border-slate-200 shadow-xs">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-3 overflow-x-auto scrollbar-none">
               {/* Type filter chips */}
@@ -262,24 +264,24 @@ export default function Stores() {
                   onClick={() => setSelectedType(type.value)}
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0
                     ${selectedType === type.value
-                      ? "bg-white shadow-sm border border-slate-200 text-slate-900 shadow-md"
-                      : "bg-slate-100 text-slate-500 hover:bg-zinc-200"}`}
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
                 >
                   <span>{type.emoji}</span> {type.label}
                 </button>
               ))}
 
-              <div className="h-6 w-px bg-zinc-200 shrink-0 mx-1" />
+              <div className="h-6 w-px bg-slate-200 shrink-0 mx-1" />
 
               {/* City filter */}
               <button
                 onClick={() => setShowFilters((v) => !v)}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0
-                  ${showFilters ? "bg-white shadow-sm border border-slate-200 text-slate-900" : "bg-slate-100 text-slate-500 hover:bg-zinc-200"}`}
+                  ${showFilters ? "bg-emerald-50 border border-emerald-200 text-emerald-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
               >
                 <SlidersHorizontal size={13} /> Filters
                 {hasFilters && !showFilters && (
-                  <span className="w-2 h-2 rounded-full bg-blue-500 ml-0.5" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 ml-0.5" />
                 )}
               </button>
 

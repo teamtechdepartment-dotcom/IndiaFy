@@ -44,13 +44,8 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3002",
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:5174",
   "https://india-fy.vercel.app",
   "https://indiafy.vercel.app",
-  "https://www.indiafy.vercel.app",
-  "https://www.india-fy.vercel.app",
-  "https://indiafy-1.onrender.com",
 ];
 
 if (process.env.CORS_ORIGIN) {
@@ -68,9 +63,8 @@ app.use(
       // Allow requests with no origin (like mobile apps, curl, postman)
       if (!origin) return callback(null, true);
       const isLocalhost = origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:");
-      const isVercel = origin.endsWith(".vercel.app") || origin.includes("vercel.app");
-      const isRender = origin.endsWith(".render.com") || origin.includes("render.com");
-      if (isLocalhost || isVercel || isRender || allowedOrigins.includes(origin)) {
+      const isDev = process.env.NODE_ENV !== "production";
+      if ((isDev && isLocalhost) || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -166,8 +160,8 @@ app.use(compression({
     return compression.filter(req, res);
   }
 }));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 // Data Sanitization against NoSQL query injection
@@ -186,7 +180,7 @@ app.use(hpp());
 // Auth Rate Limiting (Brute Force Protection - Hardened)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Increased limit to prevent lockouts
+  max: (!process.env.NODE_ENV || process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") ? 1000 : 10, // Higher limit for development/testing to prevent lockouts
   handler: (req, res) => {
     res.status(429).json({
       success: false,
@@ -221,8 +215,8 @@ app.use("/api/v1/indiafy/admin", adminManagementRoutes);
 app.use("/api/v1/indiafy/customer/auth", authLimiter, customerAuthRoutes);
 app.use("/api/v1/indiafy/seller/auth", authLimiter, sellerAuthRoutes);
 app.use("/api/v1/indiafy/seller/nodes", sellerNodeRoutes);
-app.use("/api/v1/indiafy/seller/applications", sellerApplicationRoutes);
-app.use("/api/v1/indiafy/seller/store", sellerApplicationRoutes);
+// app.use("/api/v1/indiafy/seller/applications", sellerApplicationRoutes);
+// app.use("/api/v1/indiafy/seller/store", sellerApplicationRoutes);
 app.use("/api/v1/indiafy/public", publicStoreRoutes);
 app.use("/api/v1/indiafy/products", productRoutes);
 app.use("/api/v1/indiafy/orders", orderRoutes);
@@ -232,10 +226,6 @@ app.use("/api/v1/indiafy/customer/cart", customerCartRoutes);
 app.use("/api/v1/indiafy/customer/profile", customerProfileRoutes);
 
 // Root-level route aliases
-app.use("/seller/auth", authLimiter, sellerAuthRoutes);
-app.use("/customer/auth", authLimiter, customerAuthRoutes);
-app.use("/api/seller/auth", authLimiter, sellerAuthRoutes);
-app.use("/api/customer/auth", authLimiter, customerAuthRoutes);
 app.use("/api/orders", orderRoutes);
 app.get("/api/seller/orders", requiredLogin, requireSeller, dashboardGuard, getSellerOrders);
 app.use("/api/checkout", orderRoutes);
@@ -243,8 +233,11 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/cart", customerCartRoutes);
 app.use("/api/customer", customerProfileRoutes);
 app.use("/api/v1/indiafy/wholesale", wholesaleRoutes);
+app.use("/api/v1/indiafy/seller/applications", sellerApplicationRoutes);
 app.use("/api/v1/indiafy/delivery", deliveryRoutes);
+
 app.use("/api/v1/indiafy", storeApprovalRoutes);
+// app.use("/api/v1/indiafy", storeApprovalRoutes);
 app.use("/api/v1/indiafy/seller/notifications", orderNotificationRoutes);
 app.get("/api/v1/indiafy/seller/dashboard-access", requiredLogin, getDashboardAccess);
 app.get("/api/v1/indiafy/seller/node/status", requiredLogin, getLatestNodeStatus);

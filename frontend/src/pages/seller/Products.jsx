@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useParams } from 'react-router-dom';
 import { 
   Search, Plus, X, Boxes, ImagePlus, Loader2, Trash2, Eye, Edit2, 
   Tag, CheckCircle2, AlertTriangle, XCircle, Award, Flame, Filter, ChevronLeft, ChevronRight 
@@ -10,6 +11,7 @@ import { useNodeStore } from '../../store/nodeStore';
 import { toast } from 'react-toastify';
 
 export default function Products() {
+  const { nodeId: paramNodeId } = useParams();
   const { activeNode } = useNodeStore();
   const { products, fetchProducts, createProduct, updateProduct, deleteProduct, isLoading } = useProductStore();
   const { user } = useSellerAuthStore();
@@ -70,26 +72,28 @@ export default function Products() {
   // Image Upload State for Create Form
   const [newImageFiles, setNewImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
-  const [newImageUrls, setNewImageUrls] = useState(""); // For direct pasting of URLs
+
 
   // Image URL state for Edit Form
   const [editImageUrls, setEditImageUrls] = useState("");
 
   // Fetch products on mount and every 30s for inventory updates
   useEffect(() => {
-    if (user?._id && activeNode?._id) {
-      fetchProducts('', '', user._id, activeNode.nodeType, activeNode._id);
+    const currentNodeId = activeNode?._id || paramNodeId;
+    const currentNodeType = activeNode?.nodeType || '';
+    if (user?._id && currentNodeId) {
+      fetchProducts('', '', user._id, currentNodeType, currentNodeId);
     }
-  }, [user?._id, activeNode?._id, activeNode?.nodeType, fetchProducts]);
+  }, [user?._id, activeNode?._id, activeNode?.nodeType, paramNodeId, fetchProducts]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, selectedBrand, selectedStockStatus, selectedBadge, sortBy]);
 
-  // Extract unique brands dynamically from products list
+  // Extract unique brands & categories dynamically from products list
   const uniqueBrands = ["All", ...new Set(products.map(p => p.brand).filter(Boolean))];
-  const categoriesList = ["All", "Grocery", "Dairy", "Beverages", "Snacks", "Household", "Personal Care"];
+  const categoriesList = ["All", ...new Set(products.map(p => p.categoryName).filter(Boolean))];
 
   // --- IMAGE UPLOAD LOGIC ---
   const handleImageUpload = (e) => {
@@ -112,65 +116,86 @@ export default function Products() {
     });
   };
 
-  const addImageUrl = () => {
-    if (!newImageUrls.trim()) return;
-    setImagePreviews(prev => [...prev, newImageUrls.trim()].slice(0, 5));
-    setNewImageUrls("");
-  };
+
 
   // --- FORM SUBMISSIONS ---
   const handleAddProduct = async (e) => {
     if (e) e.preventDefault();
-    
-    if (imagePreviews.length === 0) {
-      toast.error("At least one product image is required");
+
+    const targetNodeId = activeNode?._id || paramNodeId;
+    const targetNodeType = activeNode?.nodeType || 'HOME_ESSENTIALS';
+
+    // Validate required fields
+    if (!newProduct.name?.trim()) {
+      toast.error("Product name is required");
+      return;
+    }
+    if (!newProduct.salePrice || Number(newProduct.salePrice) <= 0) {
+      toast.error("Selling price is required");
+      return;
+    }
+    if (!newProduct.stock || Number(newProduct.stock) <= 0) {
+      toast.error("Stock quantity is required");
+      return;
+    }
+    if (!targetNodeId) {
+      toast.error("No active store node found. Please go back to Seller Hub and select a node.");
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append('productName', newProduct.name);
-      formData.append('productSkuId', newProduct.sku.toUpperCase());
-      formData.append('categoryName', newProduct.category);
-      formData.append('brand', newProduct.brand);
+      formData.append('productName', newProduct.name.trim());
+      formData.append('productSkuId', (newProduct.sku || `SKU-${Date.now()}`).toUpperCase());
+      formData.append('categoryName', newProduct.category || 'Grocery');
+      formData.append('brand', newProduct.brand || '');
       formData.append('barcode', newProduct.barcode || `890${Math.floor(100000000 + Math.random() * 900000000)}`);
       formData.append('hsnCode', newProduct.hsnCode || "00000000");
-      formData.append('shortDescription', newProduct.shortDescription || newProduct.name);
-      formData.append('description', newProduct.description || newProduct.name);
-      formData.append('unit', newProduct.unit);
+      formData.append('shortDescription', newProduct.shortDescription || newProduct.name.trim());
+      formData.append('description', newProduct.description || newProduct.name.trim());
+      formData.append('unit', newProduct.unit || 'pcs');
       formData.append('isFeatured', newProduct.isFeatured ? 'true' : 'false');
       formData.append('isBestseller', newProduct.isBestseller ? 'true' : 'false');
-      formData.append('stock', newProduct.stock);
+      formData.append('stock', String(newProduct.stock));
       
-      if (activeNode) {
-        formData.append('nodeType', activeNode.nodeType);
-        formData.append('nodeId', activeNode._id);
-      }
+      formData.append('nodeType', targetNodeType);
+      formData.append('nodeId', targetNodeId);
       
       const attribute = {
         salePrice: Number(newProduct.salePrice),
         mrpPrice: Number(newProduct.mrpPrice) || Number(newProduct.salePrice),
-        weight: newProduct.weight,
-        quantity: newProduct.stock.toString()
+        weight: newProduct.weight || "500g",
+        quantity: String(newProduct.stock)
       };
       formData.append('attribute', JSON.stringify(attribute));
-      formData.append('discountPercentage', Math.round(((attribute.mrpPrice - attribute.salePrice) / attribute.mrpPrice) * 100).toString());
+      formData.append('discountPercentage', String(Math.round(((attribute.mrpPrice - attribute.salePrice) / attribute.mrpPrice) * 100) || 0));
 
-      // Append upload files
-      newImageFiles.forEach(file => {
-        formData.append('productImage', file);
-      });
+      // Append upload files — field name must match multer's upload.array("images", 10)
+      if (newImageFiles.length > 0) {
+        newImageFiles.forEach(file => {
+          formData.append('images', file);
+        });
+      }
 
       // Append pasted URLs as fallback or extra images
-      const pastedUrls = imagePreviews.filter(p => p.startsWith('http'));
+      const pastedUrls = imagePreviews.filter(p => typeof p === 'string' && p.startsWith('http'));
+
       if (pastedUrls.length > 0) {
         formData.append('pastedImages', JSON.stringify(pastedUrls));
       }
 
+      // If no images at all, add a default placeholder
+      if (newImageFiles.length === 0 && pastedUrls.length === 0) {
+        formData.append('pastedImages', JSON.stringify([
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(newProduct.name.trim())}&size=400&background=f1f5f9&color=334155&bold=true&format=png`
+        ]));
+      }
+
+      console.log("[Add Product] Submitting product:", newProduct.name, "to node:", targetNodeId, targetNodeType);
       await createProduct(formData);
       toast.success("Product created successfully!");
       
-      // Reset Form
+      // Reset Form and Filters so new product is immediately visible in the list
       setNewProduct({ 
         name: "", sku: "", category: "Grocery", brand: "", barcode: "", hsnCode: "",
         salePrice: "", mrpPrice: "", stock: "", shortDescription: "", description: "",
@@ -178,14 +203,21 @@ export default function Products() {
       });
       setNewImageFiles([]);
       setImagePreviews([]);
+      setNewImageUrls("");
       setIsModalOpen(false);
+      setSelectedCategory("All");
+      setSelectedBrand("All");
+      setSelectedStockStatus("All");
+      setSelectedBadge("All");
+      setSearchTerm("");
       
-      // Refresh list
-      if (user?._id && activeNode?._id) {
-        fetchProducts('', '', user._id, activeNode.nodeType, activeNode._id);
+      // Refresh list from server
+      if (user?._id && targetNodeId) {
+        await fetchProducts('', '', user._id, targetNodeType, targetNodeId);
       }
     } catch (_err) {
-      toast.error(_err?.message || "Failed to create product");
+      console.error("[Add Product] Error:", _err);
+      toast.error(_err?.message || "Failed to create product. Check console for details.");
     }
   };
 
@@ -242,6 +274,13 @@ export default function Products() {
 
   // --- FILTERING AND SORTING LOGIC ---
   const filteredProducts = products.filter(p => {
+    // Node filter: Ensure product strictly belongs to the active node
+    const targetNodeId = activeNode?._id || paramNodeId;
+    const pNodeId = p.nodeId?._id ? String(p.nodeId._id) : (p.nodeId ? String(p.nodeId) : null);
+    if (targetNodeId && pNodeId && String(pNodeId) !== String(targetNodeId)) {
+      return false;
+    }
+
     // Search filter
     const matchesSearch = 
       (p.productName || p.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -505,9 +544,13 @@ export default function Products() {
                             <img 
                               loading="lazy" 
                               decoding="async" 
-                              src={p.productImage?.[0] || p.image || 'https://placehold.co/100x100?text=Product'} 
+                              src={p.productImage?.[0] || p.image || 'https://ui-avatars.com/api/?name=Product&size=200&background=f1f5f9&color=64748b&bold=true&format=png'} 
                               alt={p.productName || p.name} 
                               className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = "https://ui-avatars.com/api/?name=Product&size=200&background=f1f5f9&color=64748b&bold=true&format=png";
+                              }}
                             />
                             {discountVal > 0 && (
                               <span className="absolute top-0.5 left-0.5 bg-rose-600 text-white font-black text-[8px] px-1 rounded-sm shadow-sm scale-90">
@@ -713,22 +756,6 @@ export default function Products() {
                   onChange={handleImageUpload} 
                 />
 
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newImageUrls}
-                    onChange={(e) => setNewImageUrls(e.target.value)}
-                    placeholder="Or paste image URL directly..."
-                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={addImageUrl}
-                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl"
-                  >
-                    Add URL
-                  </button>
-                </div>
               </div>
 
               {/* Form Details */}
@@ -738,18 +765,18 @@ export default function Products() {
                   <input required type="text" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold" placeholder="e.g. Aashirvaad Atta 5kg"/>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">SKU ID (Unique)</label>
-                    <input required type="text" value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold uppercase" placeholder="SM-AAS-001"/>
+                    <input type="text" value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold uppercase" placeholder="SM-AAS-001 (Auto-generated if empty)"/>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Brand</label>
-                    <input required type="text" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold" placeholder="e.g. Aashirvaad"/>
+                    <input type="text" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold" placeholder="e.g. Aashirvaad"/>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Category</label>
                     <select value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold cursor-pointer">
@@ -763,19 +790,11 @@ export default function Products() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Weight (e.g. 5kg, 750ml)</label>
-                    <input required type="text" value={newProduct.weight} onChange={(e) => setNewProduct({...newProduct, weight: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold" placeholder="5kg"/>
+                    <input type="text" value={newProduct.weight} onChange={(e) => setNewProduct({...newProduct, weight: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold" placeholder="5kg"/>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Barcode</label>
-                    <input type="text" value={newProduct.barcode} onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-mono" placeholder="Leave empty to auto-generate"/>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">HSN Code</label>
-                    <input type="text" value={newProduct.hsnCode} onChange={(e) => setNewProduct({...newProduct, hsnCode: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-mono" placeholder="e.g. 11010000"/>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Unit</label>
                     <select value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold cursor-pointer">
@@ -788,7 +807,7 @@ export default function Products() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">MRP Price (₹)</label>
                     <input required type="number" min="0" step="0.01" value={newProduct.mrpPrice} onChange={(e) => setNewProduct({...newProduct, mrpPrice: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-bold" placeholder="0.00"/>
@@ -827,7 +846,7 @@ export default function Products() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Short Description</label>
-                  <input required type="text" value={newProduct.shortDescription} onChange={(e) => setNewProduct({...newProduct, shortDescription: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold" placeholder="Brief tagline..."/>
+                  <input type="text" value={newProduct.shortDescription} onChange={(e) => setNewProduct({...newProduct, shortDescription: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-semibold" placeholder="Brief tagline..."/>
                 </div>
 
                 <div>
@@ -838,7 +857,7 @@ export default function Products() {
 
               <div className="pt-4 flex gap-4">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-2xl transition-all shadow-sm">Cancel</button>
-                <button type="submit" disabled={isLoading} className="flex-1 py-3.5 font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+                <button type="submit" onClick={handleAddProduct} disabled={isLoading} className="flex-1 py-3.5 font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
                   {isLoading ? <Loader2 size={16} className="animate-spin" /> : "Save Product"}
                 </button>
               </div>
@@ -860,37 +879,6 @@ export default function Products() {
             
             <form onSubmit={handleEditProductSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
               
-              {/* Product Images Gallery */}
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Edit Image URLs (One per line)</label>
-                <textarea
-                  rows="3"
-                  value={editingProduct.productImage.join("\n")}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, productImage: e.target.value.split("\n").filter(Boolean) })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:bg-white"
-                  placeholder="Paste Unsplash image URLs (one per line)..."
-                />
-                
-                {/* Images Preview list */}
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {editingProduct.productImage.map((url, idx) => (
-                    <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0">
-                      <img loading="lazy" decoding="async" src={url} alt="" className="w-full h-full object-cover" />
-                      <button 
-                        type="button"
-                        onClick={() => {
-                          const updated = editingProduct.productImage.filter((_, i) => i !== idx);
-                          setEditingProduct({ ...editingProduct, productImage: updated });
-                        }}
-                        className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-0.5"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* Form Details */}
               <div className="space-y-4">
                 <div>
@@ -898,7 +886,7 @@ export default function Products() {
                   <input required type="text" value={editingProduct.productName} onChange={(e) => setEditingProduct({...editingProduct, productName: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-slate-900/10 font-semibold" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">SKU (Read Only)</label>
                     <input type="text" value={editingProduct.productSkuId} disabled className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold uppercase text-slate-400 cursor-not-allowed" />
@@ -909,7 +897,7 @@ export default function Products() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Category</label>
                     <select value={editingProduct.categoryName} onChange={(e) => setEditingProduct({...editingProduct, categoryName: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-slate-900/10 font-semibold">
@@ -930,7 +918,7 @@ export default function Products() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Barcode</label>
                     <input type="text" value={editingProduct.barcode || ''} onChange={(e) => setEditingProduct({...editingProduct, barcode: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-slate-900/10 font-mono" />
@@ -951,7 +939,7 @@ export default function Products() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">MRP Price (₹)</label>
                     <input required type="number" min="0" step="0.01" value={editingProduct.attribute.mrpPrice} onChange={(e) => setEditingProduct({
@@ -1109,7 +1097,7 @@ export default function Products() {
               {/* Spec sheet */}
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Audit & Metadata Specifications</h4>
-                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm">
                   <div className="space-y-2.5">
                     <div className="flex justify-between border-b border-slate-200/50 pb-1.5">
                       <span className="text-slate-500 font-medium">Category:</span>

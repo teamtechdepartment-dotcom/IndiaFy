@@ -204,7 +204,7 @@ export default function OrderSuccessPage() {
           </section>
 
           {/* ACTIONS */}
-          <div className="grid grid-cols-2 gap-4 pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
             <button
               onClick={() => navigate(`/track-order/${orderId || "demo"}`)}
               className="py-5 bg-white shadow-sm border border-slate-200 text-slate-900 rounded-3xl font-black uppercase tracking-widest text-xs shadow-xl hover:bg-slate-100 border border-slate-200 transition-all"

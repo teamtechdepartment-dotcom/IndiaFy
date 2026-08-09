@@ -124,7 +124,14 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
   const { clearActiveNode, activeNode: fullActiveNode } = useNodeStore();
 
   const isVerified = fullActiveNode?.isVerified !== false;
-  const currentPathSegment = location.pathname.split("/").pop();
+  const pathParts = location.pathname.split("/").filter(Boolean);
+  // For paths like /seller/dashboard/:nodeId/video-verification/:id
+  // the second-to-last segment is "video-verification", not the last (which is the id)
+  const currentPathSegment = pathParts[pathParts.length - 1];
+  const currentSection = pathParts[pathParts.length - 2]; // e.g., "video-verification"
+  // Allow video-verification pages (lock guard would wrongly block them since last segment is an order ID)
+  const isVideoVerificationPage = currentSection === "video-verification";
+
 
   const activeNodeId = fullActiveNode?._id?.toString();
   const notifCount = useNotificationStore((state) => activeNodeId ? (state.unreadCounts[activeNodeId] || 0) : 0);
@@ -212,17 +219,21 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
         </div>
 
         {/* BACK TO HUB */}
-        <Link
-          to="/seller-hub"
-          onClick={() => setSidebarOpen(false)}
-          className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors group"
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            setSidebarOpen(false);
+            navigate("/seller-hub?select=true", { state: { noRedirect: true } });
+          }}
+          className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors group cursor-pointer w-full py-1.5 px-2 rounded-xl hover:bg-slate-100"
         >
           <ArrowLeft
-            size={12}
+            size={14}
             className="group-hover:-translate-x-0.5 transition-transform"
           />
           All Nodes (Seller Hub)
-        </Link>
+        </button>
       </div>
 
       {/* NAV LINKS */}
@@ -263,23 +274,22 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
         })}
       </nav>
 
-      {/* SELLER INFO + LOGOUT */}
-      <div className="p-4 border-t border-slate-100 mt-auto">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-900 truncate">
-              {user?.firstName || "Seller"}
-            </p>
-            <p className="text-xs text-slate-400 truncate">{user?.email}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors shrink-0"
-          >
-            <LogOut size={18} />
-          </button>
-        </div>
+      {/* FOOTER ACTION (Log Out) */}
+      <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+        <button
+          onClick={() => {
+            logout();
+            logoutCustomer();
+            setSidebarOpen(false);
+            navigate("/seller/login");
+          }}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-2xl font-bold text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-all border border-transparent hover:border-red-100"
+        >
+          <span className="flex items-center gap-2.5">
+            <LogOut size={16} />
+            Log Out
+          </span>
+        </button>
       </div>
 
       {/* 🔔 Notification Drawer (portal-like, renders at layout level) */}
@@ -293,29 +303,25 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800 antialiased selection:bg-slate-900 selection:text-white">
       {/* -------------------------------------------------------
           DESKTOP SIDEBAR
       ------------------------------------------------------- */}
-      <aside className="w-72 bg-white border-r border-slate-200 hidden lg:flex flex-col shrink-0 sticky top-0 h-screen">
+      <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-slate-200 sticky top-0 h-screen z-40">
         <SidebarContent />
       </aside>
 
       {/* -------------------------------------------------------
-          MOBILE SIDEBAR OVERLAY
+          MOBILE SIDEBAR (Drawer overlay)
       ------------------------------------------------------- */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
-        >
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        </div>
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 lg:hidden transition-opacity"
+        />
       )}
-
-      {/* MOBILE SIDEBAR DRAWER */}
       <aside
-        className={`fixed top-0 left-0 h-full w-72 bg-white border-r border-slate-200 z-50 flex flex-col transform transition-transform duration-300 ease-out lg:hidden ${
+        className={`fixed top-0 bottom-0 left-0 w-72 bg-white z-50 lg:hidden transform transition-transform duration-300 ease-in-out shadow-2xl flex flex-col ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -335,6 +341,15 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
               className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
             >
               <Menu size={20} />
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/seller-hub?select=true", { state: { noRedirect: true } })}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-2.5 py-1.5 rounded-xl transition-all border border-slate-200 shadow-sm cursor-pointer"
+              title="Return to Seller Hub"
+            >
+              <ArrowLeft size={14} />
+              <span className="hidden sm:inline">Seller Hub</span>
             </button>
             <div className="hidden lg:block">
               <h2 className="text-base font-black text-slate-900">
@@ -365,27 +380,12 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
                 Online
               </span>
             )}
-
-            {/* 🔔 Notification Bell */}
-            <button
-              id="seller-notification-bell"
-              onClick={toggleDrawer}
-              className="relative p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-              aria-label={`${notifCount} unread order notifications`}
-            >
-              <Bell size={20} />
-              {notifCount > 0 && (
-                <span className="absolute -top-1 -right-1">
-                  <OrderNotificationBadge count={notifCount} />
-                </span>
-              )}
-            </button>
           </div>
         </header>
 
         {/* PAGE CONTENT */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {!isVerified && currentPathSegment !== "dashboard" ? (
+          {!isVerified && currentPathSegment !== "dashboard" && !isVideoVerificationPage ? (
             <div className="min-h-[60vh] flex items-center justify-center p-6">
               <div className="max-w-md w-full bg-white/70 backdrop-blur-xl border border-slate-200 p-8 rounded-[2rem] shadow-xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
                 <div className="w-16 h-16 bg-amber-50/50 rounded-2xl flex items-center justify-center mx-auto shadow-sm">

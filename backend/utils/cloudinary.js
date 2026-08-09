@@ -100,6 +100,32 @@ export const uploadBuffer = async (buffer, mimetype, folder = "seller-documents"
  * Deletes an image from Cloudinary using its public ID.
  * @param {string} publicId - The public ID of the image
  */
+
+export const uploadVideoBuffer = async (
+    buffer,
+    folder = "indiafy_videos"
+) => {
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME?.trim(),
+        api_key: process.env.CLOUDINARY_API_KEY?.trim(),
+        api_secret: process.env.CLOUDINARY_API_SECRET?.trim(),
+    });
+
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder,
+                resource_type: "video",
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+
+        stream.end(buffer);
+    });
+};
 export const deleteFromCloudinary = async (publicId) => {
     try {
         if (!publicId) return;

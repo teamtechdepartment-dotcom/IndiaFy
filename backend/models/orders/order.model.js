@@ -22,7 +22,7 @@ const orderItemSchema = new mongoose.Schema({
     },
     nodeId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "sellerNode",
+        ref: "SellerNode",
         required: false
     },
     nodeType: {

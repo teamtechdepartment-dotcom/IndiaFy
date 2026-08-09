@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-undef, no-empty */
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useCartStore } from "../../store/cartStore";
 import {
   Trash2,
@@ -14,6 +14,13 @@ import {
   Clock,
   ArrowRight,
   BadgeCheck,
+  ChevronRight,
+  Zap,
+  ShoppingBasket,
+  Laptop,
+  Sparkles,
+  Bookmark,
+  Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -23,11 +30,12 @@ import { Skeleton } from "../../components/ui/Skeleton";
 
 const fmt = (n) => "₹" + Number(n).toLocaleString("en-IN");
 
-const verticalRoutes = {
-  "E-Commerce":      "/category/ecommerce",
-  "Quick Commerce":  "/quick-commerce",
-  "Wholesale":       "/wholesale",
-};
+const QUICK_CATEGORIES = [
+  { name: "Groceries", path: "/category/groceries", icon: ShoppingBasket, color: "text-emerald-600 bg-emerald-50" },
+  { name: "Electronics", path: "/category/electronics", icon: Laptop, color: "text-blue-600 bg-blue-50" },
+  { name: "Beauty", path: "/category/beauty", icon: Sparkles, color: "text-pink-600 bg-pink-50" },
+  { name: "Under 30-Min", path: "/category/quick-commerce", icon: Zap, color: "text-amber-600 bg-amber-50" },
+];
 
 export default function CartPage() {
   const { cartItems, totalPrice, isLoading, fetchCart, addToCart, removeFromCart } = useCartStore();
@@ -39,7 +47,6 @@ export default function CartPage() {
   }, [fetchCart]);
 
   const updateQty = (id, delta) => addToCart(id, delta);
-
   const removeItem = (id) => removeFromCart(id);
 
   const saveForLater = (item) => {
@@ -58,49 +65,66 @@ export default function CartPage() {
   const totalPayable = subtotal + gstEstimate;
 
   return (
-    <div className="bg-brand-background min-h-screen">
+    <div className="bg-[#f8fafc] min-h-screen font-sans selection:bg-emerald-100 selection:text-emerald-900">
       <WebsiteNavbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-24 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-[130px] lg:pt-[140px] pb-24 relative z-10">
 
         {/* Header */}
         {cartItems.length > 0 || saved.length > 0 ? (
-          <div className="mb-6 mt-2 flex items-center justify-between">
-            <h1 className="text-xl font-bold text-brand-text-primary">
-              Shopping Cart ({cartItems.length})
-            </h1>
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                My Shopping Cart
+              </h1>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} ready for checkout
+              </p>
+            </div>
+            
+            <Link 
+              to="/" 
+              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 hover:underline"
+            >
+              Continue Shopping <ArrowRight size={14} />
+            </Link>
           </div>
         ) : null}
 
         {isLoading ? (
           <div className="grid lg:grid-cols-12 gap-6 items-start mt-4">
             <div className="lg:col-span-8 space-y-4">
-              <Skeleton className="w-full h-24 rounded-[2rem]" />
-              <Skeleton className="w-full h-40 rounded-[2.5rem]" />
-              <Skeleton className="w-full h-40 rounded-[2.5rem]" />
+              <Skeleton className="w-full h-20 rounded-2xl" />
+              <Skeleton className="w-full h-40 rounded-2xl" />
+              <Skeleton className="w-full h-40 rounded-2xl" />
             </div>
             <aside className="lg:col-span-4 space-y-6">
-              <Skeleton className="w-full h-96 rounded-[2.5rem]" />
-              <Skeleton className="w-full h-32 rounded-[2rem]" />
+              <Skeleton className="w-full h-80 rounded-2xl" />
             </aside>
           </div>
         ) : cartItems.length === 0 && saved.length === 0 ? (
           <EmptyState navigate={navigate} />
         ) : (
-          <div className="grid lg:grid-cols-12 gap-6 items-start mt-2">
+          <div className="grid lg:grid-cols-12 gap-6 items-start">
+            
             {/* Left: Cart Items */}
-            <div className="lg:col-span-8 space-y-8">
+            <div className="lg:col-span-8 space-y-6">
 
               {/* Delivery Promise Banner */}
-              <div className="bg-white shadow-sm border border-brand-border rounded-md p-4 text-brand-text-primary flex items-center gap-4">
-                <Truck size={24} className="text-brand-primary" />
-                <div>
-                  <p className="text-sm font-semibold text-brand-primary uppercase">
-                    Guaranteed Delivery
-                  </p>
-                  <p className="text-brand-text-secondary text-xs mt-0.5">
-                    Estimated delivery to your sector: <span className="text-brand-text-primary font-bold">15-25 Mins</span>
-                  </p>
+              <div className="bg-gradient-to-r from-emerald-900 to-teal-800 text-white rounded-2xl p-4 sm:p-5 shadow-md flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
+                    <Truck size={22} className="text-emerald-300" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold tracking-wide">Guaranteed Fast Express Delivery</p>
+                      <span className="bg-emerald-500/30 text-emerald-200 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-400/30">15-25 MINS</span>
+                    </div>
+                    <p className="text-emerald-100/80 text-xs mt-0.5">
+                      Items in your cart are allocated from nearby verified seller nodes.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -110,133 +134,147 @@ export default function CartPage() {
                   {cartItems.map((item) => (
                     <motion.div
                       key={item.productId?._id || Math.random()}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -20 }}
-                      className="group bg-white rounded-md p-4 sm:p-6 border border-brand-border shadow-sm mb-4"
+                      className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs hover:border-slate-300 transition-all"
                     >
-                      <div className="flex flex-col sm:flex-row gap-6">
+                      <div className="flex flex-col sm:flex-row gap-5">
 
+                        {/* Product Thumbnail */}
                         <div
                           onClick={() => navigate(`/product/${item.productId?._id}`)}
-                          className="w-full sm:w-32 aspect-square rounded overflow-hidden bg-white shrink-0 cursor-pointer p-1"
+                          className="w-full sm:w-28 aspect-square rounded-xl overflow-hidden bg-slate-50 shrink-0 cursor-pointer p-2 border border-slate-100 flex items-center justify-center group"
                         >
                           <img loading="lazy" decoding="async"
-                            src={item.productId?.productImage?.[0] || "https://placehold.co/400x400?text=No+Image"}
-                            className="w-full h-full object-contain"
+                            src={item.productId?.productImage?.[0] || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop"}
+                            className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
                             alt={item.productId?.name || "Product"}
                           />
                         </div>
 
-                        <div className="flex-1 flex flex-col justify-between py-1">
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-start">
-                              <h3
-                                onClick={() => navigate(`/product/${item.productId?._id}`)}
-                                className="text-base font-semibold text-brand-text-primary hover:text-brand-primary cursor-pointer line-clamp-2"
-                              >
-                                {item.productId?.name}
-                              </h3>
+                        {/* Product Info */}
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-start gap-4">
+                              <div>
+                                <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-0.5">
+                                  {item.productId?.brand || "Indiafy Store"}
+                                </span>
+                                <h3
+                                  onClick={() => navigate(`/product/${item.productId?._id}`)}
+                                  className="text-base font-bold text-slate-900 hover:text-emerald-700 cursor-pointer line-clamp-2 leading-snug"
+                                >
+                                  {item.productId?.name || item.productId?.productName || "Product Item"}
+                                </h3>
+                              </div>
+
                               <button
                                 onClick={() => removeItem(item.productId?._id)}
-                                className="text-brand-text-secondary hover:text-red-500 transition-colors ml-4"
+                                className="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition-all shrink-0"
+                                title="Remove item"
                               >
                                 <Trash2 size={18} />
                               </button>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
                               <button
                                 onClick={() => navigate(`/store/${item.productId?.sellerId}`)}
-                                className="flex items-center gap-1 text-[11px] font-medium text-brand-text-secondary bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-sm"
+                                className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg hover:bg-slate-200 transition-colors"
                               >
-                                Seller: {item.productId?.seller || "Indiafy"}
+                                Seller: <span className="text-slate-900">{item.productId?.seller || "Verified Seller"}</span>
                               </button>
+
                               {item.isWholesale && (
-                                <span className="text-[11px] font-semibold text-brand-accent bg-orange-50 px-2 py-0.5 rounded-sm border border-orange-100">
-                                  Wholesale
+                                <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                  WHOLESALE B2B
                                 </span>
                               )}
                             </div>
+
                             {item.isWholesale && item.productId?.minimumOrderQty > 1 && (
-                              <p className="text-xs text-brand-text-secondary mt-1">
-                                MOQ: {item.productId.minimumOrderQty} Units
+                              <p className="text-xs text-amber-700 font-semibold mt-1">
+                                Minimum Order Quantity: {item.productId.minimumOrderQty} Units
                               </p>
                             )}
                           </div>
 
-                          <div className="flex items-end justify-between mt-4">
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2">
-                                <span className="text-xl font-bold text-brand-text-primary">
-                                  {fmt(item.price)}
-                                </span>
-                              </div>
+                          {/* Price & Quantity Controls */}
+                          <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                            <div>
+                              <span className="text-xl font-extrabold text-slate-900">
+                                {fmt(item.price)}
+                              </span>
                               <button
                                 onClick={() => saveForLater(item)}
-                                className="flex items-center gap-1 text-sm font-semibold text-brand-text-primary hover:text-brand-primary transition-colors"
+                                className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors mt-0.5"
                               >
-                                SAVE FOR LATER
+                                <Bookmark size={12} /> Save for later
                               </button>
                             </div>
 
-                            <div className="flex items-center bg-white border border-brand-border rounded-md overflow-hidden">
+                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl overflow-hidden p-0.5 shadow-xs">
                               <button
                                 onClick={() => updateQty(item.productId?._id, -1)}
-                                className="p-2 w-9 h-9 flex items-center justify-center hover:bg-gray-50 text-brand-text-primary transition-colors"
+                                className="w-8 h-8 flex items-center justify-center hover:bg-white text-slate-700 rounded-lg transition-all active:scale-95"
                               >
                                 <Minus size={14} />
                               </button>
-                              <div className="w-12 h-9 flex items-center justify-center border-x border-brand-border font-medium text-sm text-brand-text-primary bg-white">
+                              <div className="w-10 h-8 flex items-center justify-center font-extrabold text-xs text-slate-900">
                                 {item.quantity}
                               </div>
                               <button
                                 onClick={() => updateQty(item.productId?._id, 1)}
-                                className="p-2 w-9 h-9 flex items-center justify-center hover:bg-gray-50 text-brand-text-primary transition-colors"
+                                className="w-8 h-8 flex items-center justify-center hover:bg-white text-slate-700 rounded-lg transition-all active:scale-95"
                               >
                                 <Plus size={14} />
                               </button>
                             </div>
                           </div>
                         </div>
+
                       </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
               </div>
 
-              {/* ✅ Saved for Later section */}
+              {/* Saved for Later Section */}
               {saved.length > 0 && (
-                <div className="mt-8 bg-white p-6 rounded-md shadow-sm border border-brand-border">
-                  <h3 className="text-base font-bold text-brand-text-primary mb-4 border-b border-brand-border pb-3">
-                    Saved for Later ({saved.length})
+                <div className="mt-8 bg-white p-5 rounded-2xl shadow-xs border border-slate-200">
+                  <h3 className="text-sm font-extrabold text-slate-900 mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <Bookmark size={16} className="text-emerald-600" /> Saved for Later ({saved.length})
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {saved.map((item) => (
                       <div
                         key={item.productId?._id}
-                        className="flex items-center gap-4"
+                        className="flex items-center justify-between gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100"
                       >
-                        <div
-                          onClick={() => navigate(`/product/${item.productId?._id}`)}
-                          className="w-16 h-16 rounded overflow-hidden shrink-0 cursor-pointer border border-brand-border p-1"
-                        >
-                          <img loading="lazy" decoding="async" src={item.productId?.productImage?.[0] || "https://placehold.co/400x400?text=No+Image"} className="w-full h-full object-contain" alt={item.productId?.name} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
                             onClick={() => navigate(`/product/${item.productId?._id}`)}
-                            className="text-sm font-semibold text-brand-text-primary truncate cursor-pointer hover:text-brand-primary"
+                            className="w-14 h-14 rounded-lg overflow-hidden bg-white shrink-0 cursor-pointer border border-slate-200 p-1 flex items-center justify-center"
                           >
-                            {item.productId?.name}
-                          </p>
-                          <p className="text-sm font-bold text-brand-text-primary mt-1">{fmt(item.price)}</p>
+                            <img loading="lazy" decoding="async" src={item.productId?.productImage?.[0] || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop"} className="max-w-full max-h-full object-contain" alt={item.productId?.name} />
+                          </div>
+                          <div className="min-w-0">
+                            <p
+                              onClick={() => navigate(`/product/${item.productId?._id}`)}
+                              className="text-xs font-bold text-slate-900 truncate cursor-pointer hover:text-emerald-700"
+                            >
+                              {item.productId?.name}
+                            </p>
+                            <p className="text-xs font-black text-slate-900 mt-0.5">{fmt(item.price)}</p>
+                          </div>
                         </div>
+
                         <button
                           onClick={() => moveToCart(item)}
-                          className="text-sm font-semibold text-brand-primary border border-brand-border px-4 py-2 rounded-sm hover:bg-blue-50 transition-colors whitespace-nowrap"
+                          className="text-xs font-bold text-emerald-700 bg-white border border-emerald-200 px-3.5 py-2 rounded-xl hover:bg-emerald-50 transition-colors shrink-0 shadow-xs"
                         >
-                          MOVE TO CART
+                          Move to Cart
                         </button>
                       </div>
                     ))}
@@ -247,58 +285,83 @@ export default function CartPage() {
 
             {/* Right: Summary */}
             <aside className="lg:col-span-4">
-              <div className="sticky top-24 space-y-4">
-                <div className="bg-white shadow-sm border border-brand-border rounded-md p-6">
-                  <h2 className="text-base font-bold uppercase text-brand-text-secondary border-b border-brand-border pb-4 mb-4">
-                    Price Details
+              <div className="sticky top-[140px] space-y-4">
+                
+                {/* Price Details Card */}
+                <div className="bg-white shadow-xs border border-slate-200 rounded-2xl p-6">
+                  <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+                    <span>Payment Summary</span>
+                    <Lock size={14} className="text-slate-400" />
                   </h2>
 
-                  <div className="space-y-4 mb-6">
-                    <div className="flex justify-between text-brand-text-primary text-sm">
-                      <span>Price ({cartItems.length} items)</span>
-                      <span>{fmt(subtotal)}</span>
+                  <div className="space-y-3 mb-6 text-xs font-medium text-slate-600">
+                    <div className="flex justify-between items-center">
+                      <span>Items Price ({cartItems.length})</span>
+                      <span className="font-bold text-slate-900">{fmt(subtotal)}</span>
                     </div>
                     {gstEstimate > 0 && (
-                      <div className="flex justify-between text-brand-text-primary text-sm">
-                        <span>GST</span>
-                        <span>{fmt(gstEstimate)}</span>
+                      <div className="flex justify-between items-center">
+                        <span>GST & Taxes</span>
+                        <span className="font-bold text-slate-900">{fmt(gstEstimate)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-brand-text-primary text-sm">
-                      <span>Delivery Charges</span>
-                      <span className="text-green-600 font-medium">Calculated Next</span>
+                    <div className="flex justify-between items-center">
+                      <span>Delivery Fee</span>
+                      <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md">FREE Express</span>
                     </div>
-                    <div className="flex justify-between text-brand-text-primary text-sm">
-                      <span>Discount</span>
-                      <span className="text-green-600 font-medium">-{fmt(totalSavings)}</span>
+                    <div className="flex justify-between items-center">
+                      <span>Discount Savings</span>
+                      <span className="text-emerald-600 font-bold">-{fmt(totalSavings)}</span>
                     </div>
                   </div>
 
-                  <div className="py-4 border-t border-dashed border-brand-border flex justify-between items-center mb-6">
-                    <span className="text-lg font-bold text-brand-text-primary">Total Amount</span>
-                    <span className="text-lg font-bold text-brand-text-primary">{fmt(totalPayable)}</span>
+                  <div className="py-4 border-t border-slate-100 flex justify-between items-center mb-6">
+                    <div>
+                      <span className="text-sm font-extrabold text-slate-900 block">Total Payable Amount</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">Inclusive of all taxes</span>
+                    </div>
+                    <span className="text-2xl font-black text-slate-900">{fmt(totalPayable)}</span>
                   </div>
 
                   <button
                     onClick={() => navigate("/checkout")}
                     disabled={cartItems.length === 0}
-                    className="w-full bg-brand-accent text-white py-3.5 rounded-sm font-bold text-base hover:bg-[#e05a18] transition-colors shadow-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-extrabold text-sm hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    PLACE ORDER
+                    Proceed to Checkout <ArrowRight size={16} />
                   </button>
                 </div>
 
-                <div className="p-4 border border-brand-border rounded-md flex items-center gap-3 bg-white text-brand-text-secondary">
-                  <ShieldCheck size={28} className="shrink-0" />
+                {/* Trust Badges */}
+                <div className="p-4 border border-slate-200 rounded-2xl flex items-center gap-3 bg-white text-slate-600 shadow-xs">
+                  <ShieldCheck size={26} className="text-emerald-600 shrink-0" />
                   <p className="text-xs font-medium leading-relaxed">
-                    Safe and secure payments. Easy returns. 100% Authentic products.
+                    Safe & SSL Encrypted Checkout. Guaranteed Authentic Products from Verified Local Sellers.
                   </p>
                 </div>
               </div>
             </aside>
+
           </div>
         )}
+
       </main>
+
+      {/* MOBILE STICKY CHECKOUT BAR */}
+      {cartItems.length > 0 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-40 shadow-2xl flex items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Amount</span>
+            <span className="text-xl font-black text-slate-900">{fmt(totalPayable)}</span>
+          </div>
+          <button
+            onClick={() => navigate("/checkout")}
+            className="flex-1 max-w-[200px] bg-emerald-600 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+          >
+            Checkout <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
 
       <Footer />
     </div>
@@ -306,26 +369,60 @@ export default function CartPage() {
 }
 
 const EmptyState = ({ navigate }) => (
-  <div className="max-w-5xl mx-auto bg-white rounded-md shadow-sm border border-brand-border overflow-hidden mt-4">
-    <div className="px-6 py-4 border-b border-brand-border bg-white">
-      <h1 className="text-lg font-bold text-brand-text-primary">My Cart</h1>
+  <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden my-4">
+    <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+      <h1 className="text-base font-extrabold text-slate-900">My Shopping Cart</h1>
+      <span className="text-xs font-bold text-slate-400">0 Items</span>
     </div>
-    <div className="py-20 text-center">
-      <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-        <ShoppingBag size={40} className="text-brand-primary" />
+
+    <div className="py-16 px-6 text-center">
+      
+      {/* Floating Animated Cart Icon */}
+      <div className="relative w-24 h-24 mx-auto mb-6">
+        <div className="absolute inset-0 bg-emerald-100 rounded-full animate-ping opacity-25"></div>
+        <div className="relative w-24 h-24 bg-gradient-to-tr from-emerald-50 to-teal-50 border border-emerald-200/60 rounded-full flex items-center justify-center shadow-inner">
+          <ShoppingBag size={40} className="text-emerald-600" />
+        </div>
       </div>
-      <h2 className="text-xl font-semibold text-brand-text-primary mb-2">
-        Your cart is empty!
+
+      <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">
+        Your cart is currently empty!
       </h2>
-      <p className="text-sm text-brand-text-secondary mb-6">
-        Add items to it now.
+      <p className="text-xs text-slate-500 max-w-sm mx-auto mb-8 font-medium leading-relaxed">
+        Explore thousands of products from local sellers, quick commerce hubs, and wholesale suppliers.
       </p>
+
       <button
         onClick={() => navigate("/")}
-        className="px-16 py-3 bg-brand-primary text-white rounded-sm font-semibold text-sm hover:bg-brand-primary/90 transition-colors shadow-sm"
+        className="px-10 py-3.5 bg-emerald-600 text-white rounded-xl font-extrabold text-xs uppercase tracking-wider hover:bg-emerald-700 transition-all shadow-md active:scale-98 cursor-pointer"
       >
-        Shop now
+        Explore Products Now
       </button>
+
+      {/* QUICK CATEGORY SHORTCUTS */}
+      <div className="mt-12 pt-8 border-t border-slate-100 max-w-xl mx-auto">
+        <p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-4">
+          Popular Categories to Browse
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {QUICK_CATEGORIES.map((cat) => {
+            const IconComp = cat.icon;
+            return (
+              <button
+                key={cat.name}
+                onClick={() => navigate(cat.path)}
+                className="flex flex-col items-center p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group"
+              >
+                <div className={`w-9 h-9 rounded-lg ${cat.color} flex items-center justify-center mb-2 group-hover:scale-110 transition-transform`}>
+                  <IconComp size={18} />
+                </div>
+                <span className="text-xs font-bold text-slate-800 group-hover:text-emerald-700">{cat.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
     </div>
   </div>
 );

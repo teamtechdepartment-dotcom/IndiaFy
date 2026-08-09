@@ -24,7 +24,8 @@ function ComparisonSection() {
           </p>
         </div>
 
-        <div className="max-w-5xl mx-auto bg-brand-background border border-brand-border rounded-[2rem] overflow-hidden shadow-lg">
+        <div className="max-w-5xl mx-auto overflow-x-auto -mx-4 sm:mx-0">
+          <div className="bg-brand-background border border-brand-border rounded-[2rem] overflow-hidden shadow-lg min-w-[480px]">
           {/* Table Header */}
           <div className="grid grid-cols-4 bg-white border-b border-brand-border p-6 text-center items-center">
             <div className="text-left">
@@ -68,6 +69,7 @@ function ComparisonSection() {
                Create Free Account
              </button>
           </div>
+        </div>
         </div>
 
       </div>

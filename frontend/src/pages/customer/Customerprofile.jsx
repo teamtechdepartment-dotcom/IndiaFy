@@ -398,9 +398,15 @@ export default function CustomerProfile() {
                                          <ShieldCheck size={16} className="text-emerald-500" />
                                          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Status</p>
                                       </div>
-                                      <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest rounded-full border border-emerald-500/20">
-                                         {order.status}
-                                      </span>
+                                       <span className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest rounded-full border ${
+                                          order.status === "Cancelled" 
+                                            ? "bg-red-500/10 text-red-500 border-red-500/20"
+                                            : order.status === "Accepted"
+                                              ? "bg-blue-500/10 text-blue-600 border-blue-500/20" 
+                                              : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                       }`}>
+                                          {order.status === "Cancelled" ? "Rejected / Cancelled" : order.status}
+                                       </span>
                                    </div>
                                    {order.packingVideoUrl && (
                                      <button 

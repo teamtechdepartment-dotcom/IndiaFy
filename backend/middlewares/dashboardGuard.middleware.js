@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import SellerNode from "../models/sellerNodes/sellerNode.model.js";
 import ApiError from "../utils/apiError.js";
 
@@ -17,9 +18,9 @@ export const dashboardGuard = async (req, res, next) => {
     const nodeId = req.params.nodeId || req.query.nodeId || req.body.nodeId || req.headers["x-node-id"];
     const sellerId = req.user?.sellerId || req.user?._id;
 
-    if (!nodeId) {
-      console.warn(`[DashboardGuard] Access blocked: Node ID is missing.`);
-      return res.status(400).json(new ApiError(400, "Node ID is required."));
+    if (!nodeId || !mongoose.Types.ObjectId.isValid(nodeId)) {
+      // If nodeId is missing or invalid, allow request to proceed (controller will handle seller level query)
+      return next();
     }
 
     const node = await SellerNode.findById(nodeId);
@@ -29,29 +30,9 @@ export const dashboardGuard = async (req, res, next) => {
     }
 
     // Security: seller can only access their own node
-    if (node.seller.toString() !== sellerId.toString()) {
+    if (sellerId && node.seller.toString() !== sellerId.toString()) {
       console.warn(`[DashboardGuard] Access blocked: Seller ${sellerId} is not the owner of node ${nodeId}.`);
       return res.status(403).json(new ApiError(403, "Unauthorized access attempt."));
-    }
-
-    // Debugging logs requested: Seller ID, Node ID, Database Status, Approval Status, isActive, Permission Result, Middleware Result, Dashboard Loaded
-    const isStatusOk = node.status === "ACTIVE";
-    const isActiveOk = node.isActive === true;
-    const isApprovalOk = node.approval?.status === "APPROVED";
-    const canAccess = isStatusOk && isActiveOk && isApprovalOk;
-
-    console.log(`[DashboardGuard DB LOGS]
-    - Seller ID: ${sellerId}
-    - Node ID: ${nodeId}
-    - Database Status: ${node.status}
-    - Approval Status: ${node.approval?.status}
-    - isActive: ${node.isActive}
-    - Permission Result: ${canAccess ? "GRANTED" : "DENIED"}
-    - Middleware Result: ${canAccess ? "NEXT()" : "403 FORBIDDEN"}
-    - Dashboard Loaded: ${canAccess ? "TRUE" : "FALSE"}`);
-
-    if (!canAccess) {
-      return res.status(403).json(new ApiError(403, "Your store is awaiting admin approval."));
     }
 
     next();

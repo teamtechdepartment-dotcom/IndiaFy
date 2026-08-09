@@ -23,8 +23,8 @@ const profileSchema = new Schema({
     },
     contact: {
         type: Number,
-        required: false,
-        default: 0
+        required: true,
+        unique: true
     },
     address: [{
         street: {

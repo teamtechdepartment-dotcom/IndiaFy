@@ -47,7 +47,7 @@ function Hero() {
   };
 
   return (
-    <div className="relative w-full max-w-[1600px] mx-auto mt-[112px] lg:mt-[112px] bg-brand-background px-2 sm:px-4 py-2 group">
+    <div className="relative w-full max-w-[1600px] mx-auto mt-[104px] md:mt-[68px] lg:mt-[116px] bg-brand-background px-2 sm:px-4 py-2 group">
       {/* Carousel Container */}
       <div className="relative h-[200px] sm:h-[300px] md:h-[400px] lg:h-[450px] w-full overflow-hidden rounded-md shadow-sm bg-gray-200">
         <AnimatePresence initial={false} mode="wait">

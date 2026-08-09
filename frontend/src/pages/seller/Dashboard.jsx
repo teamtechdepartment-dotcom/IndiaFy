@@ -125,8 +125,8 @@ export default function Dashboard() {
             No Active Store Found
           </h2>
           <p className="text-slate-500 mb-6">Please activate a seller node.</p>
-          <Link to="/seller-hub">
-            <button className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all">
+          <Link to="/seller-hub?select=true">
+            <button className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all cursor-pointer">
               Go To Seller Hub
             </button>
           </Link>
@@ -181,14 +181,14 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <Link to="orders">
-              <button className="px-5 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl font-bold text-sm text-slate-700 transition-all flex items-center gap-2">
+            <Link to={nodeId ? `/seller/dashboard/${nodeId}/orders` : "../orders"}>
+              <button className="px-5 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl font-bold text-sm text-slate-700 transition-all flex items-center gap-2 cursor-pointer">
                 <ShoppingBag size={16} />
                 View Orders
               </button>
             </Link>
-            <Link to="products">
-              <button className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 shadow-md hover:shadow-lg text-white rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+            <Link to={nodeId ? `/seller/dashboard/${nodeId}/products` : "../products"}>
+              <button className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 shadow-md hover:shadow-lg text-white rounded-xl font-bold text-sm transition-all flex items-center gap-2 cursor-pointer">
                 <Package size={16} />
                 Manage Products
               </button>

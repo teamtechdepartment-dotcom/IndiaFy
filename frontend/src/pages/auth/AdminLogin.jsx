@@ -231,12 +231,12 @@ export default function AdminLogin() {
       </div>
 
       {/* ── MAIN SPLIT WINDOW WRAPPER ──────────────────────────────── */}
-      <div className="w-full max-w-7xl mx-auto p-0 sm:p-6 lg:p-8 relative z-10 h-screen sm:h-auto">
+      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-screen sm:min-h-[750px] shadow-none sm:shadow-2xl rounded-none sm:rounded-[32px] border-0 sm:border border-slate-200/60 dark:border-slate-800/40 bg-white/60 dark:bg-slate-950/65 backdrop-blur-2xl"
+          className="grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-[750px] shadow-2xl rounded-[32px] border border-slate-200/60 dark:border-slate-800/40 bg-white/60 dark:bg-slate-950/65 backdrop-blur-2xl"
         >
           
           {/* ─── LEFT SIDE — INDIAFY BRAND EXPERIENCE (7 Columns on Large, 6 Columns on Tablet) ─── */}

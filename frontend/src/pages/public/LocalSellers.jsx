@@ -78,7 +78,7 @@ export default function LocalSellers() {
     <div className="bg-[#f8f9fa] min-h-screen font-sans">
       <WebsiteNavbar />
 
-      <main className="pt-24 pb-24">
+      <main className="pt-28 md:pt-24 pb-24">
 
       {/* Background Blobs for Hero Theme */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-0">

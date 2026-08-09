@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import ProductModel from "../../models/products/product.model.js";
 import OrderModel from "../../models/orders/order.model.js";
 import ApiError from "../../utils/apiError.js";
@@ -6,32 +7,31 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { seedDatabase } from "../../services/seeder.service.js";
 import SellerNode from "../../models/sellerNodes/sellerNode.model.js";
 import SellerModel from "../../models/sellers/auth.model.js";
+import { uploadBuffer } from "../../utils/cloudinary.js";
 
 // Helper to get active products from active stores
 const getActiveFilterQuery = async (extraQuery = {}) => {
-    // 1. Find all active sellers
-    const activeSellers = await SellerModel.find({ status: "active" }).select("_id");
-    const sellerIds = activeSellers.map(s => s._id);
-
-    // 2. Find all active nodes of type LOCAL_RETAIL, WHOLESALE_B2B, or QUICK_COMMERCE
-    const activeNodes = await SellerNode.find({
-        status: "ACTIVE",
-        nodeType: { $in: ["LOCAL_RETAIL", "WHOLESALE_B2B", "QUICK_COMMERCE"] }
-    }).select("_id");
-    const nodeIds = activeNodes.map(n => n._id);
-
-    // 3. Build product query
-    return {
+    const filter = {
         ...extraQuery,
-        sellerId: { $in: sellerIds },
-        nodeId: { $in: nodeIds },
-        isActive: true,
-        isDeleted: { $ne: true },
-        $or: [
-            { status: "ACTIVE" },
-            { status: { $exists: false } }
-        ]
+        isDeleted: { $ne: true }
     };
+
+    // Only apply global active seller/node filters if specific seller/node is not requested
+    if (!extraQuery.sellerId) {
+        filter.isActive = true;
+        const activeSellers = await SellerModel.find({ status: { $ne: "blocked" } }).select("_id");
+        filter.sellerId = { $in: activeSellers.map(s => s._id) };
+    }
+
+    if (!extraQuery.nodeId) {
+        const activeNodes = await SellerNode.find({
+            status: "ACTIVE",
+            nodeType: { $in: ["LOCAL_RETAIL", "WHOLESALE_B2B", "QUICK_COMMERCE", "HOME_ESSENTIALS", "ELECTRONICS", "PERSONAL_CARE"] }
+        }).select("_id");
+        filter.nodeId = { $in: activeNodes.map(n => n._id) };
+    }
+
+    return filter;
 };
 
 // Helper to enrich products with reserved and available stock
@@ -80,24 +80,56 @@ export const createProduct = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Only sellers can create products");
     }
 
-    const existingProduct = await ProductModel.findOne({ productSkuId });
+    let finalSku = productSkuId ? String(productSkuId).toUpperCase().trim() : `SKU-${Date.now()}`;
+    const existingProduct = await ProductModel.findOne({ productSkuId: finalSku });
     if (existingProduct) {
-        throw new ApiError(400, "Product with this SKU already exists");
+        finalSku = `${finalSku}-${Math.floor(100 + Math.random() * 900)}`;
     }
 
-    const approvedStoreQuery = nodeId
-        ? { _id: nodeId, seller: req.user._id }
-        : { seller: req.user._id, nodeType };
+    const sellerId = req.user._id || req.user.sellerId;
+    const sellerIdObj = mongoose.Types.ObjectId.isValid(sellerId) ? new mongoose.Types.ObjectId(sellerId) : sellerId;
+    const sellerIdStr = String(sellerId);
+
+    const approvedStoreQuery = {
+        $or: [
+            { seller: sellerIdObj },
+            { seller: sellerIdStr },
+            { "sellerSnapshot.sellerId": sellerIdObj },
+            { "sellerSnapshot.sellerId": sellerIdStr }
+        ]
+    };
+
+    if (nodeId && mongoose.Types.ObjectId.isValid(nodeId)) {
+        approvedStoreQuery._id = new mongoose.Types.ObjectId(nodeId);
+    } else if (nodeId) {
+        approvedStoreQuery._id = String(nodeId);
+    } else if (nodeType) {
+        const normalized = nodeType.toUpperCase().replace(/-/g, "_");
+        approvedStoreQuery.nodeType = { $regex: new RegExp(`^${normalized.replace(/_/g, "[-_]")}$`, "i") };
+    }
+
     const approvedStore = await SellerNode.findOne(approvedStoreQuery);
-    if (!approvedStore || approvedStore.status !== "ACTIVE" || !approvedStore.isActive || !approvedStore.isLive) {
-        throw new ApiError(403, "Store features are locked until admin approval.");
+    if (!approvedStore) {
+        throw new ApiError(400, "No matching store node found for this seller.");
     }
 
-    // Extract image URLs from multer req.files
-    const productImage = req.files ? req.files.map(file => file.path) : [];
+    // Upload multer memory buffers to Cloudinary
+    let productImage = [];
+    if (req.files && req.files.length > 0) {
+        const uploadPromises = req.files.map(file =>
+            uploadBuffer(file.buffer, file.mimetype, "indiafy_products")
+        );
+        productImage = await Promise.all(uploadPromises);
+    }
 
-    if (productImage.length === 0) {
-        throw new ApiError(400, "At least one product image is required");
+    // Also accept pasted image URLs from frontend
+    if (req.body.pastedImages) {
+        try {
+            const pastedUrls = JSON.parse(req.body.pastedImages);
+            if (Array.isArray(pastedUrls)) {
+                productImage = [...productImage, ...pastedUrls];
+            }
+        } catch (_e) { /* ignore parse error */ }
     }
 
     const parsedAttribute = typeof attribute === "string" ? JSON.parse(attribute) : attribute;
@@ -106,19 +138,37 @@ export const createProduct = asyncHandler(async (req, res) => {
         parsedAttribute.quantity = finalStock.toString();
     }
 
+    const normalizeNodeType = (type) => {
+        if (!type) return "HOME_ESSENTIALS";
+        const upper = type.toUpperCase().replace(/-/g, "_");
+        if (upper.includes("HOME")) return "HOME_ESSENTIALS";
+        if (upper.includes("WHOLESALE")) return "WHOLESALE_B2B";
+        if (upper.includes("QUICK")) return "QUICK_COMMERCE";
+        if (upper.includes("LOCAL")) return "LOCAL_RETAIL";
+        if (upper.includes("ELECTRONIC")) return "ELECTRONICS";
+        if (upper.includes("PERSONAL")) return "PERSONAL_CARE";
+        return upper;
+    };
+
+    const validNodeType = normalizeNodeType(nodeType || approvedStore.nodeType);
+
+    const finalNodeId = (nodeId && mongoose.Types.ObjectId.isValid(nodeId))
+        ? new mongoose.Types.ObjectId(nodeId)
+        : approvedStore._id;
+
     const product = new ProductModel({
-        sellerId: req.user._id,
+        sellerId: sellerIdObj,
         subCategoryId,
         categoryName,
         productName,
-        productSkuId,
+        productSkuId: finalSku,
         productImage,
         attribute: parsedAttribute,
         stock: finalStock,
         shortDescription,
         description,
-        nodeType: nodeType || "local",
-        nodeId: nodeId || null
+        nodeType: validNodeType,
+        nodeId: finalNodeId
     });
 
     const savedProduct = await product.save();
@@ -137,24 +187,35 @@ export const getAllProducts = asyncHandler(async (req, res) => {
         query.subCategoryId = subCategory;
     }
 
-    if (sellerId) {
-        query.sellerId = sellerId;
+    if (sellerId && mongoose.Types.ObjectId.isValid(sellerId)) {
+        query.sellerId = { $in: [new mongoose.Types.ObjectId(sellerId), String(sellerId)] };
+    } else if (sellerId) {
+        query.sellerId = String(sellerId);
     }
 
     if (nodeType) {
-        if (nodeType.toLowerCase() === "wholesale") {
+        const normalized = nodeType.toUpperCase().replace(/-/g, "_");
+        if (normalized.includes("WHOLESALE")) {
             query.nodeType = { $in: ["WHOLESALE_B2B", "wholesale"] };
-        } else if (nodeType.toLowerCase() === "quick-commerce" || nodeType.toLowerCase() === "quick_commerce") {
+        } else if (normalized.includes("QUICK")) {
             query.nodeType = { $in: ["QUICK_COMMERCE", "quick-commerce"] };
-        } else if (nodeType.toLowerCase() === "local" || nodeType.toLowerCase() === "local-retail" || nodeType.toLowerCase() === "local_retail") {
-            query.nodeType = { $in: ["LOCAL_RETAIL", "local-retail"] };
+        } else if (normalized.includes("LOCAL")) {
+            query.nodeType = { $in: ["LOCAL_RETAIL", "local-retail", "local"] };
+        } else if (normalized.includes("HOME")) {
+            query.nodeType = { $in: ["HOME_ESSENTIALS", "home-essentials", "home_essentials"] };
+        } else if (normalized.includes("ELECTRONIC")) {
+            query.nodeType = { $in: ["ELECTRONICS", "electronics"] };
+        } else if (normalized.includes("PERSONAL")) {
+            query.nodeType = { $in: ["PERSONAL_CARE", "personal-care", "personal_care"] };
         } else {
-            query.nodeType = nodeType;
+            query.nodeType = { $regex: new RegExp(`^${nodeType.replace(/_/g, "[-_]")}$`, "i") };
         }
     }
 
-    if (nodeId) {
-        query.nodeId = nodeId;
+    if (nodeId && mongoose.Types.ObjectId.isValid(nodeId)) {
+        query.nodeId = { $in: [new mongoose.Types.ObjectId(nodeId), String(nodeId)] };
+    } else if (nodeId) {
+        query.nodeId = String(nodeId);
     }
 
     if (categoryName) {
@@ -163,17 +224,6 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 
     if (search) {
         query.productName = { $regex: search, $options: "i" };
-    }
-
-    // Auto-seed if query is for Sharma Mart and it has no products
-    if (nodeId) {
-        const node = await SellerNode.findById(nodeId);
-        if (node && node.storeName.match(/Sharma Mart/i)) {
-            const count = await ProductModel.countDocuments({ nodeId });
-            if (count === 0) {
-                await seedDatabase(false);
-            }
-        }
     }
 
     const activeQuery = await getActiveFilterQuery(query);
@@ -214,7 +264,8 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
     // Only the seller who created the product (or an admin) can update it
     const userRole = req.user.role?.toLowerCase();
-    if (product.sellerId.toString() !== req.user._id.toString() && userRole !== "admin") {
+    const currentSellerId = req.user._id || req.user.sellerId || req.user.id;
+    if (currentSellerId && product.sellerId && product.sellerId.toString() !== currentSellerId.toString() && userRole !== "admin") {
         throw new ApiError(403, "Not authorized to update this product");
     }
 
@@ -282,7 +333,8 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     }
 
     const userRole = req.user.role?.toLowerCase();
-    if (product.sellerId.toString() !== req.user._id.toString() && userRole !== "admin") {
+    const currentSellerId = req.user._id || req.user.sellerId || req.user.id;
+    if (currentSellerId && product.sellerId && product.sellerId.toString() !== currentSellerId.toString() && userRole !== "admin") {
         throw new ApiError(403, "Not authorized to delete this product");
     }
 
@@ -323,16 +375,69 @@ export const getFeaturedProducts = asyncHandler(async (req, res) => {
 
 export const getProductsByCategory = asyncHandler(async (req, res) => {
     const { slug } = req.params;
-    const categoryNameRegex = new RegExp(`^${slug.replace(/-/g, " ")}$`, "i");
-    
-    const activeQuery = await getActiveFilterQuery({
-        categoryName: { $regex: categoryNameRegex }
-    });
+    const cleanSlug = (slug || "").toLowerCase().trim();
+
+    let categoryFilter = {};
+
+    if (cleanSlug === "quick-commerce" || cleanSlug.includes("quick") || cleanSlug.includes("30-min") || cleanSlug.includes("express")) {
+        categoryFilter.$or = [
+            { nodeType: "QUICK_COMMERCE" },
+            { categoryName: { $regex: /quick|express|30-min|fast/i } }
+        ];
+    } else if (cleanSlug === "wholesale" || cleanSlug.includes("wholesale") || cleanSlug.includes("b2b") || cleanSlug.includes("bulk")) {
+        categoryFilter.$or = [
+            { nodeType: "WHOLESALE_B2B" },
+            { isWholesale: true },
+            { categoryName: { $regex: /wholesale|bulk|b2b/i } }
+        ];
+    } else if (cleanSlug.includes("local") || cleanSlug === "stores" || cleanSlug.includes("store")) {
+        categoryFilter.$or = [
+            { nodeType: "LOCAL_RETAIL" },
+            { categoryName: { $regex: /local|retail|store/i } }
+        ];
+    } else if (cleanSlug.includes("groc") || cleanSlug.includes("food") || cleanSlug.includes("snack") || cleanSlug.includes("daily")) {
+        categoryFilter.$or = [
+            { categoryName: { $regex: /groc|food|daily|snack|beverage|bakery|burger|pizza|fruit|veg|eat|meal|dairy|kitchen/i } },
+            { productName: { $regex: /burger|pizza|sandwich|bread|milk|grocery|apple|fruit|veg|biscuit|tea|coffee|snack/i } }
+        ];
+    } else if (cleanSlug.includes("fashion") || cleanSlug.includes("garment") || cleanSlug.includes("cloth") || cleanSlug.includes("wear")) {
+        categoryFilter.$or = [
+            { categoryName: { $regex: /fashion|garment|cloth|wear|apparel|shirt|pant|shoe|dress/i } },
+            { nodeType: "FASHION" }
+        ];
+    } else if (cleanSlug.includes("electr") || cleanSlug.includes("mobile") || cleanSlug.includes("gadget") || cleanSlug.includes("audio")) {
+        categoryFilter.$or = [
+            { categoryName: { $regex: /electr|mobile|gadget|audio|phone|laptop|headphone|tech/i } },
+            { nodeType: "ELECTRONICS" }
+        ];
+    } else if (cleanSlug.includes("beaut") || cleanSlug.includes("cosmetic") || cleanSlug.includes("personal-care")) {
+        categoryFilter.$or = [
+            { categoryName: { $regex: /beaut|cosmetic|skincare|haircare|makeup|fragrance|parfum|personal care/i } },
+            { nodeType: "PERSONAL_CARE" }
+        ];
+    } else if (cleanSlug.includes("home") || cleanSlug.includes("living") || cleanSlug.includes("decor")) {
+        categoryFilter.$or = [
+            { categoryName: { $regex: /home|decor|living|furniture|bedding|towel/i } },
+            { nodeType: "HOME_ESSENTIALS" }
+        ];
+    } else if (cleanSlug.includes("health") || cleanSlug.includes("pharmacy") || cleanSlug.includes("medic")) {
+        categoryFilter.categoryName = { $regex: /health|pharm|medic|wellness|first aid/i };
+    } else {
+        const flexibleRegex = new RegExp(cleanSlug.replace(/-/g, "[\\s-_]*"), "i");
+        categoryFilter.$or = [
+            { categoryName: { $regex: flexibleRegex } },
+            { productName: { $regex: flexibleRegex } },
+            { brand: { $regex: flexibleRegex } }
+        ];
+    }
+
+    const activeQuery = await getActiveFilterQuery(categoryFilter);
 
     const products = await ProductModel.find(activeQuery)
-        .populate("sellerId", "firstName lastName email")
-        .populate("nodeId", "storeName nodeType status")
+        .populate("sellerId", "firstName lastName email businessName")
+        .populate("nodeId", "storeName nodeType status logo")
         .populate("subCategoryId", "subCategoryName")
+        .sort({ createdAt: -1 })
         .limit(100);
 
     const enriched = await enrichProductsWithInventory(products);
@@ -360,4 +465,79 @@ export const searchProducts = asyncHandler(async (req, res) => {
 
     const enriched = await enrichProductsWithInventory(products);
     return res.status(200).json(new ApiResponse(200, enriched, "Search results fetched successfully"));
+});
+
+export const resolveImageServer = async (urlStr) => {
+    if (!urlStr || typeof urlStr !== "string") return "";
+    let trimmed = urlStr.trim();
+    if (!trimmed) return "";
+
+    // 1. Google Images redirect link
+    if (trimmed.includes("google.com/imgres") || trimmed.includes("imgurl=")) {
+        try {
+            const parsedUrl = new URL(trimmed);
+            const imgUrl = parsedUrl.searchParams.get("imgurl");
+            if (imgUrl) return decodeURIComponent(imgUrl);
+        } catch (_e) {}
+    }
+
+    // 2. Pinterest Pin Page URL
+    if (trimmed.includes("pinterest.com") || trimmed.includes("pin.it")) {
+        if (!trimmed.includes("i.pinimg.com/")) {
+            try {
+                const res = await fetch(`https://www.pinterest.com/oembed.json?url=${encodeURIComponent(trimmed)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.thumbnail_url) {
+                        return data.thumbnail_url.replace("/236x/", "/736x/");
+                    }
+                }
+            } catch (_e) {}
+        }
+    }
+
+    // 3. Unsplash photo page URL or direct photo link
+    if (trimmed.includes("unsplash.com")) {
+        const numericMatch = trimmed.match(/(1\d{9,12}-[a-f0-9]+)/i);
+        if (numericMatch && numericMatch[1]) {
+            return `https://images.unsplash.com/photo-${numericMatch[1]}?w=800&auto=format&fit=crop`;
+        }
+    }
+
+    // 4. HTML OpenGraph resolver for non-direct image webpage URLs
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+        const isDirectImage = /\.(jpg|jpeg|png|webp|gif|svg)($|\?)/i.test(trimmed) ||
+                              trimmed.includes("i.pinimg.com/") ||
+                              trimmed.includes("images.unsplash.com/photo-") ||
+                              trimmed.includes("i.imgur.com/") ||
+                              trimmed.includes("media-amazon.com/") ||
+                              trimmed.includes("cdn.shopify.com/");
+        if (!isDirectImage) {
+            try {
+                const res = await fetch(trimmed, {
+                    headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+                });
+                if (res.ok) {
+                    const html = await res.text();
+                    const ogMatch = html.match(/property=["\']og:image["\']\s+content=["\']([^"\']+)["\']/i) ||
+                                    html.match(/content=["\']([^"\']+)["\']\s+property=["\']og:image["\']/i) ||
+                                    html.match(/name=["\']twitter:image["\']\s+content=["\']([^"\']+)["\']/i);
+                    if (ogMatch && ogMatch[1]) {
+                        return ogMatch[1];
+                    }
+                }
+            } catch (_e) {}
+        }
+    }
+
+    return trimmed;
+};
+
+export const resolveProductImage = asyncHandler(async (req, res) => {
+    const { url } = req.body;
+    if (!url) {
+        throw new ApiError(400, "URL is required");
+    }
+    const directUrl = await resolveImageServer(url);
+    return res.status(200).json(new ApiResponse(200, { directUrl }, "Image URL resolved successfully"));
 });

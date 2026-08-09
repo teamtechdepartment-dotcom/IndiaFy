@@ -2,21 +2,12 @@
 import axios from "axios";
 
 
+// Dynamic resolution of backend API URL
 const getBaseURL = () => {
-    let API_URL = import.meta.env.VITE_API_URL;
-    const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-
-    // Fix for production: if hosted on vercel but env var mistakenly points to localhost
-    if (!isLocalhost && API_URL && (API_URL.includes("localhost") || API_URL.includes("127.0.0.1"))) {
-        API_URL = "https://indiafy-1.onrender.com";
-    }
-
-    if (!API_URL || API_URL.trim() === "") {
-        if (isLocalhost) {
-            API_URL = "http://localhost:8000";
-        } else {
-            API_URL = "https://indiafy-1.onrender.com";
-        }
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    // If running in production (not localhost) and no env var, fallback to Render backend
+    if (!import.meta.env.VITE_API_URL && typeof window !== "undefined" && !window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1")) {
+        return "https://indiafy-1.onrender.com/api/v1/indiafy";
     }
     if (API_URL.endsWith('/api/v1/indiafy')) {
         return API_URL;
@@ -53,10 +44,6 @@ const processQueue = (error, token = null) => {
 // Request Interceptor
 axiosInstance.interceptors.request.use(
     (config) => {
-        if (config.data instanceof FormData) {
-            delete config.headers['Content-Type'];
-            delete config.headers['content-type'];
-        }
         // Fallback for mobile/cross-domain cookie issues: use Bearer token from localStorage
         try {
             const url = config.url || "";
@@ -139,16 +126,20 @@ axiosInstance.interceptors.response.use(
             if (status === 401) {
                 const originalRequest = error.config;
                 
-                // Determine context
-                const isSellerReq = originalRequest.url.includes("/seller") || originalRequest.url.includes("/wholesale") || originalRequest.url.includes("/local");
-                const isAdminReq = originalRequest.url.includes("/admin");
+                // Determine context helper
+                const currentWindowPath = typeof window !== "undefined" ? window.location.pathname : "";
+                const isSellerContext = currentWindowPath.startsWith("/seller") || currentWindowPath === "/seller-hub";
+                const isAdminContext = currentWindowPath.startsWith("/admin");
+
+                const isSellerReq = isSellerContext || originalRequest.url.includes("/seller") || originalRequest.url.includes("/wholesale") || originalRequest.url.includes("/local") || originalRequest.url.includes("/products") || originalRequest.url.includes("/orders");
+                const isAdminReq = isAdminContext || originalRequest.url.includes("/admin");
 
                 // Check if user was previously authenticated
                 let wasAuthenticated = false;
                 try {
                     let storageKey = 'indiafy-auth-storage';
                     if (isSellerReq) storageKey = 'indiafy-seller-auth-storage';
-                    if (isAdminReq) storageKey = 'indiafy-auth-storage';
+                    if (isAdminReq) storageKey = 'indiafy-admin-auth-storage';
 
                     const storageData = localStorage.getItem(storageKey);
                     if (storageData) {
@@ -169,11 +160,11 @@ axiosInstance.interceptors.response.use(
                 if (isAuthCall && !originalRequest.url.includes('/refresh')) return Promise.reject(error);
 
                 if (originalRequest.url.includes('/refresh')) {
-                    // Refresh token itself failed. Logout user by clearing all storages.
+                    // Refresh token itself failed. Clear corresponding storage.
                     try {
-                        localStorage.removeItem('indiafy-auth-storage');
-                        localStorage.removeItem('indiafy-seller-auth-storage');
-                        localStorage.removeItem('indiafy-admin-auth-storage');
+                        if (isSellerReq) localStorage.removeItem('indiafy-seller-auth-storage');
+                        else if (isAdminReq) localStorage.removeItem('indiafy-admin-auth-storage');
+                        else localStorage.removeItem('indiafy-auth-storage');
                     } catch (_e) { /* ignore */ }
 
                     // Redirect only if the user is on a protected route
@@ -221,8 +212,12 @@ axiosInstance.interceptors.response.use(
 
                     isRefreshing = true;
 
-                    const isSellerReq = originalRequest.url.includes("/seller") || originalRequest.url.includes("/wholesale") || originalRequest.url.includes("/local");
-                    const isAdminReq = originalRequest.url.includes("/admin");
+                    const currentWindowPath = typeof window !== "undefined" ? window.location.pathname : "";
+                    const isSellerContext = currentWindowPath.startsWith("/seller") || currentWindowPath === "/seller-hub";
+                    const isAdminContext = currentWindowPath.startsWith("/admin");
+
+                    const isSellerReq = isSellerContext || originalRequest.url.includes("/seller") || originalRequest.url.includes("/wholesale") || originalRequest.url.includes("/local") || originalRequest.url.includes("/products") || originalRequest.url.includes("/orders");
+                    const isAdminReq = isAdminContext || originalRequest.url.includes("/admin");
                     
                     let refreshUrl = '/customer/auth/refresh'; // default
                     let currentRefreshToken = null;
@@ -292,13 +287,11 @@ axiosInstance.interceptors.response.use(
             
             // Handle 403 Forbidden
             else if (status === 403) {
-                const isProtectedRoute = 
-                    window.location.pathname === '/seller-hub' || 
-                    window.location.pathname.startsWith('/seller/dashboard') || 
-                    (window.location.pathname.startsWith('/admin/') && !window.location.pathname.startsWith('/admin/login'));
-                if (isProtectedRoute && window.location.pathname !== '/403') {
+                const isAdminRoute = window.location.pathname.startsWith('/admin/') && !window.location.pathname.startsWith('/admin/login');
+                if (isAdminRoute && window.location.pathname !== '/403') {
                     window.location.href = '/403';
                 }
+                // For seller routes, let the error propagate so stores/components can handle it inline
             }
             
             // Handle 429 Too Many Requests
@@ -308,8 +301,7 @@ axiosInstance.interceptors.response.use(
             }
             
             // Handle 500 Internal Server Error
-            // Skip the redirect for auth routes, checkout routes, and admin routes
-            // Admin pages handle errors via toast notifications instead of redirecting
+            // Skip the redirect for auth routes so signup/login forms are not destroyed
             else if (status >= 500) {
                 const isAuthRoute =
                     error.config?.url?.includes('/signup') ||
@@ -320,10 +312,13 @@ axiosInstance.interceptors.response.use(
                     error.config?.url?.includes('/orders') ||
                     error.config?.url?.includes('/payments') ||
                     error.config?.url?.includes('/checkout');
-                const isAdminRoute =
-                    error.config?.url?.includes('/admin/') ||
-                    window.location.pathname.startsWith('/admin');
-                if (!isAuthRoute && !isCheckoutRoute && !isAdminRoute && window.location.pathname !== '/500') {
+                const isSellerRoute =
+                    error.config?.url?.includes('/seller') ||
+                    error.config?.url?.includes('/applications') ||
+                    error.config?.url?.includes('/products') ||
+                    window.location.pathname.includes('/seller') ||
+                    window.location.pathname === '/seller-hub';
+                if (!isAuthRoute && !isCheckoutRoute && !isSellerRoute && window.location.pathname !== '/500') {
                     window.location.href = '/500';
                 }
             }
