@@ -174,7 +174,7 @@ function WebsiteNavbar() {
                 onSubmit={handleSearch}
                 role="search"
                 aria-label="Search products"
-                className="hidden md:flex items-center flex-1 max-w-2xl mx-6 lg:mx-12"
+                className="hidden lg:flex items-center flex-1 max-w-2xl mx-6 lg:mx-12"
               >
                 <div className="relative w-full group">
                   <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-secondary" aria-hidden="true" />
