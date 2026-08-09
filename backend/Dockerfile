@@ -5,8 +5,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --only=production
+# Install build dependencies & production modules
+RUN apk add --no-cache python3 make g++ && \
+    npm install --omit=dev --legacy-peer-deps
 
 # Copy source code
 COPY . .
