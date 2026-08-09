@@ -748,8 +748,8 @@ export const deleteOrder = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Not authorized to delete this order");
     }
 
-    // Restrict cancellation to Pending or Paid statuses only (not Processing, Shipped, or Delivered)
-    const nonCancellableStates = ["processing", "shipped", "delivered"];
+    // Restrict deletion to active-transit statuses only (not Processing or Shipped)
+    const nonCancellableStates = ["processing", "shipped"];
     if (nonCancellableStates.includes(order.status?.toLowerCase())) {
         throw new ApiError(400, `Cannot cancel order at this stage. Current status is: ${order.status}`);
     }
