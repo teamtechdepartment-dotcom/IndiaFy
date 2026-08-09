@@ -74,7 +74,6 @@ const processDocumentUpload = async (req, fieldName, bodyFallback, folder) => {
  * Submit Store Application
  */
 export const submitStoreApplication = async (req, res) => {
-  console.log("[DEBUG SUBMIT] req.user:", req.user);
   const sellerId = req.user?.sellerId || req.user?._id;
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -112,48 +111,29 @@ export const submitStoreApplication = async (req, res) => {
       storeBanner: bodyStoreBanner
     } = req.body;
 
-    // Validate Everything Required
+    // Validate Required Fields (latitude, longitude, businessType, foodLicense are optional)
     if (
       !nodeType || !storeName || !storeDescription || !address || !city || !state || !pincode ||
-      !latitude || !longitude || !ownerFullName || !ownerEmail || !ownerPhone ||
-      !aadhaarNumber || !panNumber || !gstNumber || !businessType ||
+      !ownerFullName || !ownerEmail || !ownerPhone ||
+      !aadhaarNumber || !panNumber || !gstNumber ||
       !bankAccountNumber || !ifscCode || !bankName
     ) {
-      throw new ApiError(400, "All onboarding information fields are required.");
+      throw new ApiError(400, "All required onboarding information fields must be filled.");
     }
 
-    // Process & Upload documents in parallel for 10x speedup and timeout prevention
-    const [
-      aadhaarFrontUrl,
-      aadhaarBackUrl,
-      panCardUrl,
-      gstCertificateUrl,
-      cancelledChequeUrl,
-      bankStatementUrl,
-      foodLicenseUrl,
-      uploadedStorePhoto,
-      uploadedStoreBanner
-    ] = await Promise.all([
-      processDocumentUpload(req, "aadhaarFront", bodyAadhaarFront, "seller-documents"),
-      processDocumentUpload(req, "aadhaarBack", bodyAadhaarBack, "seller-documents"),
-      processDocumentUpload(req, "panCard", bodyPanCard, "seller-documents"),
-      processDocumentUpload(req, "gstCertificate", bodyGstCertificate, "seller-documents"),
-      processDocumentUpload(req, "cancelledCheque", bodyCancelledCheque, "seller-documents"),
-      processDocumentUpload(req, "bankStatement", bodyBankStatement, "seller-documents"),
-      processDocumentUpload(req, "foodLicense", bodyFoodLicense, "seller-documents"),
-      processDocumentUpload(req, "storePhoto", bodyStorePhoto, "store-images"),
-      processDocumentUpload(req, "storeBanner", bodyStoreBanner, "store-banners")
-    ]);
+    // Process & Upload documents
+    const uploadedDocs = {};
+    uploadedDocs.aadhaarFront = await processDocumentUpload(req, "aadhaarFront", bodyAadhaarFront, "seller-documents");
+    uploadedDocs.aadhaarBack = await processDocumentUpload(req, "aadhaarBack", bodyAadhaarBack, "seller-documents");
+    uploadedDocs.panCard = await processDocumentUpload(req, "panCard", bodyPanCard, "seller-documents");
+    uploadedDocs.gstCertificate = await processDocumentUpload(req, "gstCertificate", bodyGstCertificate, "seller-documents");
+    uploadedDocs.cancelledCheque = await processDocumentUpload(req, "cancelledCheque", bodyCancelledCheque, "seller-documents");
+    uploadedDocs.bankStatement = await processDocumentUpload(req, "bankStatement", bodyBankStatement, "seller-documents");
+    const foodLic = await processDocumentUpload(req, "foodLicense", bodyFoodLicense, "seller-documents");
+    uploadedDocs.foodLicense = foodLic || "";
 
-    const uploadedDocs = {
-      aadhaarFront: aadhaarFrontUrl,
-      aadhaarBack: aadhaarBackUrl,
-      panCard: panCardUrl,
-      gstCertificate: gstCertificateUrl,
-      cancelledCheque: cancelledChequeUrl,
-      bankStatement: bankStatementUrl,
-      foodLicense: foodLicenseUrl || ""
-    };
+    const uploadedStorePhoto = await processDocumentUpload(req, "storePhoto", bodyStorePhoto, "store-images");
+    const uploadedStoreBanner = await processDocumentUpload(req, "storeBanner", bodyStoreBanner, "store-banners");
 
     // Ensure all mandatory files are uploaded
     if (
@@ -249,6 +229,8 @@ export const submitStoreApplication = async (req, res) => {
         panHash: calculatedPanHash,
         gstNumber,
         gstHash: calculatedGstHash,
+        businessType: businessType || "Proprietorship",
+        foodLicenseNumber: req.body.foodLicenseNumber || "",
         bankAccountNumber: encryptedBankAccount,
         ifscCode,
         bankName,
@@ -256,6 +238,8 @@ export const submitStoreApplication = async (req, res) => {
         city,
         state,
         pincode,
+        latitude: Number(latitude) || 0,
+        longitude: Number(longitude) || 0,
         documents: uploadedDocs,
         storePhoto: uploadedStorePhoto,
         storeBanner: uploadedStoreBanner,
@@ -292,7 +276,7 @@ export const submitStoreApplication = async (req, res) => {
     storeNode.banner = uploadedStoreBanner;
     storeNode.businessName = storeNameStr;
     storeNode.ownerFullName = ownerFullName;
-    storeNode.businessType = businessType;
+    storeNode.businessType = businessType || "Proprietorship";
     storeNode.panNumber = encryptedPan;
     storeNode.aadhaarNumber = encryptedAadhaar;
     storeNode.businessEmail = ownerEmail;
@@ -369,7 +353,6 @@ export const submitStoreApplication = async (req, res) => {
     } catch (err) {
       console.error("Non-blocking email error:", err.message);
     }
-
     return res.status(201).json({
       success: true,
       message: "Application submitted successfully.",
@@ -386,7 +369,7 @@ export const submitStoreApplication = async (req, res) => {
       await session.abortTransaction();
     }
     session.endSession();
-    console.error("Store submit error:", error);
+    console.error("Store Submit Error:", error.message);
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Failed to submit store application."

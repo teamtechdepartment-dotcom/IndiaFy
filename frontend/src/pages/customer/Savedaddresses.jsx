@@ -244,7 +244,7 @@ export default function SavedAddresses() {
                 {editingAddr ? "Edit Location" : "New Location"}
               </h2>
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input
                     value={label}
                     onChange={e => setLabel(e.target.value)}
@@ -264,7 +264,7 @@ export default function SavedAddresses() {
                   placeholder="Street Address / Building"
                   className="w-full bg-zinc-50 border-0 rounded-2xl px-6 py-4 font-bold text-sm focus:ring-2 focus:ring-zinc-900"
                 />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input
                     value={pin}
                     onChange={e => setPin(e.target.value)}

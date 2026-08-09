@@ -20,7 +20,10 @@ import {
   AlertTriangle,
   Mail,
   Store,
-  ArrowRight
+  ArrowRight,
+  ShoppingBag,
+  CreditCard,
+  Zap
 } from "lucide-react";
 import { useOrderStore } from "../../store/orderStore";
 import { useAuthStore } from "../../store/authStore";
@@ -44,12 +47,13 @@ import SEOHead from "../../components/seo/SEOHead";
 
 // Timeline Steps Setup
 const TIMELINE_STEPS = [
-  { status: "Pending", label: "Order Placed", desc: "Confirmed on Indiafy Node" },
-  { status: "Paid", label: "Payment Confirmed", desc: "Razorpay verified" },
-  { status: "Processing", label: "Store Accepted", desc: "Preparing your items" },
-  { status: "Packed", label: "Order Packed", desc: "Verifying secure video checklist" },
-  { status: "Shipped", label: "Out For Delivery", desc: "Logistics pilot en route" },
-  { status: "Delivered", label: "Delivered", desc: "Received at your location" }
+  { status: "Pending", label: "Order Placed", desc: "Confirmed on Node", icon: ShoppingBag },
+  { status: "Paid", label: "Payment Confirmed", desc: "Razorpay verified", icon: CreditCard },
+  { status: "Accepted", label: "Seller Accepted", desc: "Seller accepted order", icon: Store },
+  { status: "Processing", label: "Being Prepared", desc: "Preparing your items", icon: Zap },
+  { status: "Packed", label: "Order Packed", desc: "Video proof ready", icon: Package },
+  { status: "Shipped", label: "Out For Delivery", desc: "Pilot en route", icon: Truck },
+  { status: "Delivered", label: "Delivered", desc: "Received at address", icon: CheckCircle2 }
 ];
 
 const Card = ({ children, className = "" }) => (
@@ -98,9 +102,25 @@ export default function OrderTrackingPage() {
   // Access Control check
   const isUserAuthenticated = isCustomerAuth || isSellerAuth || isAdminAuth;
 
-  // Live location animation ticks
+  // Check if current order belongs to Quick Commerce node
+  const isQuickCommerce = useMemo(() => {
+    if (!order || !order.orderItems?.length) return false;
+    return order.orderItems.some(item => {
+      const node = item.nodeId || item.product?.nodeId;
+      const rawNodeType = (
+        node?.nodeType || 
+        item.nodeType || 
+        item.product?.nodeType || 
+        order.nodeType || 
+        ""
+      ).toString().toUpperCase();
+      return rawNodeType.includes("QUICK");
+    });
+  }, [order]);
+
+  // Live location animation ticks (Quick Commerce only)
   useEffect(() => {
-    if (!order || order.status !== "Shipped") return;
+    if (!order || order.status !== "Shipped" || !isQuickCommerce) return;
     setRiderAssigned(true);
 
     let progressFraction = 0.15;
@@ -123,7 +143,7 @@ export default function OrderTrackingPage() {
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [order?.status, storeCoords, customerCoords]);
+  }, [order?.status, storeCoords, customerCoords, isQuickCommerce]);
 
   const loadOrder = useCallback(async (showRefresh = false) => {
     if (!isValidId) {
@@ -179,7 +199,7 @@ export default function OrderTrackingPage() {
   useEffect(() => {
     if (!orderId || !order) return;
 
-    const socketUrl = import.meta.env.VITE_API_URL || (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:8000" : "https://indiafy-1.onrender.com");
+    const socketUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
     console.log(`[Socket] Connecting to server at ${socketUrl}`);
     const socket = io(socketUrl, {
       withCredentials: true
@@ -297,16 +317,59 @@ export default function OrderTrackingPage() {
   const getTimelineIndex = () => {
     if (!order) return 0;
     if (order.status === "Cancelled") return -1;
-    if (order.status === "Delivered") return 5;
-    if (order.status === "Shipped") return 4;
-    if (order.packingVideoUrl) return 3;
-    if (order.status === "Processing") return 2;
+    if (order.status === "Delivered") return 6;
+    if (order.status === "Shipped") return 5;
+    if (order.packingVideoUrl) return 4;
+    if (order.status === "Processing") return 3;
+    if (order.status === "Accepted") return 2;
     if (order.isPaid) return 1;
     return 0;
   };
 
   const currentStep = getTimelineIndex();
   const isCancelled = order?.status === "Cancelled";
+
+  const getStoreDetails = () => {
+    if (!order || !order.orderItems?.length) {
+      return { name: "Indiafy Store Node", nodeTypeLabel: "Verified Store Node", logo: null };
+    }
+
+    const firstItem = order.orderItems[0];
+    const node = firstItem.nodeId || firstItem.product?.nodeId;
+    const seller = firstItem.seller;
+
+    const rawStoreName = 
+      node?.storeName || 
+      node?.businessName || 
+      seller?.storeName || 
+      seller?.businessName || 
+      (seller?.firstName ? `${seller.firstName} ${seller.lastName || ""}`.trim() : "") ||
+      "";
+
+    const rawNodeType = (node?.nodeType || firstItem.nodeType || firstItem.product?.nodeType || "").toUpperCase();
+    
+    let nodeTypeLabel = "Verified Retail Store";
+    if (rawNodeType.includes("WHOLESALE") || firstItem.isWholesale || order.isWholesaleOrder) {
+      nodeTypeLabel = "Wholesale B2B Store";
+    } else if (rawNodeType.includes("QUICK")) {
+      nodeTypeLabel = "Quick Commerce Node";
+    } else if (rawNodeType.includes("ELECTRONICS")) {
+      nodeTypeLabel = "Electronics Hub";
+    } else if (rawNodeType.includes("HOME")) {
+      nodeTypeLabel = "Home Essentials Node";
+    } else if (rawNodeType.includes("PERSONAL")) {
+      nodeTypeLabel = "Personal Care Hub";
+    } else if (rawNodeType.includes("LOCAL")) {
+      nodeTypeLabel = "Local Retail Store";
+    }
+
+    const finalName = rawStoreName || nodeTypeLabel;
+    const logo = node?.logo || null;
+
+    return { name: finalName, nodeTypeLabel, logo };
+  };
+
+  const storeDetails = getStoreDetails();
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -327,7 +390,7 @@ export default function OrderTrackingPage() {
       doc.setFontSize(10);
       doc.text(`Invoice Date: ${new Date().toLocaleDateString("en-IN")}`, 20, 40);
       doc.text(`Order ID: #${order._id.toUpperCase()}`, 20, 46);
-      doc.text(`Store: ${order.orderItems?.[0]?.seller?.businessName || "Indiafy Seller"}`, 20, 52);
+      doc.text(`Store: ${storeDetails.name}`, 20, 52);
       
       doc.line(20, 58, 190, 58);
       
@@ -428,13 +491,127 @@ export default function OrderTrackingPage() {
               <Package size={24} />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-red-700">Order Cancelled</h3>
+              <h3 className="text-lg font-bold text-red-700">Order Rejected / Cancelled</h3>
               <p className="text-sm text-red-600/80 mt-1">
-                The order could not be fulfilled and has been cancelled. Refunds are processed back to the original source dynamically.
+                The seller was unable to fulfill this order and it has been cancelled. If payment was already made, your refund will be processed back to the original payment source automatically.
               </p>
             </div>
           </motion.div>
         )}
+
+        {/* HORIZONTAL TIMELINE TRACKER (Full Width) */}
+        <Card className="p-6 md:p-8 mb-8 overflow-hidden border border-zinc-200/80 shadow-md">
+          
+          {/* Header Info */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                Delivery Status Timeline
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                {isCancelled ? "Order was cancelled" : `Current Stage: Step ${Math.max(1, currentStep + 1)} of ${TIMELINE_STEPS.length} — ${TIMELINE_STEPS[Math.max(0, Math.min(currentStep, TIMELINE_STEPS.length - 1))]?.label}`}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 border ${
+                isCancelled 
+                  ? "bg-red-50 text-red-600 border-red-200" 
+                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${isCancelled ? "bg-red-500" : "bg-emerald-500 animate-ping"}`}></span>
+                {isCancelled ? "Cancelled" : "Active Tracker"}
+              </div>
+            </div>
+          </div>
+          
+          {/* Horizontal Scrollable Stepper Track */}
+          <div className="relative overflow-x-auto pb-4 pt-2 scrollbar-none">
+            
+            {/* Stepper Container */}
+            <div className="min-w-[760px] px-4 relative">
+              
+              {/* Connecting Line Track Background */}
+              <div className="absolute top-5 left-10 right-10 h-1 bg-slate-100 rounded-full z-0" />
+
+              {/* Active Progress Line */}
+              <div 
+                className="absolute top-5 left-10 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400 rounded-full z-0 transition-all duration-700 ease-out shadow-sm"
+                style={{
+                  width: isCancelled 
+                    ? "0%" 
+                    : `calc(${Math.min(100, Math.max(0, (currentStep / (TIMELINE_STEPS.length - 1)) * 100))}% - 40px)`
+                }}
+              />
+
+              {/* Horizontal Steps List */}
+              <div className="relative z-10 flex justify-between items-start">
+                {TIMELINE_STEPS.map((step, i) => {
+                  const StepIcon = step.icon || CheckCircle2;
+                  const isCompleted = i < currentStep;
+                  const isCurrent = i === currentStep && !isCancelled;
+                  const isFuture = i > currentStep || isCancelled;
+
+                  return (
+                    <div key={i} className="flex flex-col items-center text-center w-24 sm:w-28 group">
+                      
+                      {/* Step Icon Circle */}
+                      <div
+                        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all duration-300 relative border-2 ${
+                          isCurrent 
+                            ? "bg-slate-900 text-white border-slate-900 ring-4 ring-slate-900/15 shadow-xl scale-110" 
+                            : isCompleted 
+                              ? "bg-emerald-600 text-white border-emerald-600 shadow-md scale-100" 
+                              : "bg-white text-slate-300 border-slate-200"
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle2 size={18} className="text-white" />
+                        ) : (
+                          <StepIcon size={18} className={isCurrent ? "text-emerald-400" : "text-slate-400"} />
+                        )}
+
+                        {/* Active Glowing Pulse Dot on Current Step */}
+                        {isCurrent && (
+                          <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Step Label */}
+                      <p className={`text-xs font-bold mt-3 leading-tight transition-colors ${
+                        isCurrent 
+                          ? "text-slate-900 font-extrabold" 
+                          : isCompleted 
+                            ? "text-slate-800 font-bold" 
+                            : "text-slate-400 font-medium"
+                      }`}>
+                        {step.label}
+                      </p>
+
+                      {/* Step Description */}
+                      <p className={`text-[10px] mt-1 font-medium leading-snug line-clamp-2 px-1 transition-colors ${
+                        isCurrent || isCompleted ? "text-slate-500" : "text-slate-400/80"
+                      }`}>
+                        {step.desc}
+                      </p>
+
+                    </div>
+                  );
+                })}
+              </div>
+
+            </div>
+          </div>
+
+          {/* Mobile Scroll Indicator Hint */}
+          <div className="flex sm:hidden items-center justify-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 border-t border-slate-100 pt-3">
+            <span>← Swipe to view all steps →</span>
+          </div>
+
+        </Card>
 
         {/* MAIN COLUMNS */}
         <div className="grid lg:grid-cols-12 gap-8 items-start">
@@ -475,121 +652,73 @@ export default function OrderTrackingPage() {
               </div>
             </Card>
 
-            {/* INTERACTIVE DELIVERY MAP */}
-            <Card className="overflow-hidden h-[340px] md:h-[400px] border border-zinc-200/60 relative">
-              <div className="w-full h-full absolute inset-0 z-0 bg-slate-100">
-                <MapContainer 
-                  center={riderCoords} 
-                  zoom={14} 
-                  zoomControl={true}
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  
-                  <Marker position={storeCoords} icon={storeIcon}>
-                    <Popup>
-                      <div className="p-1">
-                        <p className="font-bold text-xs">Store Node</p>
-                        <p className="text-[10px] text-slate-500 mt-0.5">SharmaMart Retail Outlet</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                  
-                  <Marker position={customerCoords} icon={customerIcon}>
-                    <Popup>
-                      <div className="p-1">
-                        <p className="font-bold text-xs">Your Delivery Point</p>
-                        <p className="text-[10px] text-slate-500 mt-0.5">{order.shippingAddress?.address}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-
-                  {riderAssigned && (
-                    <Marker position={riderCoords} icon={riderIcon}>
+            {/* INTERACTIVE DELIVERY MAP (Shown ONLY for Quick Commerce orders) */}
+            {isQuickCommerce && (
+              <Card className="overflow-hidden h-[340px] md:h-[400px] border border-zinc-200/60 relative">
+                <div className="w-full h-full absolute inset-0 z-0 bg-slate-100">
+                  <MapContainer 
+                    center={riderCoords} 
+                    zoom={14} 
+                    zoomControl={true}
+                    style={{ height: "100%", width: "100%" }}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    
+                    <Marker position={storeCoords} icon={storeIcon}>
                       <Popup>
                         <div className="p-1">
-                          <p className="font-bold text-xs">Delivery Pilot</p>
-                          <p className="text-[10px] text-amber-600 font-bold mt-0.5">{distanceText}</p>
+                          <p className="font-bold text-xs">{storeDetails.nodeTypeLabel}</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">{storeDetails.name}</p>
                         </div>
                       </Popup>
                     </Marker>
-                  )}
+                    
+                    <Marker position={customerCoords} icon={customerIcon}>
+                      <Popup>
+                        <div className="p-1">
+                          <p className="font-bold text-xs">Your Delivery Point</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">{order.shippingAddress?.address}</p>
+                        </div>
+                      </Popup>
+                    </Marker>
 
-                  <Polyline 
-                    positions={[storeCoords, riderAssigned ? riderCoords : storeCoords, customerCoords]} 
-                    color="#10b981" 
-                    dashArray="6, 6"
-                    weight={3}
-                  />
-                  <MapUpdater center={riderAssigned ? riderCoords : storeCoords} />
-                </MapContainer>
-              </div>
+                    {riderAssigned && (
+                      <Marker position={riderCoords} icon={riderIcon}>
+                        <Popup>
+                          <div className="p-1">
+                            <p className="font-bold text-xs">Delivery Pilot</p>
+                            <p className="text-[10px] text-amber-600 font-bold mt-0.5">{distanceText}</p>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    )}
 
-              {/* Map floating banner */}
-              <div className="absolute bottom-4 left-4 right-4 z-[400] bg-slate-900/95 text-white backdrop-blur px-4 py-3 rounded-2xl flex items-center justify-between text-xs shadow-xl border border-slate-800">
-                <div className="flex items-center gap-2">
-                  <Navigation size={14} className="text-emerald-400 animate-pulse" />
-                  <span className="font-medium text-slate-200">
-                    {riderAssigned ? `Rider is ${distanceText}` : "Rider is awaiting node dispatch"}
+                    <Polyline 
+                      positions={[storeCoords, riderAssigned ? riderCoords : storeCoords, customerCoords]} 
+                      color="#10b981" 
+                      dashArray="6, 6"
+                      weight={3}
+                    />
+                    <MapUpdater center={riderAssigned ? riderCoords : storeCoords} />
+                  </MapContainer>
+                </div>
+
+                {/* Map floating banner */}
+                <div className="absolute bottom-4 left-4 right-4 z-[400] bg-slate-900/95 text-white backdrop-blur px-4 py-3 rounded-2xl flex items-center justify-between text-xs shadow-xl border border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Navigation size={14} className="text-emerald-400 animate-pulse" />
+                    <span className="font-medium text-slate-200">
+                      {riderAssigned ? `Rider is ${distanceText}` : "Rider is awaiting node dispatch"}
+                    </span>
+                  </div>
+                  <span className="font-bold text-emerald-400 uppercase tracking-widest text-[9px] bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
+                    Live GPS
                   </span>
                 </div>
-                <span className="font-bold text-emerald-400 uppercase tracking-widest text-[9px] bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
-                  Live GPS
-                </span>
-              </div>
-            </Card>
+              </Card>
+            )}
 
-            {/* TIMELINE TRACKER */}
-            <Card className="p-8 md:p-10">
-              <div className="flex items-center justify-between mb-8">
-                <p className="text-sm font-bold text-slate-900">Delivery Status Timeline</p>
-                <div className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Active Tracker
-                </div>
-              </div>
-              
-              <div className="space-y-0">
-                {TIMELINE_STEPS.map((step, i) => {
-                  const isCompleted = i < currentStep;
-                  const isCurrent = i === currentStep && !isCancelled;
-                  const isFuture = i > currentStep || isCancelled;
 
-                  return (
-                    <div key={i} className="flex gap-6 group/step">
-                      <div className="flex flex-col items-center">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shrink-0 border-2 ${
-                            isCurrent 
-                              ? "bg-slate-900 text-white border-slate-900 shadow-md scale-110" 
-                              : isCompleted 
-                                ? "bg-emerald-50 text-emerald-600 border-emerald-200" 
-                                : "bg-white text-slate-300 border-slate-200"
-                          }`}
-                        >
-                          {isCompleted ? <CheckCircle2 size={18} /> : <Clock size={16} />}
-                        </div>
-                        {i !== TIMELINE_STEPS.length - 1 && (
-                          <div className={`w-0.5 h-12 my-1 transition-all duration-500 ${isCompleted ? "bg-emerald-200" : "bg-slate-100"}`} />
-                        )}
-                      </div>
-                      <div className="pt-2 pb-8">
-                        <p
-                          className={`text-sm font-bold transition-colors duration-300 ${
-                            isCurrent ? "text-slate-900" : isCompleted ? "text-slate-700" : "text-slate-400"
-                          }`}
-                        >
-                          {step.label}
-                        </p>
-                        <p className={`text-xs mt-1 font-medium transition-colors duration-300 ${isCompleted || isCurrent ? "text-slate-500" : "text-slate-400"}`}>
-                          {step.desc}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
 
             {/* ORDER ITEMS SUMMARY */}
             <Card className="p-6 md:p-8">
@@ -651,8 +780,8 @@ export default function OrderTrackingPage() {
           {/* RIGHT PANEL */}
           <div className="lg:col-span-5 space-y-6">
             
-            {/* RIDER ASSIGNED CARD */}
-            {riderAssigned && (
+            {/* RIDER ASSIGNED CARD (Quick Commerce only) */}
+            {riderAssigned && isQuickCommerce && (
               <Card className="p-6 md:p-8 border border-amber-250 bg-amber-50/10">
                 <div className="flex justify-between items-start mb-6">
                   <div>
@@ -682,13 +811,18 @@ export default function OrderTrackingPage() {
             {/* DELIVERY DETAILS CARD */}
             <Card className="p-6 md:p-8">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-xl shadow-md">
-                  <Store size={22} />
+                <div className="w-14 h-14 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-xl shadow-md overflow-hidden shrink-0">
+                  {storeDetails.logo ? (
+                    <img src={storeDetails.logo} alt={storeDetails.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Store size={22} />
+                  )}
                 </div>
                 <div>
                   <h4 className="text-base font-bold text-slate-900">
-                    {order.orderItems?.[0]?.seller?.businessName || "SharmaMart Retailer"}
+                    {storeDetails.name}
                   </h4>
+                  <p className="text-xs text-slate-500 font-medium">{storeDetails.nodeTypeLabel}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
                       {order.paymentMethod || "UPI"}
@@ -714,7 +848,25 @@ export default function OrderTrackingPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {/* Packing Proof Video Player (inline) */}
+              {order.packingVideoUrl && (
+                <div className="mb-5 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900">
+                  <video
+                    src={order.packingVideoUrl}
+                    controls
+                    playsInline
+                    className="w-full max-h-64 object-contain"
+                  />
+                  <div className="px-4 py-2 bg-slate-900">
+                    <p className="text-xs text-slate-400 font-bold flex items-center gap-1.5">
+                      <ShieldCheck size={13} className="text-emerald-400" />
+                      Verified Packing Video from Seller
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button 
                   onClick={() => {
                     toast.info("Calling support desk: 1800-102-3920");
@@ -741,6 +893,7 @@ export default function OrderTrackingPage() {
                 </button>
               </div>
             </Card>
+
 
             {/* INVOICE & DOCUMENTATION SECTION */}
             <Card className="p-6 md:p-8">

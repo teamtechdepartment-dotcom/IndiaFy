@@ -86,7 +86,7 @@ const VideoVerification = () => {
         // Try with audio first
         mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       } catch (_err) {
-        console.warn("Audio access failed, trying video only", err);
+        console.warn("Audio access failed, trying video only", _err);
         mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       }
       
@@ -132,7 +132,7 @@ const VideoVerification = () => {
       setVideoSrc(null);
     } catch (_err) {
       console.error("Camera Error:", _err);
-      toast.error(`Could not access camera: ${_err?.message || err.name || "Permission denied"}`);
+      toast.error(`Could not access camera: ${_err?.message || _err?.name || "Permission denied"}`);
     }
   };
 
@@ -183,13 +183,15 @@ const VideoVerification = () => {
       const extension = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
       formData.append('video', videoBlob, `packing_video.${extension}`);
 
-      await axiosInstance.post(`/orders/${id}/upload-video`, formData);
+      await axiosInstance.post(`/orders/${id}/upload-video`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
       toast.success("Video verified & Order Shipped!");
       if (fetchSellerOrders) fetchSellerOrders();
       navigate(`/seller/dashboard/${nodeId}/live`);
     } catch (_err) {
-      console.error(err);
+      console.error(_err);
       toast.error(_err?.response?.data?.message || _err?.message || "Failed to upload verification video");
     } finally {
       setIsUploading(false);
@@ -332,7 +334,7 @@ const VideoVerification = () => {
                   <Square size={20} fill="currentColor" /> Stop Recording
                 </button>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button onClick={startRecording} className="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all group">
                     <CircleDot size={24} className="text-red-500 mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-white font-bold text-sm">Record Live</span>

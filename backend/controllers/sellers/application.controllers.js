@@ -59,7 +59,6 @@ const ACTIVE_APPLICATION_STATUSES = [
   REVIEW_STATUS.PENDING_REVIEW,
   REVIEW_STATUS.UNDER_REVIEW,
   REVIEW_STATUS.APPROVED,
-  "ACTIVE",
   "pending",
   "approved",
 ];
@@ -82,6 +81,8 @@ const validateStoreSubmission = (payload) => {
     ["city", "City"],
     ["state", "State"],
     ["pincode", "Pincode"],
+    ["latitude", "Latitude"],
+    ["longitude", "Longitude"],
     ["ownerFullName", "Owner name"],
     ["ownerEmail", "Business email"],
     ["ownerPhone", "Phone"],
@@ -97,20 +98,13 @@ const validateStoreSubmission = (payload) => {
     .filter(([key]) => isBlank(payload[key]))
     .map(([, label]) => label);
 
-  // Latitude/Longitude are optional — only validate format if provided
-  const latVal = payload.latitude;
-  const lngVal = payload.longitude;
-  if (latVal !== undefined && latVal !== null && String(latVal).trim() !== "" && String(latVal).trim() !== "0") {
-    const latitude = Number(latVal);
-    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
-      missing.push("Valid latitude");
-    }
+  const latitude = Number(payload.latitude);
+  const longitude = Number(payload.longitude);
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    missing.push("Valid latitude");
   }
-  if (lngVal !== undefined && lngVal !== null && String(lngVal).trim() !== "" && String(lngVal).trim() !== "0") {
-    const longitude = Number(lngVal);
-    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
-      missing.push("Valid longitude");
-    }
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    missing.push("Valid longitude");
   }
 
   return missing;
@@ -584,9 +578,15 @@ export const getApplicationStatusByNodeType = asyncHandler(async (req, res) => {
   const sellerId = req.user?.sellerId || req.user?._id;
   const { nodeType } = req.params;
 
+  const normalized = nodeType ? nodeType.toUpperCase().replace(/-/g, "_") : "";
+
   const application = await SellerApplication.findOne({
     userId: sellerId,
-    nodeType
+    $or: [
+      { nodeType: nodeType },
+      { nodeType: normalized },
+      { nodeType: { $regex: new RegExp(`^${nodeType.replace(/_/g, "[-_]")}$`, "i") } }
+    ]
   }).sort({ createdAt: -1 });
 
   return res.status(200).json({
@@ -631,19 +631,19 @@ export const getStoreStatus = asyncHandler(async (req, res) => {
       {
         key: "UNDER_REVIEW",
         label: "Under Review",
-        completed: [REVIEW_STATUS.UNDER_REVIEW, REVIEW_STATUS.APPROVED, "ACTIVE", REVIEW_STATUS.REJECTED, REVIEW_STATUS.SUSPENDED, REVIEW_STATUS.CHANGES_REQUESTED].includes(status),
+        completed: [REVIEW_STATUS.UNDER_REVIEW, REVIEW_STATUS.APPROVED, REVIEW_STATUS.REJECTED, REVIEW_STATUS.SUSPENDED, REVIEW_STATUS.CHANGES_REQUESTED].includes(status),
       },
       {
         key: "APPROVED",
         label: "Approved",
-        completed: status === REVIEW_STATUS.APPROVED || status === "ACTIVE",
+        completed: status === REVIEW_STATUS.APPROVED,
         failed: [REVIEW_STATUS.REJECTED, REVIEW_STATUS.SUSPENDED].includes(status),
         at: approval?.reviewedAt || application?.reviewedAt || null,
       },
       {
         key: "STORE_ACTIVATED",
         label: "Store Activated",
-        completed: Boolean(store?.isActive && store?.isLive && (status === REVIEW_STATUS.APPROVED || status === "ACTIVE")),
+        completed: Boolean(store?.isActive && store?.isLive && status === REVIEW_STATUS.APPROVED),
       },
     ],
   });

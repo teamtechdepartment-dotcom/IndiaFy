@@ -1,20 +1,20 @@
 import React, { memo } from "react";
+import { useNotificationStore } from "../../store/notificationStore";
 
 /**
  * OrderNotificationBadge — a red pill badge showing unread order count.
- * Memoized: only re-renders when the `count` prop changes.
- *
- * @param {number}  count     - Number of unread notifications
- * @param {string}  className - Optional positioning classes
  */
-const OrderNotificationBadge = memo(function OrderNotificationBadge({ count = 0, className = "" }) {
-    if (!count || count <= 0) return null;
+const OrderNotificationBadge = memo(function OrderNotificationBadge({ count, nodeId, className = "" }) {
+    const unreadCounts = useNotificationStore((state) => state.unreadCounts);
+    const badgeCount = count !== undefined ? count : (nodeId ? (unreadCounts[nodeId] || 0) : 0);
 
-    const display = count > 99 ? "99+" : count.toString();
+    if (!badgeCount || badgeCount <= 0) return null;
+
+    const display = badgeCount > 99 ? "99+" : badgeCount.toString();
 
     return (
         <span
-            aria-label={`${count} unread order notification${count !== 1 ? "s" : ""}`}
+            aria-label={`${badgeCount} unread order notification${badgeCount !== 1 ? "s" : ""}`}
             className={`
                 inline-flex items-center justify-center
                 min-w-[22px] h-[22px] px-1.5

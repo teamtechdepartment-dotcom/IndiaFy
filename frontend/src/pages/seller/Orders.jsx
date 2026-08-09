@@ -8,7 +8,13 @@ import {
   CheckCircle, 
   XCircle, 
   ShoppingBag,
-  Inbox
+  Inbox,
+  Package,
+  User,
+  CreditCard,
+  ChevronDown,
+  ChevronUp,
+  Image as ImageIcon
 } from "lucide-react";
 import { useOrderStore } from "../../store/orderStore";
 import { useNodeStore } from "../../store/nodeStore";
@@ -21,6 +27,7 @@ export default function Orders() {
   const { sellerOrders, fetchSellerOrders, updateOrderStatus } = useOrderStore();
   const { clearBadge, markAllRead } = useNotificationStore();
   const [searchTerm, setSearchTerm] = useState("");
+  const [expandedOrders, setExpandedOrders] = useState({});
 
   useEffect(() => {
     if (activeNode?._id) {
@@ -30,18 +37,36 @@ export default function Orders() {
     }
   }, [fetchSellerOrders, clearBadge, markAllRead, activeNode?._id, activeNode?.nodeType]);
 
-  const orderRows = sellerOrders.map(o => ({
-    id: o._id,
-    parentOrderId: o.parentOrderId,
-    displayId: o._id.substring(o._id.length - 8).toUpperCase(),
-    customer: o.customerName || `${o.customer?.firstName || ""} ${o.customer?.lastName || ""}`.trim() || "Customer",
-    location: o.shippingAddress?.city + ", " + o.shippingAddress?.postalCode || "Local",
-    time: new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    amount: "₹" + o.totalPrice,
-    items: `${o.orderItems.length} Item(s)`,
-    status: o.status
-  }));
-  const pendingCount = orderRows.filter(o => o.status === "Pending").length;
+  // Only show Pending orders in Orders Inbox
+  const orderRows = sellerOrders
+    .filter(o => o.status === "Pending")
+    .map(o => ({
+      id: o._id,
+      parentOrderId: o.parentOrderId,
+      displayId: o._id.substring(o._id.length - 8).toUpperCase(),
+      customer: o.customerName || `${o.customer?.firstName || ""} ${o.customer?.lastName || ""}`.trim() || "Customer",
+      customerEmail: o.customer?.email || "",
+      location: (o.shippingAddress?.city || "") + ", " + (o.shippingAddress?.postalCode || ""),
+      fullAddress: o.shippingAddress ? `${o.shippingAddress.address || ""}, ${o.shippingAddress.city || ""}, ${o.shippingAddress.state || ""} ${o.shippingAddress.postalCode || ""}` : "Local",
+      time: new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: new Date(o.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+      amount: "₹" + (o.totalPrice || 0),
+      itemCount: o.orderItems?.length || 0,
+      status: o.status,
+      paymentMethod: o.paymentMethod || "COD",
+      orderItems: (o.orderItems || []).map(item => ({
+        productName: item.product?.productName || item.productName || "Unknown Product",
+        productImage: item.product?.productImage?.[0] || "",
+        shortDescription: item.product?.shortDescription || item.product?.description || "",
+        quantity: item.quantity || 1,
+        price: item.price || 0,
+      }))
+    }));
+  const pendingCount = orderRows.length;
+
+  const toggleExpand = (orderId) => {
+    setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
+  };
 
   const handleAccept = async (orderId) => {
     try {
@@ -76,7 +101,8 @@ export default function Orders() {
     order.parentOrderId?.toLowerCase?.().includes(searchTerm.toLowerCase()) ||
     order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.status.toLowerCase().includes(searchTerm.toLowerCase())
+    order.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.orderItems.some(item => item.productName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getNextStatus = (status) => {
@@ -84,6 +110,20 @@ export default function Orders() {
     if (status === "Packed") return "Dispatched";
     if (status === "Dispatched" || status === "Shipped") return "Delivered";
     return null;
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Pending": return "bg-amber-50 text-amber-700 border-amber-200";
+      case "Accepted": return "bg-blue-50 text-blue-700 border-blue-200";
+      case "Processing": return "bg-indigo-50 text-indigo-700 border-indigo-200";
+      case "Packed": return "bg-purple-50 text-purple-700 border-purple-200";
+      case "Dispatched":
+      case "Shipped": return "bg-cyan-50 text-cyan-700 border-cyan-200";
+      case "Delivered": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "Cancelled": return "bg-red-50 text-red-600 border-red-200";
+      default: return "bg-slate-100 text-slate-600 border-slate-200";
+    }
   };
 
   return (
@@ -95,7 +135,7 @@ export default function Orders() {
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             Orders Inbox 
             {pendingCount > 0 && (
-              <span className="bg-red-50 text-red-600 text-sm px-2.5 py-0.5 rounded-full font-bold">
+              <span className="bg-red-50 text-red-600 text-sm px-2.5 py-0.5 rounded-full font-bold animate-pulse">
                 {pendingCount} New
               </span>
             )}
@@ -110,7 +150,7 @@ export default function Orders() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search ID, Name, or Area..."
+            placeholder="Search ID, Name, Product..."
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all shadow-sm"
           />
         </div>
@@ -121,79 +161,152 @@ export default function Orders() {
         
         {/* Render Filtered Orders */}
         {filteredOrders.length > 0 ? (
-          filteredOrders.map((order) => (
-            <Card key={order.id} className="hover:border-slate-300 transition-colors">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          filteredOrders.map((order) => {
+            const isExpanded = expandedOrders[order.id];
+            return (
+              <Card key={order.id} className={`hover:border-slate-300 transition-all overflow-hidden ${order.status === "Pending" ? "border-l-4 border-l-amber-400" : ""}`}>
                 
-                {/* Order Info (Left Side) */}
-                <div className="flex gap-4 items-start">
-                  <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-bold shrink-0 shadow-sm">
-                    {order.displayId.slice(0, 4)}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-lg leading-tight">
-                      {order.customer} 
-                      <span className="text-slate-400 font-medium text-sm ml-2 px-2 py-0.5 bg-slate-100 rounded-md">
-                        {order.displayId}
-                      </span>
-                    </h3>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-slate-500 font-medium">
-                      <span className="flex items-center gap-1.5"><MapPin size={15} className="text-slate-400"/> {order.location}</span>
-                      <span className="flex items-center gap-1.5 text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md"><Clock size={14}/> {order.time}</span>
+                {/* Order Header Row */}
+                <div className="flex flex-col gap-4">
+                  
+                  {/* Top: Customer Info + Status + Amount */}
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    
+                    {/* Customer & Order Meta */}
+                    <div className="flex gap-3 items-start flex-1 min-w-0">
+                      <div className="w-11 h-11 bg-slate-800 text-white rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                        <User size={18} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-bold text-slate-900 text-base leading-tight truncate">
+                            {order.customer}
+                          </h3>
+                          <span className="text-slate-400 font-mono text-xs px-1.5 py-0.5 bg-slate-100 rounded shrink-0">
+                            #{order.displayId}
+                          </span>
+                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0 ${getStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-slate-500 font-medium">
+                          <span className="flex items-center gap-1"><MapPin size={12} className="text-slate-400"/> {order.location}</span>
+                          <span className="flex items-center gap-1 text-amber-600"><Clock size={12}/> {order.date}, {order.time}</span>
+                          <span className="flex items-center gap-1"><CreditCard size={12} className="text-slate-400"/> {order.paymentMethod}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Amount + Items + Actions */}
+                    <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                      <div className="text-right">
+                        <p className="text-lg font-black text-slate-900">{order.amount}</p>
+                        <p className="text-xs font-medium text-slate-500 flex items-center justify-end gap-1">
+                          <Package size={12}/> {order.itemCount} Item{order.itemCount !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        {order.status === "Pending" ? (
+                          <>
+                            <button 
+                              onClick={() => handleReject(order.id)}
+                              className="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5"
+                              title="Reject Order"
+                            >
+                              <XCircle size={16} /> Reject
+                            </button>
+                            <button 
+                              onClick={() => handleAccept(order.id)}
+                              className="px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                              title="Accept Order"
+                            >
+                              <CheckCircle size={16} /> Accept
+                            </button>
+                          </>
+                        ) : getNextStatus(order.status) ? (
+                          <button
+                            onClick={() => handleNextStatus(order.id, getNextStatus(order.status))}
+                            className="px-4 py-2 bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                          >
+                            <CheckCircle size={16} /> Mark {getNextStatus(order.status)}
+                          </button>
+                        ) : (
+                          <span className={`px-3 py-2 font-bold text-xs rounded-xl border ${getStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Mobile Divider */}
-                <div className="h-px w-full bg-slate-100 lg:hidden"></div>
+                  {/* Product Items Preview (always visible — first 2 items) */}
+                  <div className="bg-slate-50/80 rounded-2xl border border-slate-100 overflow-hidden">
+                    {order.orderItems.slice(0, isExpanded ? order.orderItems.length : 2).map((item, idx) => (
+                      <div key={idx} className={`flex items-center gap-3 px-4 py-3 ${idx > 0 ? "border-t border-slate-100" : ""}`}>
+                        {/* Product Image */}
+                        <div className="w-14 h-14 rounded-xl bg-white border border-slate-200 overflow-hidden shrink-0 shadow-sm">
+                          {item.productImage ? (
+                            <img 
+                              src={item.productImage} 
+                              alt={item.productName}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&auto=format&fit=crop";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                              <ImageIcon size={20} className="text-slate-300" />
+                            </div>
+                          )}
+                        </div>
 
-                {/* Order Financials & Actions (Right Side) */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between lg:justify-end gap-4 sm:gap-6 w-full lg:w-auto">
-                  
-                  {/* Financials */}
-                  <div className="text-left sm:text-right flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto">
-                    <p className="text-lg font-bold text-slate-900">{order.amount}</p>
-                    <p className="text-sm font-medium text-slate-500 flex items-center gap-1">
-                      <ShoppingBag size={14}/> {order.items}
-                    </p>
-                  </div>
+                        {/* Product Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-slate-800 truncate">{item.productName}</p>
+                          {item.shortDescription && (
+                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{item.shortDescription}</p>
+                          )}
+                        </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    {order.status === "Pending" ? (
-                      <>
-                        <button 
-                          onClick={() => handleReject(order.id)}
-                          className="flex-1 sm:flex-none px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2"
-                        >
-                          <XCircle size={18} /> <span className="sm:hidden xl:inline">Reject</span>
-                        </button>
-                        
-                        <button 
-                          onClick={() => handleAccept(order.id)}
-                          className="flex-1 sm:flex-none px-6 py-2.5 bg-slate-900 text-white hover:bg-slate-800 font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-                        >
-                          <CheckCircle size={18} /> Accept
-                        </button>
-                      </>
-                    ) : getNextStatus(order.status) ? (
+                        {/* Qty & Price */}
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-bold text-slate-900">₹{item.price * item.quantity}</p>
+                          <p className="text-[11px] text-slate-500 font-medium">Qty: {item.quantity} × ₹{item.price}</p>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Show More / Less toggle */}
+                    {order.orderItems.length > 2 && (
                       <button
-                        onClick={() => handleNextStatus(order.id, getNextStatus(order.status))}
-                        className="flex-1 sm:flex-none px-6 py-2.5 bg-slate-900 text-white hover:bg-slate-800 font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                        onClick={() => toggleExpand(order.id)}
+                        className="w-full py-2 text-xs font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-center gap-1 border-t border-slate-100"
                       >
-                        <CheckCircle size={18} /> Mark {getNextStatus(order.status)}
+                        {isExpanded ? (
+                          <><ChevronUp size={14} /> Show Less</>
+                        ) : (
+                          <><ChevronDown size={14} /> +{order.orderItems.length - 2} More Item{order.orderItems.length - 2 > 1 ? "s" : ""}</>
+                        )}
                       </button>
-                    ) : (
-                      <span className="px-4 py-2.5 bg-slate-100 text-slate-500 font-bold text-sm rounded-xl">
-                        {order.status}
-                      </span>
                     )}
                   </div>
 
+                  {/* Shipping Address (compact) */}
+                  {order.fullAddress && order.fullAddress !== "Local" && (
+                    <div className="flex items-start gap-2 text-xs text-slate-500 px-1">
+                      <MapPin size={13} className="text-slate-400 shrink-0 mt-0.5" />
+                      <span className="leading-relaxed">{order.fullAddress}</span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </Card>
-          ))
+
+              </Card>
+            );
+          })
         ) : (
           /* Empty State Handling */
           <div className="text-center py-16 px-4 bg-white border border-slate-200 border-dashed rounded-3xl">
@@ -215,3 +328,4 @@ export default function Orders() {
     </div>
   );
 }
+

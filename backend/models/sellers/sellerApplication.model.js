@@ -55,7 +55,7 @@ const sellerApplicationSchema = new Schema(
     },
     businessType: {
       type: String,
-      required: true,
+      default: "Proprietorship",
       trim: true
     },
     // Encrypted fields
@@ -125,11 +125,11 @@ const sellerApplicationSchema = new Schema(
     },
     latitude: {
       type: Number,
-      required: true
+      default: 0
     },
     longitude: {
       type: Number,
-      required: true
+      default: 0
     },
     documents: {
       aadhaarFront: { type: String, required: true },

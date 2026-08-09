@@ -1,210 +1,164 @@
-import { memo, useEffect } from "react";
+import { memo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Star, ShieldCheck, ShoppingCart, FileText, Clock, MapPin, Zap, Store } from "lucide-react";
+import { ShoppingCart, FileText, ShieldCheck, Clock, MapPin, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { useWholesaleStore } from "../../store/wholesaleStore";
 import { useCartStore } from "../../store/cartStore";
 
-const STATIC_PRODUCTS = [
-  { id: "sp1", name: "1121 Export Quality Basmati Rice (50kg Bag)", emoji: "🌾", moq: 500, price: 32, originalPrice: 48, unit: "/ Kg", location: "Ahmedabad Wholesale Hub", rating: "4.8", reviews: 142, stock: "5,000+ Kg" },
-  { id: "sp2", name: "Industrial 9W Smart LED Bulbs (B22 Bayonet)", emoji: "💡", moq: 100, price: 65, originalPrice: 110, unit: "/ piece", location: "Delhi Electrical Market", rating: "4.7", reviews: 98, stock: "10,000+ pcs" },
-  { id: "sp3", name: "Food Grade 750ml Disposable Meal Containers", emoji: "🥡", moq: 500, price: 4, originalPrice: 7.5, unit: "/ piece", location: "Indore Plastic Traders", rating: "4.6", reviews: 215, stock: "50,000+ pcs" },
-  { id: "sp4", name: "100% Pure Refined Sunflower Oil (15L Tin)", emoji: "🛢️", moq: 100, price: 110, originalPrice: 155, unit: "/ Ltr", location: "Indore Oil Syndicate", rating: "4.8", reviews: 310, stock: "2,500+ Tins" },
-  { id: "sp5", name: "240 GSM Heavyweight Combed Cotton T-Shirts", emoji: "👕", moq: 50, price: 120, originalPrice: 220, unit: "/ piece", location: "Tirupur Garment Hub", rating: "4.9", reviews: 540, stock: "8,000+ pcs" },
-];
+const fmt = (n) => "₹" + Number(n).toLocaleString("en-IN");
+
+function ProductSkeleton() {
+  return (
+    <div className="bg-white border border-brand-border rounded-lg p-4 flex flex-col animate-pulse">
+      <div className="w-full aspect-[4/3] bg-gray-100 rounded-md mb-4" />
+      <div className="h-4 bg-gray-100 rounded w-3/4 mb-3" />
+      <div className="h-10 bg-gray-100 rounded w-full mb-3" />
+      <div className="h-4 bg-gray-100 rounded w-1/2 mb-4" />
+      <div className="h-8 bg-gray-100 rounded mt-auto" />
+    </div>
+  );
+}
 
 function TrendingBulkProducts() {
   const navigate = useNavigate();
-  const { wholesaleProducts, fetchWholesaleProducts, isLoading } = useWholesaleStore();
+  const { wholesaleProducts, fetchWholesaleProducts, isLoading, filters, clearFilters } = useWholesaleStore();
   const { addToCart } = useCartStore();
 
   useEffect(() => {
     fetchWholesaleProducts();
   }, [fetchWholesaleProducts]);
 
-  const handleBulkCart = (product, e) => {
+  const getTierPrice = (product, qty) => {
+    if (!product.bulkPricing || product.bulkPricing.length === 0) {
+      return parseFloat(product.attribute?.salePrice || 0);
+    }
+    const sortedTiers = [...product.bulkPricing].sort((a, b) => b.minQty - a.minQty);
+    const applicableTier = sortedTiers.find(t => qty >= t.minQty);
+    return applicableTier ? applicableTier.pricePerUnit : parseFloat(product.attribute?.salePrice || 0);
+  };
+
+  const handleBulkAddToCart = (product, e) => {
     e.stopPropagation();
-    const qty = product.moq || 50;
+    const qty = product.minimumOrderQty || 1;
+    const price = getTierPrice(product, qty);
+    
     addToCart({
-      _id: product.id || product._id,
-      productName: product.name || product.productName,
-      productImage: product.image ? [product.image] : [],
-      price: product.price || 100,
-      sellerId: product.sellerId || "default_seller",
+      _id: product._id,
+      productName: product.productName,
+      productImage: product.productImage,
+      price: price,
+      sellerId: product.sellerId,
       isWholesale: true
     }, qty);
-    toast.success(`Added ${qty} units to Wholesale Cart!`);
+    toast.success(`Added ${qty} units to Cart`);
   };
 
   const handleRFQ = (e) => {
     e.stopPropagation();
-    toast.info("RFQ Draft created! Our sourcing specialist will connect you with top stockists in < 15 mins.");
+    toast.info("RFQ Draft Created. Supplier will contact you shortly.");
   };
 
-  // Merge API products with static fallback
-  const apiCards = wholesaleProducts.slice(0, 5).map((p) => {
-    const minQty = p.minimumOrderQty || 50;
-    const price = Number(p.attribute?.salePrice || 100);
-    const orig = Number(p.attribute?.regularPrice || price * 1.45);
-    return {
-      id: p._id,
-      name: p.productName,
-      emoji: null,
-      image: p.productImage?.[0],
-      moq: minQty,
-      price: price,
-      originalPrice: orig,
-      unit: "/ unit",
-      location: p.businessAddress?.city || "New Delhi Wholesale Market",
-      rating: (4 + Math.random() * 0.9).toFixed(1),
-      reviews: Math.floor(Math.random() * 150) + 50,
-      stock: `${p.inventory || 1500}+ available`,
-      navigateTo: `/product/${p._id}`,
-    };
+  const filteredProducts = wholesaleProducts.filter(p => {
+    if (filters.search && !p.productName.toLowerCase().includes(filters.search.toLowerCase())) return false;
+    if (filters.category && filters.category.length > 0 && !filters.category.includes(p.category)) return false;
+    if (filters.moq) {
+      const minQty = p.minimumOrderQty || 1;
+      const moqLimit = parseInt(filters.moq);
+      if (minQty > moqLimit) return false;
+    }
+    if (filters.gstVerified && !p.gstVerified) return false;
+    return true;
   });
 
-  const displayProducts = apiCards.length > 0 ? apiCards : STATIC_PRODUCTS;
-
   return (
-    <section className="w-full py-12 sm:py-16 bg-[#F8FAFC] border-b border-gray-200/60">
-      <div className="max-w-[1600px] 2xl:max-w-[1800px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+    <section className="py-12 bg-white border-b border-brand-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10 pb-4 border-b border-gray-200/60">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold tracking-wider uppercase text-[#F97316] bg-[#F97316]/10 px-3.5 py-1 rounded-full mb-3">
-              <Zap size={15} className="fill-current" />
-              <span>High Margin Inventory</span>
-            </div>
-            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[#1F2937]">
-              Top-Selling Wholesale Inventory
-            </h2>
-            <p className="text-sm sm:text-base text-[#6B7280] font-medium mt-1">
-              Lock in tiered dealer rates with verified bulk shops and regional stockists before stock resets.
-            </p>
-          </div>
-          <a
-            href="#catalog"
-            className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-[#F97316] text-[#F97316] hover:text-white font-extrabold text-xs sm:text-sm border border-gray-200 hover:border-[#F97316] transition-all duration-200 shrink-0 shadow-xs"
-          >
-            <span>Browse Full Catalog</span>
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </a>
+        <div className="mb-8">
+          <h2 className="text-2xl lg:text-3xl font-black text-brand-text-primary mb-2">
+            Wholesale Products
+          </h2>
+          <p className="text-sm text-brand-text-secondary font-medium">
+            Source bulk inventory with tiered pricing and verified fulfillment.
+          </p>
         </div>
 
-        {/* Products Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="border border-gray-200 rounded-2xl p-5 bg-white animate-pulse">
-                <div className="h-44 bg-gray-100 rounded-xl mb-4" />
-                <div className="h-4 bg-gray-100 rounded w-3/4 mb-2" />
-                <div className="h-3 bg-gray-100 rounded w-1/2 mb-4" />
-                <div className="h-10 bg-gray-100 rounded w-full mb-4" />
-                <div className="h-10 bg-gray-100 rounded-xl" />
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => <ProductSkeleton key={i} />)}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-            {displayProducts.map((p) => {
-              const savings = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) || 30;
+        ) : filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {filteredProducts.map((p) => {
+              const minQty = p.minimumOrderQty || 1;
+              const currentPrice = getTierPrice(p, minQty);
+              const marketPrice = p.attribute?.regularPrice || currentPrice * 1.4;
+              const savings = Math.round(((marketPrice - currentPrice) / marketPrice) * 100);
+              const stock = p.inventory || Math.floor(Math.random() * 5000) + 500;
+
               return (
                 <div
-                  key={p.id}
-                  onClick={() => p.navigateTo && navigate(p.navigateTo)}
-                  className="flex flex-col justify-between border border-gray-200/80 rounded-2xl bg-white hover:border-[#0B6E5D] hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group overflow-hidden relative shadow-xs"
+                  key={p._id}
+                  onClick={() => navigate(`/product/${p._id}`)}
+                  className="bg-white border border-brand-border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer flex flex-col group relative"
                 >
-                  {/* Top Image Box */}
-                  <div className="relative h-48 bg-gradient-to-b from-gray-50/80 to-white flex items-center justify-center p-4 border-b border-gray-100 overflow-hidden">
-                    {p.image ? (
-                      <img
-                        loading="lazy"
-                        decoding="async"
-                        src={p.image}
-                        alt={p.name}
-                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                      />
-                    ) : (
-                      <span className="text-7xl group-hover:scale-125 transition-transform duration-500 inline-block drop-shadow-md">
-                        {p.emoji}
-                      </span>
-                    )}
-
-                    {/* Verified Shop Badge Overlay */}
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-extrabold text-[#0B6E5D] shadow-xs flex items-center gap-1 border border-gray-200/60 uppercase tracking-wider">
-                      <Store size={12} className="text-[#16A34A]" />
-                      <span>Verified Dealer</span>
-                    </div>
-
-                    {/* Discount Tag */}
-                    <div className="absolute top-3 right-3 bg-[#F97316] text-white px-2.5 py-1 rounded-md text-[10px] font-black shadow-xs uppercase tracking-wider">
-                      -{savings}% OFF
+                  {/* Image & Verified Badge */}
+                  <div className="relative aspect-[4/3] bg-gray-50 rounded-md mb-3 overflow-hidden border border-gray-100">
+                    <img loading="lazy" decoding="async"
+                      src={p.productImage?.[0] || "https://placehold.co/600x400?text=Product"}
+                      alt={p.productName}
+                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-2 left-2">
+                      <div className="bg-white px-2 py-1 rounded text-[10px] font-bold text-brand-primary shadow-sm flex items-center gap-1 uppercase tracking-wide border border-brand-border">
+                        <ShieldCheck size={12} /> Verified
+                      </div>
                     </div>
                   </div>
 
-                  {/* Card Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      {/* Rating & Reviews */}
-                      <div className="flex items-center gap-1.5 mb-2.5">
-                        <div className="flex items-center text-amber-500 text-xs font-black">
-                          <Star size={13} fill="currentColor" className="mr-1" />
-                          <span>{p.rating}</span>
-                        </div>
-                        <span className="text-gray-400 text-xs font-medium">({p.reviews} dealer reviews)</span>
+                  {/* Info */}
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="text-sm font-semibold text-brand-text-primary line-clamp-2 mb-2 group-hover:text-brand-primary transition-colors leading-snug">
+                      {p.productName}
+                    </h3>
+                    
+                    {/* Price & MOQ */}
+                    <div className="bg-gray-50 border border-brand-border rounded p-2 mb-3">
+                      <div className="flex justify-between items-end mb-1">
+                        <span className="text-lg font-black text-brand-text-primary leading-none">{fmt(currentPrice)}<span className="text-xs font-medium text-brand-text-secondary">/unit</span></span>
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Save {savings}%</span>
                       </div>
-
-                      {/* Title */}
-                      <h3 className="text-base font-extrabold text-[#1F2937] group-hover:text-[#0B6E5D] transition-colors line-clamp-2 leading-snug mb-3">
-                        {p.name}
-                      </h3>
-
-                      {/* MOQ Tag */}
-                      <div className="inline-block bg-[#E6F4F1] text-[#0B6E5D] text-xs font-extrabold px-3 py-1 rounded-lg mb-3">
-                        Min. Order: {p.moq} Units
+                      <div className="text-xs font-semibold text-brand-text-secondary">
+                        Min. Order: <span className="text-brand-text-primary">{minQty} Units</span>
                       </div>
                     </div>
 
-                    {/* Pricing Block */}
-                    <div className="bg-gray-50 rounded-xl p-3.5 border border-gray-100 mb-4">
-                      <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Wholesale Dealer Rate</div>
-                      <div className="flex items-baseline gap-1.5 mt-0.5">
-                        <span className="text-2xl font-black text-[#1F2937]">₹{p.price.toLocaleString("en-IN")}</span>
-                        <span className="text-xs font-bold text-[#6B7280]">{p.unit}</span>
-                        <span className="text-xs text-gray-400 line-through ml-auto font-semibold">₹{p.originalPrice}</span>
+                    {/* Meta tags */}
+                    <div className="flex flex-col gap-1.5 mb-4 text-[11px] font-medium text-brand-text-secondary">
+                      <div className="flex items-center gap-1.5">
+                        <Clock size={12} className="text-gray-400" /> Dispatch in 2-3 days
+                      </div>
+                      <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-1.5">
+                           <MapPin size={12} className="text-gray-400" /> Pan-India Delivery
+                         </div>
+                         <span className="font-semibold text-brand-text-primary">{stock} Available</span>
                       </div>
                     </div>
 
-                    {/* Location & Delivery Meta */}
-                    <div className="flex items-center justify-between text-xs font-semibold text-[#6B7280] mb-5">
-                      <span className="flex items-center gap-1.5 truncate max-w-[140px]">
-                        <MapPin size={13} className="text-gray-400 shrink-0" />
-                        <span className="truncate">{p.location}</span>
-                      </span>
-                      <span className="flex items-center gap-1 text-emerald-600 font-bold shrink-0">
-                        <Clock size={13} />
-                        <span>2-3 days</span>
-                      </span>
-                    </div>
-
-                    {/* Action Buttons Row */}
-                    <div className="grid grid-cols-2 gap-2.5 pt-3.5 border-t border-gray-100">
+                    {/* Action Bar */}
+                    <div className="grid grid-cols-2 gap-2 mt-auto pt-3 border-t border-brand-border" onClick={e => e.stopPropagation()}>
                       <button
-                        type="button"
                         onClick={(e) => handleRFQ(e)}
-                        className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-[#1F2937] font-extrabold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full py-2 bg-white border border-brand-border text-brand-text-primary font-bold text-xs rounded hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
                       >
-                        <FileText size={14} />
-                        <span>RFQ Quote</span>
+                        <FileText size={14} /> RFQ
                       </button>
                       <button
-                        type="button"
-                        onClick={(e) => handleBulkCart(p, e)}
-                        className="w-full py-2.5 bg-[#0B6E5D] hover:bg-[#084F42] text-white font-extrabold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                        onClick={(e) => handleBulkAddToCart(p, e)}
+                        className="w-full py-2 bg-brand-primary text-white font-bold text-xs rounded hover:bg-brand-primary/90 transition-colors flex items-center justify-center gap-1.5"
                       >
-                        <ShoppingCart size={14} />
-                        <span>Buy Bulk</span>
+                        <ShoppingCart size={14} /> Add Cart
                       </button>
                     </div>
 
@@ -212,6 +166,22 @@ function TrendingBulkProducts() {
                 </div>
               );
             })}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-gray-50 border border-brand-border rounded-lg">
+            <div className="w-16 h-16 bg-white border border-brand-border rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle size={24} className="text-gray-400" />
+            </div>
+            <h3 className="text-lg font-bold text-brand-text-primary mb-1">No Products Found</h3>
+            <p className="text-sm text-brand-text-secondary max-w-sm mx-auto mb-4">
+              Try adjusting your filters to find what you need.
+            </p>
+            <button 
+              onClick={() => { clearFilters(); fetchWholesaleProducts(); }}
+              className="bg-white border border-brand-border text-brand-primary px-4 py-2 rounded-md text-xs font-bold hover:bg-gray-50 transition-colors"
+            >
+              Clear Filters
+            </button>
           </div>
         )}
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useSellerAuthStore } from "../../store/sellerAuthStore";
 import { useAuthStore } from "../../store/authStore";
 import { useNodeStore } from "../../store/nodeStore";
@@ -27,6 +27,16 @@ import {
 import SEOHead from "../../components/seo/SEOHead";
 import OrderNotificationBadge from "../../components/seller/OrderNotificationBadge";
 import StoreCreationWizard from "./components/StoreCreationWizard";
+
+/* ----------------------------------------------------------
+   NODE ACTIVE HELPER
+---------------------------------------------------------- */
+const isNodeActive = (node) => {
+  if (!node) return false;
+  const s = node.status?.toUpperCase();
+  const appS = node.approval?.status?.toUpperCase();
+  return (s === "ACTIVE" || s === "APPROVED") && node.isActive !== false && (appS === "APPROVED" || !node.approval);
+};
 import { Skeleton } from "../../components/ui/Skeleton";
 import axiosInstance from "../../utils/axiosInstance";
 
@@ -142,6 +152,7 @@ const NodeNotificationBadge = React.memo(function NodeNotificationBadge({ nodeId
 ---------------------------------------------------------- */
 export default function SellerHub() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const sellerStore = useSellerAuthStore();
   const user = sellerStore?.user || null;
@@ -151,6 +162,7 @@ export default function SellerHub() {
 
   const { fetchAllNodes, nodes, isLoading, error, clearActiveNode } = useNodeStore();
   const fetchUnreadCounts = useNotificationStore((state) => state.fetchUnreadCounts);
+  const unreadCounts = useNotificationStore((state) => state.unreadCounts);
   const clearBadge = useNotificationStore((state) => state.clearBadge);
 
   const [activeWizard, setActiveWizard] = useState(null);
@@ -173,15 +185,9 @@ export default function SellerHub() {
     }
     setRefreshing(false);
 
-    // AUTO REDIRECT: If exactly ONE active/approved node exists
-    const activeNodes = (nodesList || []).filter(
-      (n) => n.status === "ACTIVE" && n.isActive === true && n.approval?.status === "APPROVED"
-    );
+    const activeNodes = (nodesList || []).filter(isNodeActive);
     fetchUnreadCounts(activeNodes.map((n) => n._id));
-    if (activeNodes.length === 1) {
-      navigate(`/seller/dashboard/${activeNodes[0]._id}/dashboard`, { replace: true });
-    }
-  }, [fetchAllNodes, fetchUnreadCounts, navigate]);
+  }, [fetchAllNodes, fetchUnreadCounts]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -202,7 +208,7 @@ export default function SellerHub() {
     if (status === "additional_information_required") return "CHANGES_REQUESTED";
     return status || "";
   };
-  const activeNodesCount = nodes.filter((node) => node.status === "ACTIVE" && node.isActive === true && node.approval?.status === "APPROVED").length;
+  const activeNodesCount = nodes.filter(isNodeActive).length;
 
   /* ----------------------------------------------------------
      WIZARD SUCCESS
@@ -379,8 +385,8 @@ export default function SellerHub() {
             const existingNode = getExistingNode(node.type);
             const app = applications.find(a => a.nodeType === node.type);
             const lifecycleStatus = normalizeStatus(existingNode?.status || app?.status);
-            const isApproved = existingNode?.status === "ACTIVE" && existingNode?.isActive === true && existingNode?.approval?.status === "APPROVED";
-            const isActive = !!isApproved;
+            const isActive = isNodeActive(existingNode);
+            const nodeUnreadCount = existingNode?._id ? (unreadCounts[existingNode._id] || 0) : 0;
             const Icon = node.icon;
 
             return (
@@ -481,6 +487,19 @@ export default function SellerHub() {
                   <p className="text-sm font-medium text-brand-text-secondary mb-6 leading-relaxed flex-1">
                     {node.description}
                   </p>
+
+                  {/* NEW ORDER NOTIFICATION BANNER */}
+                  {nodeUnreadCount > 0 && (
+                    <div className="mb-4 px-4 py-3 bg-rose-50 border border-rose-200/80 rounded-2xl flex items-center justify-between shadow-sm animate-pulse">
+                      <div className="flex items-center gap-2 text-rose-700 font-bold text-xs">
+                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
+                        <span>🎉 {nodeUnreadCount} New Order{nodeUnreadCount > 1 ? "s" : ""} Received!</span>
+                      </div>
+                      <span className="text-[10px] bg-rose-600 text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                        New Order
+                      </span>
+                    </div>
+                  )}
 
                   {/* STORE NAME (if active or pending application) */}
                   {(existingNode?.storeName || app?.storeName) && (

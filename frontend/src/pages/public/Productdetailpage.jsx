@@ -140,7 +140,7 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen bg-white flex flex-col justify-between font-sans">
         <WebsiteNavbar />
-        <div className="pt-[180px] pb-20 text-center max-w-md mx-auto">
+        <div className="pt-[130px] md:pt-[160px] pb-20 text-center max-w-md mx-auto px-4">
           <h2 className="text-2xl font-bold mb-4">Product Not Found</h2>
           <p className="text-zinc-500 mb-6">The product you are looking for does not exist or has been removed.</p>
           <button onClick={() => navigate("/")} className="bg-[#2874F0] text-white px-6 py-2 rounded font-bold">Go to Homepage</button>
@@ -259,6 +259,28 @@ export default function ProductDetailPage() {
            )}
         </div>
       </main>
+
+      {/* MOBILE STICKY ACTION BAR */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-40 shadow-2xl flex items-center justify-between gap-3">
+        <div>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Price</span>
+          <span className="text-base font-extrabold text-slate-900">₹{(mappedProduct.currentPrice * quantity).toLocaleString("en-IN")}</span>
+        </div>
+        <div className="flex items-center gap-2 flex-1 max-w-[240px]">
+          <button
+            onClick={handleAddToCart}
+            className="flex-1 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-colors shadow-xs"
+          >
+            Add to Cart
+          </button>
+          <button
+            onClick={handleBuyNow}
+            className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 transition-colors shadow-md"
+          >
+            Buy Now
+          </button>
+        </div>
+      </div>
 
       <Footer />
     </div>

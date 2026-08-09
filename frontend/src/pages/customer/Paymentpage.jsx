@@ -46,12 +46,8 @@ export default function PaymentPage() {
   const navigate = useNavigate();
   const [method, setMethod] = useState("upi");
   const [loading, setLoading] = useState(false);
-  const [agreedToPolicies, setAgreedToPolicies] = useState(false);
 
   const handlePayment = () => {
-    if (!agreedToPolicies) {
-      return alert("Please agree to the Terms & Conditions and Refund Policy to proceed.");
-    }
     setLoading(true);
     // Mimicking Indiafy Node reconciliation
     setTimeout(() => {
@@ -199,24 +195,10 @@ export default function PaymentPage() {
                 </label>
               </div>
 
-              <div className="pt-2 mb-2">
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={agreedToPolicies}
-                    onChange={(e) => setAgreedToPolicies(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded border-slate-700 text-teal-500 focus:ring-teal-500 transition-colors cursor-pointer shrink-0"
-                  />
-                  <span className="text-[11px] text-slate-400 font-medium leading-relaxed">
-                    I explicitly agree to the <a href="/terms-and-conditions" target="_blank" className="font-bold text-white underline">Terms</a> & <a href="/refund-policy" target="_blank" className="font-bold text-white underline">Refund Policy</a> (No default auto-check).
-                  </span>
-                </label>
-              </div>
-
               <button
                 onClick={handlePayment}
-                disabled={loading || !agreedToPolicies}
-                className="w-full mt-6 py-5 bg-teal-500 text-white rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-teal-900/40 hover:bg-teal-400 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                disabled={loading}
+                className="w-full mt-10 py-5 bg-teal-500 text-white rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-teal-900/40 hover:bg-teal-400 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >
                 {loading
                   ? "Reconciling Indiafy Node..."

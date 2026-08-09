@@ -7,15 +7,15 @@ import { useNotificationStore } from "../store/notificationStore";
 import toast from "react-hot-toast";
 
 const getSocketURL = () => {
-    let API_URL = import.meta.env.VITE_API_URL;
-    if (!API_URL || API_URL.trim() === "") {
-        if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
-            API_URL = "http://localhost:8000";
-        } else {
-            API_URL = "https://indiafy-1.onrender.com";
-        }
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+    if (
+        typeof window !== "undefined" &&
+        !window.location.hostname.includes("localhost") &&
+        !window.location.hostname.includes("127.0.0.1")
+    ) {
+        return "https://indiafy-1.onrender.com";
     }
-    return API_URL;
+    return "http://localhost:8000";
 };
 
 // Singleton socket reference — shared across all components using this hook

@@ -12,7 +12,7 @@ import axiosInstance from "../../../utils/axiosInstance";
 import { useNodeStore } from "../../../store/nodeStore";
 import SEOHead from "../../../components/seo/SEOHead";
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:8000" : "https://indiafy-1.onrender.com");
+const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 /* ============================================================
    STATUS STYLES MAPPING

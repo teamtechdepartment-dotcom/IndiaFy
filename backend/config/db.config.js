@@ -1,7 +1,24 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 dotenv.config();
+
+// Connection status listeners to handle temporary network/DNS drops gracefully
+mongoose.connection.on("error", (err) => {
+  console.warn("⚠️ MongoDB connection event warning:", err.message);
+});
+mongoose.connection.on("disconnected", () => {
+  console.warn("⚠️ MongoDB disconnected. Auto-reconnecting...");
+});
+mongoose.connection.on("reconnected", () => {
+  console.log("✅ MongoDB reconnected successfully!");
+});
 
 export const databaseConfig = async () => {
   try {
@@ -14,19 +31,23 @@ export const databaseConfig = async () => {
 
     console.log("Attempting to connect to MongoDB...");
     const db = await mongoose.connect(dbUrl || "mongodb://127.0.0.1:27017/indiafy", {
-      serverSelectionTimeoutMS: 5000, // Don't hang forever
+      dbName: "test",
+      serverSelectionTimeoutMS: 10000, // Wait up to 10s for DNS/server selection
+      heartbeatFrequencyMS: 10000,
+      socketTimeoutMS: 45000,
     });
-    console.log("✅Database Connect Successfully");
+    console.log("✅ Database Connect Successfully");
     return db;
   } catch (err) {
     console.error("❌ Database Connection Failed!");
     console.error("Error Message:", err.message);
     if (
       err.message.includes("ECONNREFUSED") ||
-      err.message.includes("querySrv")
+      err.message.includes("querySrv") ||
+      err.message.includes("ENOTFOUND")
     ) {
       console.error(
-        "TIP: Your network might be blocking MongoDB Atlas (SRV). Try using a direct connection string or a local MongoDB instance (e.g., mongodb://127.0.0.1:27017/indiafy).",
+        "TIP: Your network might be experiencing temporary DNS issues or blocking MongoDB Atlas (SRV).",
       );
     }
     throw err;  

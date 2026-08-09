@@ -34,11 +34,18 @@ export const useProductStore = create((set) => ({
   createProduct: async (formData) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axiosInstance.post('/products', formData);
-      // Refresh products after creation
-      return res.data;
+      const res = await axiosInstance.post('/products', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const created = res.data || res;
+      if (created && created._id) {
+        set((state) => ({
+          products: [created, ...state.products.filter(p => p._id !== created._id)]
+        }));
+      }
+      return created;
     } catch (_err) {
-      const errorMsg = _err?.response?.data?.message || 'Failed to create product';
+      const errorMsg = _err?.response?.data?.message || _err?.message || 'Failed to create product';
       set({ error: errorMsg });
       throw new Error(errorMsg);
     } finally {
@@ -56,13 +63,20 @@ export const useProductStore = create((set) => ({
     }
   },
 
-  updateProduct: async (id, formData) => {
+  updateProduct: async (id, payload) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axiosInstance.put(`/products/${id}`, formData);
-      return res.data;
+      const res = await axiosInstance.put(`/products/${id}`, payload);
+      const updated = res.data || res;
+      if (updated && (updated._id || updated.id)) {
+        const targetId = updated._id || updated.id;
+        set((state) => ({
+          products: state.products.map(p => (p._id === targetId || p.id === targetId) ? updated : p)
+        }));
+      }
+      return updated;
     } catch (_err) {
-      const errorMsg = _err?.response?.data?.message || 'Failed to update product';
+      const errorMsg = _err?.response?.data?.message || _err?.message || 'Failed to update product';
       set({ error: errorMsg });
       throw new Error(errorMsg);
     } finally {

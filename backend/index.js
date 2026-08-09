@@ -47,10 +47,8 @@ async function connectWithRetry() {
     try {
         await databaseConfig();
         // Run seeder after successful connection
-        if (process.env.NODE_ENV !== "production") {
-            const { seedDatabase } = await import('./services/seeder.service.js');
-            await seedDatabase(false);
-        }
+        const { seedDatabase } = await import('./services/seeder.service.js');
+        await seedDatabase(false);
 
         // Run DB Migration to match new ACTIVE enums format
         const { default: SellerNode } = await import('./models/sellerNodes/sellerNode.model.js');
@@ -74,22 +72,6 @@ async function connectWithRetry() {
                 { _id: { $in: sellerIds } },
                 { $set: { isApproved: true, status: "active" } }
             );
-        }
-
-        // Drop legacy unique index on SellerProfile.contact (was causing 500 errors)
-        try {
-            const { default: SellerProfile } = await import('./models/sellers/profile.model.js');
-            const indexes = await SellerProfile.collection.indexes();
-            const contactIndex = indexes.find(idx => idx.key && idx.key.contact && idx.unique);
-            if (contactIndex) {
-                await SellerProfile.collection.dropIndex(contactIndex.name);
-                console.log("✅ Dropped legacy unique index on SellerProfile.contact");
-            }
-        } catch (indexErr) {
-            // Index may already be dropped or not exist — safe to ignore
-            if (!indexErr.message?.includes("index not found")) {
-                console.warn("⚠️ Could not drop SellerProfile contact index:", indexErr.message);
-            }
         }
     } catch (err) {
         console.error("DB connection attempt failed, retrying in 10s...", err.message);

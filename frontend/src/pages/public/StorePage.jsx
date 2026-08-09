@@ -111,7 +111,7 @@ export default function StorePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 px-4 max-w-7xl mx-auto w-full space-y-8 bg-zinc-50">
+      <div className="min-h-screen pt-28 md:pt-20 px-4 max-w-7xl mx-auto w-full space-y-8 bg-zinc-50">
         <Skeleton className="w-full h-64 rounded-3xl" />
         <Skeleton className="w-48 h-12" />
         <ProductSkeleton count={10} variant="grid" />
@@ -154,7 +154,7 @@ export default function StorePage() {
       />
       <WebsiteNavbar />
 
-      <main className="pt-16 md:pt-20">
+      <main className="pt-28 md:pt-20">
 
       {/* Background Blobs for Hero Theme */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-0">

@@ -26,7 +26,6 @@ import { useCartStore } from "../../store/cartStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { userSignupSchema, sanitizeEmail, mapBackendError } from "../../lib/signupSchemas";
 import PasswordStrength from "../../components/ui/PasswordStrength";
-import GoogleAuthModal from "../../components/auth/GoogleAuthModal";
 
 const STEPS = [
   { id: 1, title: "Personal Details" },
@@ -41,7 +40,6 @@ const UserSignup = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // ── Submit guard: prevents double-click and duplicate requests ────
   const isSubmittingRef = useRef(false);
@@ -54,52 +52,6 @@ const UserSignup = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const redirectTo = searchParams.get("redirect") || null;
-
-  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-
-  const handleGoogleAuthSuccess = async (accountData) => {
-    setGoogleLoading(true);
-    try {
-      const res = await axiosInstance.post("/customer/auth/google-login", accountData);
-      if (res && (res.success || res.data || res.token || res.accessToken)) {
-        const userData = res.data || res.customer || res;
-        const token = res.token || res.accessToken || userData?.accessToken;
-        loginAuth(userData, token);
-        toast.success(`Welcome, ${userData?.firstName || accountData.name}! 🚀`);
-        setIsGoogleModalOpen(false);
-
-        if (redirectTo) {
-          navigate(redirectTo, { replace: true });
-          return;
-        }
-
-        const pendingPurchase = localStorage.getItem("pending_purchase");
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirect = urlParams.get("redirect");
-
-        if (pendingPurchase && redirect === "checkout") {
-          const { productId, quantity, product } = JSON.parse(pendingPurchase);
-          localStorage.removeItem("pending_purchase");
-          try {
-            await addToCart(productId, quantity);
-            navigate("/checkout", { state: { testProduct: product }, replace: true });
-          } catch (_err) {
-            navigate("/checkout", { state: { testProduct: product }, replace: true });
-          }
-        } else {
-          navigate("/", { replace: true });
-        }
-      } else {
-        toast.error(res?.message || "Google signup failed");
-      }
-    } catch (err) {
-      console.error("Google signup error:", err);
-      toast.error(err?.response?.data?.message || "Google authentication failed. Please try again.");
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
 
   const {
     register,
@@ -145,10 +97,6 @@ const UserSignup = () => {
 
   // ── Submit handler ───────────────────────────────────────────────
   const onSignup = useCallback(async (data) => {
-    if (!agreedToTerms) {
-      toast.error("Please explicitly consent to the Terms & Conditions and DPDP Privacy Policy to register.");
-      return;
-    }
     // Prevent duplicate submissions
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
@@ -247,7 +195,7 @@ const UserSignup = () => {
       setLoading(false);
       isSubmittingRef.current = false;
     }
-  }, [agreedToTerms, loginAuth, addToCart, navigate, setError, setFocus]);
+  }, [loginAuth, addToCart, navigate, setError, setFocus]);
 
   // ── Keyboard: Enter on step 1 advances, not submits ──────────────
   const handleKeyDown = useCallback((e) => {
@@ -355,7 +303,7 @@ const UserSignup = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-white sm:bg-slate-50 p-0 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 px-4 py-6 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
       <SEOHead title="Create Account | Indiafy" noindex={true} />
 
       {/* Background blobs */}
@@ -368,10 +316,10 @@ const UserSignup = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded-none sm:rounded-2xl lg:rounded-[2rem] shadow-none sm:shadow-[0_20px_60px_rgba(0,0,0,0.08)] border-0 sm:border border-slate-200 overflow-hidden flex flex-col lg:flex-row min-h-screen sm:min-h-[600px]"
+        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded-2xl sm:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-slate-200 overflow-hidden flex flex-col lg:flex-row min-h-[600px]"
       >
         {/* ── Form side ──────────────────────────────────────────── */}
-        <div className="w-full lg:w-7/12 px-5 py-8 sm:p-10 lg:p-14 flex flex-col relative z-20 flex-grow justify-center">
+        <div className="w-full lg:w-7/12 p-6 sm:p-10 lg:p-14 flex flex-col relative z-20">
 
           <div className="flex justify-between items-center mb-8">
             <img src="/Images/logo.png" alt="Indiafy" className="h-8 lg:hidden" />
@@ -493,26 +441,6 @@ const UserSignup = () => {
                         isVisible: showConfirm,
                         onToggle: () => setShowConfirm((p) => !p),
                       })}
-                      <div className="pt-3">
-                        <label className="flex items-start gap-3 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={agreedToTerms}
-                            onChange={(e) => setAgreedToTerms(e.target.checked)}
-                            className="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-accent focus:ring-brand-accent transition-colors cursor-pointer shrink-0"
-                          />
-                          <span className="text-[11px] text-slate-600 font-medium leading-relaxed select-none group-hover:text-slate-900 transition-colors">
-                            I explicitly consent and agree to the{" "}
-                            <Link to="/terms-and-conditions" target="_blank" className="text-brand-accent font-bold hover:underline">Terms & Conditions</Link> and{" "}
-                            <Link to="/privacy-policy" target="_blank" className="text-brand-accent font-bold hover:underline">Privacy Policy (DPDP Act 2023)</Link> (No default auto-check).
-                          </span>
-                        </label>
-                        {!agreedToTerms && (
-                          <p className="text-[10px] text-amber-600 font-semibold mt-1 pl-7">
-                            * Mandatory under DPDP Act 2023 & CCPA Guidelines (Explicit opt-in required).
-                          </p>
-                        )}
-                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -547,13 +475,13 @@ const UserSignup = () => {
                   </motion.button>
                 ) : (
                   <motion.button
-                    whileHover={!loading && agreedToTerms ? { scale: 1.01 } : {}}
-                    whileTap={!loading && agreedToTerms ? { scale: 0.98 } : {}}
+                    whileHover={!loading ? { scale: 1.01 } : {}}
+                    whileTap={!loading ? { scale: 0.98 } : {}}
                     type="submit"
-                    disabled={loading || !agreedToTerms}
+                    disabled={loading}
                     aria-busy={loading}
                     aria-label={loading ? "Creating your account, please wait" : "Create your account"}
-                    className="flex-grow bg-brand-accent hover:bg-brand-accent-hover text-white rounded-xl py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-grow bg-brand-accent hover:bg-brand-accent-hover text-white rounded-xl py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <>
@@ -566,32 +494,6 @@ const UserSignup = () => {
                   </motion.button>
                 )}
               </div>
-
-              {step === 1 && (
-                <>
-                  <div className="relative flex items-center py-3 mt-4">
-                    <div className="flex-grow border-t border-slate-200"></div>
-                    <span className="mx-4 text-slate-400 text-[11px] font-bold uppercase tracking-widest">Or</span>
-                    <div className="flex-grow border-t border-slate-200"></div>
-                  </div>
-
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="button"
-                    onClick={() => setIsGoogleModalOpen(true)}
-                    className="w-full bg-white border border-slate-200 text-brand-primary rounded-xl py-4 font-bold text-[15px] hover:bg-slate-50 transition-all flex items-center justify-center gap-3 shadow-sm"
-                  >
-                    <svg className="w-[20px] h-[20px]" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                    </svg>
-                    Continue with Google
-                  </motion.button>
-                </>
-              )}
             </form>
           </div>
         </div>
@@ -635,14 +537,6 @@ const UserSignup = () => {
           </div>
         </div>
       </motion.div>
-
-      <GoogleAuthModal
-        isOpen={isGoogleModalOpen}
-        onClose={() => !googleLoading && setIsGoogleModalOpen(false)}
-        onSelectAccount={handleGoogleAuthSuccess}
-        role="customer"
-        loading={googleLoading}
-      />
     </div>
   );
 };

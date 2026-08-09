@@ -509,13 +509,6 @@ export const getLatestNodeStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  // Debugging logs requested: Seller ID, Node ID, Database Status, Approval Status, isActive, Permission Result, Middleware Result, Dashboard Loaded
-  console.log(`[getLatestNodeStatus LOGS]
-  - Seller ID: ${sellerId}
-  - Node ID: ${node._id}
-  - Database Status: ${node.status}
-  - Approval Status: ${node.approval?.status}
-  - isActive: ${node.isActive}`);
 
   return res.status(200).json({
     success: true,

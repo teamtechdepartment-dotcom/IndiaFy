@@ -11,6 +11,7 @@ import { sendOrderNotifications } from "../../utils/orderNotification.js";
 import { emitOrderNotification } from "../../utils/emitOrderNotification.js";
 import SellerOrder from "../../models/orders/sellerOrder.model.js";
 import { createSellerOrderMappings } from "../../utils/createSellerOrderMappings.js";
+import { uploadBuffer, uploadVideoBuffer } from "../../utils/cloudinary.js";
 
 // @desc    Create new order
 // @route   POST /api/v1/indiafy/orders
@@ -107,8 +108,8 @@ export const createOrder = asyncHandler(async (req, res, next) => {
 
             // Verify Seller Node active status
             const sellerNode = await SellerNode.findById(product.nodeId);
-            if (!sellerNode || sellerNode.status !== "ACTIVE" || sellerNode.isDeactivated) {
-                console.error(`[Checkout Error] Seller Node is not active/deactivated: ${product.nodeId}`);
+            if (!sellerNode || sellerNode.isDeactivated) {
+                console.error(`[Checkout Error] Seller Node is missing or deactivated: ${product.nodeId}`);
                 return res.status(400).json({
                     success: false,
                     message: "The retail store for this product is currently closed or deactivated.",
@@ -116,28 +117,19 @@ export const createOrder = asyncHandler(async (req, res, next) => {
                 });
             }
 
-            if (!sellerNode.seller || sellerNode.seller.toString() !== product.sellerId.toString()) {
-                console.error(`[Checkout Error] Product seller-node mismatch. Product: ${product._id}, Seller: ${product.sellerId}, Node: ${product.nodeId}`);
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid seller mapping for one or more products.",
-                    errorCode: "SELLER_NODE_MISMATCH"
-                });
-            }
-
             // Verify Seller active status
             const seller = await SellerModel.findById(product.sellerId);
-            if (!seller || seller.status !== "active") {
-                console.error(`[Checkout Error] Seller is not active: ${product.sellerId}`);
+            if (!seller || (seller.status && seller.status.toLowerCase() === "blocked")) {
+                console.error(`[Checkout Error] Seller is blocked: ${product.sellerId}`);
                 return res.status(400).json({
                     success: false,
-                    message: "The seller of this product is currently suspended or inactive.",
+                    message: "The seller of this product is currently unavailable.",
                     errorCode: "SELLER_INACTIVE"
                 });
             }
 
             // STEP 7: Validate stock
-            const currentStock = parseInt(product.attribute?.quantity || "0");
+            const currentStock = product.stock !== undefined && product.stock !== null ? product.stock : parseInt(product.attribute?.quantity || "0");
             if (currentStock < item.quantity) {
                 console.error(`[Checkout Error] Insufficient stock for ${product.productName}. Available: ${currentStock}, Ordered: ${item.quantity}`);
                 return res.status(400).json({
@@ -177,7 +169,7 @@ export const createOrder = asyncHandler(async (req, res, next) => {
             paymentResult,
             isPaid: !!paymentResult,
             paidAt: paymentResult ? Date.now() : undefined,
-            status: paymentResult ? "Processing" : "Pending",
+            status: "Pending",
             isWholesaleOrder: isWholesaleOrder || false,
             billingDetails,
             poNotes,
@@ -269,10 +261,48 @@ export const createOrder = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/indiafy/orders/:id
 // @access  Private (Customer/Seller/Admin)
 export const getOrderById = asyncHandler(async (req, res) => {
-    const order = await OrderModel.findById(req.params.id)
+    let sellerOrder = null; // hoisted so auth check can use sellerOrder.sellerId
+
+    let order = await OrderModel.findById(req.params.id)
         .populate('customer', 'firstName lastName email')
-        .populate('orderItems.product', 'productName productImage')
-        .populate('orderItems.seller', 'businessName email firstName lastName');
+        .populate({
+            path: 'orderItems.product',
+            select: 'productName productImage nodeType nodeId shortDescription description',
+            populate: {
+                path: 'nodeId',
+                model: 'SellerNode',
+                select: 'storeName businessName nodeType logo address city state pincode phone supportPhone'
+            }
+        })
+        .populate('orderItems.seller', 'businessName email firstName lastName')
+        .populate({
+            path: 'orderItems.nodeId',
+            model: 'SellerNode',
+            select: 'storeName businessName nodeType logo address city state pincode phone supportPhone'
+        });
+
+    if (!order) {
+        sellerOrder = await SellerOrder.findById(req.params.id);
+        if (sellerOrder) {
+            order = await OrderModel.findById(sellerOrder.parentOrderId)
+                .populate('customer', 'firstName lastName email')
+                .populate({
+                    path: 'orderItems.product',
+                    select: 'productName productImage nodeType nodeId shortDescription description',
+                    populate: {
+                        path: 'nodeId',
+                        model: 'SellerNode',
+                        select: 'storeName businessName nodeType logo address city state pincode phone supportPhone'
+                    }
+                })
+                .populate('orderItems.seller', 'businessName email firstName lastName')
+                .populate({
+                    path: 'orderItems.nodeId',
+                    model: 'SellerNode',
+                    select: 'storeName businessName nodeType logo address city state pincode phone supportPhone'
+                });
+        }
+    }
 
     if (!order) {
         throw new ApiError(404, "Order not found");
@@ -280,8 +310,8 @@ export const getOrderById = asyncHandler(async (req, res) => {
 
     let isAuthorized = false;
     const userRole = req.user.role?.toLowerCase();
-    const userId = req.user._id?.toString();
-    const customerId = order.customer?._id?.toString() || order.customer?.toString();
+    const userId = (req.user._id || req.user.sellerId || req.user.id || "").toString();
+    const customerId = (order.customer?._id || order.customer || "").toString();
 
     if (userRole === "admin") {
         isAuthorized = true;
@@ -289,10 +319,17 @@ export const getOrderById = asyncHandler(async (req, res) => {
         isAuthorized = true;
     } else if (userRole === "seller") {
         const isCustomer = customerId === userId;
-        const sellerHasItems = order.orderItems.some(item => 
-            item.seller?._id?.toString() === userId || item.seller?.toString() === userId
-        );
-        if (isCustomer || sellerHasItems) isAuthorized = true;
+        const sellerHasItems = order.orderItems.some(item => {
+            const itemSellerId = (item.seller?._id || item.seller || "").toString();
+            return itemSellerId === userId;
+        });
+
+        if (!sellerOrder && order._id) {
+            sellerOrder = await SellerOrder.findOne({ parentOrderId: order._id, sellerId: userId });
+        }
+
+        const isSellerOrderOwner = sellerOrder && (sellerOrder.sellerId?._id || sellerOrder.sellerId || "").toString() === userId;
+        if (isCustomer || sellerHasItems || isSellerOrderOwner) isAuthorized = true;
     }
 
     if (!isAuthorized) {
@@ -303,24 +340,40 @@ export const getOrderById = asyncHandler(async (req, res) => {
 
     // If the user is only authorized because they are a seller of some items, filter out other sellers' items
     if (userRole === "seller" && customerId !== userId) {
-        const sellerItems = responseOrder.orderItems.filter(item => 
-            item.seller?._id?.toString() === userId || item.seller?.toString() === userId
-        );
-        const sellerTotal = sellerItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-        responseOrder.orderItems = sellerItems;
+        const sellerItems = responseOrder.orderItems.filter(item => {
+            const itemSellerId = (item.seller?._id || item.seller || "").toString();
+            return itemSellerId === userId;
+        });
+        // If no items match by seller field, fall back to sellerOrder items (all items belong to this seller's node)
+        responseOrder.orderItems = sellerItems.length > 0 ? sellerItems : responseOrder.orderItems;
+        const sellerTotal = responseOrder.orderItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
         responseOrder.totalPrice = sellerTotal;
     }
 
     return res.status(200).json(new ApiResponse(200, responseOrder, "Order fetched successfully"));
 });
 
+
 // @desc    Get logged in customer orders
 // @route   GET /api/v1/indiafy/orders/myorders
 // @access  Private (Customer)
 export const getCustomerOrders = asyncHandler(async (req, res) => {
     const orders = await OrderModel.find({ customer: req.user._id })
-        .populate('orderItems.product', 'productName productImage attribute')
+        .populate({
+            path: 'orderItems.product',
+            select: 'productName productImage attribute nodeType nodeId shortDescription description',
+            populate: {
+                path: 'nodeId',
+                model: 'SellerNode',
+                select: 'storeName businessName nodeType logo address city state pincode phone supportPhone'
+            }
+        })
         .populate('orderItems.seller', 'firstName lastName businessName')
+        .populate({
+            path: 'orderItems.nodeId',
+            model: 'SellerNode',
+            select: 'storeName businessName nodeType logo address city state pincode phone supportPhone'
+        })
         .sort({ createdAt: -1 });
     return res.status(200).json(new ApiResponse(200, orders, "Orders fetched successfully"));
 });
@@ -346,15 +399,32 @@ export const getSellerOrders = asyncHandler(async (req, res) => {
     const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 100);
     const skip = (parsedPage - 1) * parsedLimit;
 
-    const mappingQuery = { sellerId: req.user._id };
+    const rawSellerId = req.user._id || req.user.sellerId || req.user.id;
+    const sellerIdObj = mongoose.Types.ObjectId.isValid(rawSellerId) ? new mongoose.Types.ObjectId(rawSellerId) : rawSellerId;
 
-    if (nodeId) {
-        if (!mongoose.Types.ObjectId.isValid(nodeId)) {
-            throw new ApiError(400, "Invalid nodeId");
-        }
-        mappingQuery.nodeId = new mongoose.Types.ObjectId(nodeId);
+    const mappingQuery = {
+        sellerId: { $in: [sellerIdObj, String(rawSellerId)] }
+    };
+
+    if (nodeId && mongoose.Types.ObjectId.isValid(nodeId)) {
+        mappingQuery.nodeId = { $in: [new mongoose.Types.ObjectId(nodeId), String(nodeId)] };
     } else if (nodeType) {
-        mappingQuery.nodeType = nodeType;
+        const normalized = nodeType.toUpperCase().replace(/-/g, "_");
+        if (normalized.includes("HOME")) {
+            mappingQuery.nodeType = { $in: ["HOME_ESSENTIALS", "home-essentials", "home_essentials"] };
+        } else if (normalized.includes("WHOLESALE")) {
+            mappingQuery.nodeType = { $in: ["WHOLESALE_B2B", "wholesale"] };
+        } else if (normalized.includes("QUICK")) {
+            mappingQuery.nodeType = { $in: ["QUICK_COMMERCE", "quick-commerce"] };
+        } else if (normalized.includes("LOCAL")) {
+            mappingQuery.nodeType = { $in: ["LOCAL_RETAIL", "local-retail", "local"] };
+        } else if (normalized.includes("ELECTRONIC")) {
+            mappingQuery.nodeType = { $in: ["ELECTRONICS", "electronics"] };
+        } else if (normalized.includes("PERSONAL")) {
+            mappingQuery.nodeType = { $in: ["PERSONAL_CARE", "personal-care", "personal_care"] };
+        } else {
+            mappingQuery.nodeType = { $regex: new RegExp(`^${nodeType.replace(/_/g, "[-_]")}$`, "i") };
+        }
     }
 
     if (status && status !== "all") {
@@ -382,7 +452,7 @@ export const getSellerOrders = asyncHandler(async (req, res) => {
         SellerOrder.find(mappingQuery)
             .populate("customerId", "firstName lastName email")
             .populate("parentOrderId", "shippingAddress status isPaid paymentMethod createdAt updatedAt")
-            .populate("items.product", "productName productImage nodeType nodeId")
+            .populate("items.product", "productName productImage shortDescription description nodeType nodeId")
             .sort({ [sortField]: sortDirection })
             .skip(skip)
             .limit(parsedLimit)
@@ -421,7 +491,7 @@ export const getSellerOrders = asyncHandler(async (req, res) => {
     }));
 
     if (mappedOrders.length === 0 && parsedPage === 1 && !search && !dateFrom && !dateTo) {
-        const fallbackQuery = { "orderItems.seller": req.user._id };
+        const fallbackQuery = { "orderItems.seller": rawSellerId };
 
         if (nodeId) {
             fallbackQuery["orderItems.nodeId"] = nodeId;
@@ -441,7 +511,7 @@ export const getSellerOrders = asyncHandler(async (req, res) => {
 
         mappedOrders = legacyOrders.map((order) => {
             const sellerItems = order.orderItems.filter((item) => {
-                const sellerMatches = item.seller?.toString() === req.user._id.toString();
+                const sellerMatches = (item.seller?._id || item.seller || "").toString() === rawSellerId.toString();
                 const nodeMatches = nodeId ? item.nodeId?.toString() === nodeId.toString() : true;
                 return sellerMatches && nodeMatches;
             });
@@ -453,7 +523,7 @@ export const getSellerOrders = asyncHandler(async (req, res) => {
                 orderItems: sellerItems,
                 totalPrice: sellerTotal,
                 itemCount: sellerItems.reduce((acc, item) => acc + item.quantity, 0),
-                sellerId: req.user._id,
+                sellerId: rawSellerId,
                 nodeId: sellerItems[0]?.nodeId,
                 storeId: sellerItems[0]?.nodeId,
                 nodeType: sellerItems[0]?.nodeType
@@ -461,7 +531,6 @@ export const getSellerOrders = asyncHandler(async (req, res) => {
         });
     }
 
-    console.log(`[Orders API Result] seller=${req.user._id}, node=${nodeId || nodeType || "all"}, count=${mappedOrders.length}, total=${total}`);
 
     return res.status(200).json({
         statusCode: 200,
@@ -502,10 +571,11 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     }
 
     const userRole = req.user.role?.toLowerCase();
+    const rawSellerId = (req.user._id || req.user.sellerId || req.user.id || "").toString();
     if (userRole === "seller") {
         const sellerHasItems = sellerOrder
-            ? sellerOrder.sellerId.toString() === req.user._id.toString()
-            : order.orderItems.some(item => item.seller.toString() === req.user._id.toString());
+            ? sellerOrder.sellerId.toString() === rawSellerId
+            : order.orderItems.some(item => item.seller.toString() === rawSellerId);
         if (!sellerHasItems) {
             throw new ApiError(403, "Not authorized to update this order");
         }
@@ -559,7 +629,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     } else {
         order.status = status;
         await SellerOrder.updateMany(
-            { parentOrderId: order._id, ...(userRole === "seller" ? { sellerId: req.user._id } : {}) },
+            { parentOrderId: order._id, ...(userRole === "seller" ? { sellerId: rawSellerId } : {}) },
             { $set: { orderStatus: status } }
         );
     }
@@ -597,21 +667,57 @@ export const uploadPackingVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "No video file provided");
     }
 
-    const order = await OrderModel.findById(req.params.id);
+    const rawSellerId = (req.user._id || req.user.sellerId || req.user.id || "").toString();
+
+    let order = await OrderModel.findById(req.params.id);
+    let sellerOrder = null;
+
+    if (!order) {
+        sellerOrder = await SellerOrder.findById(req.params.id);
+        if (sellerOrder) {
+            order = await OrderModel.findById(sellerOrder.parentOrderId);
+        }
+    }
 
     if (!order) {
         throw new ApiError(404, "Order not found");
     }
 
-    const sellerHasItems = order.orderItems.some(item => item.seller.toString() === req.user._id.toString());
-    if (!sellerHasItems) {
+    const sellerHasItems = sellerOrder
+        ? (sellerOrder.sellerId?._id || sellerOrder.sellerId || "").toString() === rawSellerId
+        : order.orderItems.some(item => (item.seller?._id || item.seller || "").toString() === rawSellerId);
+
+    if (req.user.role?.toLowerCase() === "seller" && !sellerHasItems) {
         throw new ApiError(403, "Not authorized to upload video for this order");
     }
 
-    order.status = "Shipped";
-    order.packingVideoUrl = req.file.path;
+    let videoUrl = "";
+    try {
+        if (req.file.buffer) {
+            // Use uploadVideoBuffer with explicit resource_type: "video" for proper Cloudinary handling
+            const result = await uploadVideoBuffer(req.file.buffer, "indiafy_packing_videos");
+            videoUrl = result.secure_url;
+        } else if (req.file.path) {
+            videoUrl = req.file.path;
+        }
+    } catch (uploadErr) {
+        console.error("Packing video Cloudinary upload failed:", uploadErr.message);
+        // Fallback: store as data URL (only if buffer is small enough)
+        if (req.file.buffer && req.file.buffer.length < 5 * 1024 * 1024) {
+            videoUrl = `data:${req.file.mimetype || 'video/webm'};base64,${req.file.buffer.toString('base64')}`;
+        } else {
+            throw new ApiError(500, "Video upload failed. Please try again with a shorter recording.");
+        }
+    }
 
+    order.status = "Shipped";
+    order.packingVideoUrl = videoUrl;
     await order.save();
+
+    if (sellerOrder) {
+        sellerOrder.orderStatus = "Shipped";
+        await sellerOrder.save();
+    }
 
     // Emit packing video uploaded event to live tracking room
     try {
@@ -625,7 +731,7 @@ export const uploadPackingVideo = asyncHandler(async (req, res) => {
         console.error("Socket emit failure on packing video upload:", socketErr.message);
     }
 
-    return res.status(200).json(new ApiResponse(200, { videoUrl: req.file.path }, "Packing video uploaded successfully"));
+    return res.status(200).json(new ApiResponse(200, { videoUrl }, "Packing video uploaded successfully"));
 });
 
 // @desc    Delete an order

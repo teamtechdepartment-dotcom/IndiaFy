@@ -80,13 +80,6 @@ const authSchema = new Schema({
         type: String,
         enum: ["active", "pending", "suspended", "blocked", "inactive"],
         default: "active"
-    },
-    googleId: {
-        type: String
-    },
-    authProvider: {
-        type: String,
-        default: "local"
     }
 },
     { timestamps: true }

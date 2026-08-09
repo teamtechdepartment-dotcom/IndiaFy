@@ -84,7 +84,7 @@ export const createSellerOrderMappings = async (createdOrder, enrichedItems, cus
           totalAmount,
           paymentMethod: createdOrder.paymentMethod,
           paymentStatus: createdOrder.isPaid ? "Paid" : "Pending",
-          orderStatus: createdOrder.status || "Pending",
+          orderStatus: "Pending",
           customerName,
         },
       },

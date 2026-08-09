@@ -107,7 +107,7 @@ export const useNotificationStore = create((set, get) => ({
      */
     markAllRead: async (nodeId) => {
         try {
-            await axiosInstance.put("/seller/notifications/read-all", null, {
+            await axiosInstance.put("/seller/notifications/read-all", {}, {
                 params: nodeId ? { nodeId } : {},
             });
         } catch (err) {

@@ -10,10 +10,11 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
  * @access  Private (Seller)
  */
 export const getOrderNotifications = asyncHandler(async (req, res) => {
-    const sellerId = req.user._id;
+    const rawSellerId = req.user._id || req.user.sellerId || req.user.id;
+    const sellerIdObj = mongoose.Types.ObjectId.isValid(rawSellerId) ? new mongoose.Types.ObjectId(rawSellerId) : rawSellerId;
     const { nodeId, page = 1, limit = 20 } = req.query;
 
-    const query = { sellerId };
+    const query = { sellerId: { $in: [sellerIdObj, String(rawSellerId)] } };
     if (nodeId) {
         if (!mongoose.Types.ObjectId.isValid(nodeId)) {
             throw new ApiError(400, "Invalid nodeId");
@@ -46,7 +47,8 @@ export const getOrderNotifications = asyncHandler(async (req, res) => {
  * @access  Private (Seller)
  */
 export const getUnreadCounts = asyncHandler(async (req, res) => {
-    const sellerId = req.user._id;
+    const rawSellerId = req.user._id || req.user.sellerId || req.user.id;
+    const sellerIdObj = mongoose.Types.ObjectId.isValid(rawSellerId) ? new mongoose.Types.ObjectId(rawSellerId) : rawSellerId;
     const { nodeIds } = req.query;
 
     if (!nodeIds) {
@@ -66,7 +68,7 @@ export const getUnreadCounts = asyncHandler(async (req, res) => {
     const counts = await OrderNotification.aggregate([
         {
             $match: {
-                sellerId: new mongoose.Types.ObjectId(sellerId),
+                sellerId: { $in: [sellerIdObj, String(rawSellerId)] },
                 nodeId: { $in: nodeIdArray },
                 $or: [
                     { read: false },
@@ -97,14 +99,15 @@ export const getUnreadCounts = asyncHandler(async (req, res) => {
  */
 export const markNotificationRead = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const sellerId = req.user._id;
+    const rawSellerId = req.user._id || req.user.sellerId || req.user.id;
+    const sellerIdObj = mongoose.Types.ObjectId.isValid(rawSellerId) ? new mongoose.Types.ObjectId(rawSellerId) : rawSellerId;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new ApiError(400, "Invalid notification ID");
     }
 
     const notification = await OrderNotification.findOneAndUpdate(
-        { _id: id, sellerId },
+        { _id: id, sellerId: { $in: [sellerIdObj, String(rawSellerId)] } },
         { $set: { read: true, isRead: true } },
         { new: true }
     );
@@ -122,11 +125,12 @@ export const markNotificationRead = asyncHandler(async (req, res) => {
  * @access  Private (Seller)
  */
 export const markAllNotificationsRead = asyncHandler(async (req, res) => {
-    const sellerId = req.user._id;
+    const rawSellerId = req.user._id || req.user.sellerId || req.user.id;
+    const sellerIdObj = mongoose.Types.ObjectId.isValid(rawSellerId) ? new mongoose.Types.ObjectId(rawSellerId) : rawSellerId;
     const { nodeId } = req.query;
 
     const query = {
-        sellerId,
+        sellerId: { $in: [sellerIdObj, String(rawSellerId)] },
         $or: [
             { read: false },
             { read: { $exists: false }, isRead: false }

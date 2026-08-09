@@ -78,11 +78,7 @@ const Login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // STEP 12 & 1 Logging
-    console.log("[AUTH LOGGER] Incoming Email:", email);
-
     if (!email || !password) {
-      console.log("[AUTH LOGGER] Error: Missing email or password");
       return res.status(400).json(new ApiError(400, "Missing email/password"));
     }
 
@@ -93,26 +89,20 @@ const Login = async (req, res) => {
       const customerModel = (await import("../../models/customers/auth.model.js")).default;
       const isCustomer = await customerModel.findOne({ email: email.toLowerCase().trim() });
       if (isCustomer) {
-        console.log("[AUTH LOGGER] Error: Registered as customer, not seller:", email);
         return res.status(400).json(new ApiError(400, "This email is registered as a Customer. Please login through the main login page."));
       }
 
-      console.log("[AUTH LOGGER] Error: Seller not found for email:", email);
       return res.status(404).json(new ApiError(404, "Seller account not found"));
     }
-    console.log("[AUTH LOGGER] Seller Found:", sellerDetails._id);
 
     // Ensure password hash exists
     if (!sellerDetails.password) {
-      console.log("[AUTH LOGGER] Error: Password hash does not exist in DB");
       return res.status(500).json(new ApiError(500, "Internal server error - Missing password hash"));
     }
-    console.log("[AUTH LOGGER] Password Hash Exists: true");
 
     // STEP 3 - Verify Password Hash & Plaintext Migration
     let passwordHash = sellerDetails.password;
     if (!passwordHash.startsWith("$2a$") && !passwordHash.startsWith("$2b$") && !passwordHash.startsWith("$2y$")) {
-      console.log(`[AUTH LOGGER] Migrating plain text password for ${email}`);
       const hashedPassword = await passwordEncryption(passwordHash);
       sellerDetails.password = hashedPassword;
       await sellerDetails.save();
@@ -121,35 +111,54 @@ const Login = async (req, res) => {
 
     // STEP 4 - Verify bcrypt.compare()
     const isMatch = await passwordDecryption(password, passwordHash);
-    console.log("[AUTH LOGGER] Entered Password:", password);
-    console.log("[AUTH LOGGER] Stored Hash:", passwordHash);
-    console.log("[AUTH LOGGER] bcrypt Result:", isMatch);
 
     if (!isMatch) {
-      console.log("[AUTH LOGGER] Error: Password mismatch for email:", email);
       return res.status(401).json(new ApiError(401, "Incorrect password"));
     }
 
     // STEP 11 - Account pending approval / suspended / inactive
     if (sellerDetails.isApproved === false) {
-      console.log("[AUTH LOGGER] Error: Seller account pending approval:", email);
       return res.status(403).json(new ApiError(403, "Seller account pending approval"));
     }
 
     if (sellerDetails.status === "suspended" || sellerDetails.status === "blocked") {
-      console.log("[AUTH LOGGER] Error: Seller account suspended/blocked:", email);
       return res.status(403).json(new ApiError(403, "Seller account suspended"));
     }
 
     if (sellerDetails.status === "inactive") {
-      console.log("[AUTH LOGGER] Error: Seller account inactive:", email);
       return res.status(403).json(new ApiError(403, "Seller account suspended"));
     }
 
     if (sellerDetails.isEmailVerified === false) {
-      console.log("[AUTH LOGGER] Error: Email not verified:", email);
       return res.status(403).json(new ApiError(403, "Please verify your email address before logging in."));
     }
+
+    // STEP 7 - Verify JWT
+    const jwt = (await import("jsonwebtoken")).default;
+    const secret = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
+    
+    // We sign both a standard 7-day token and set standard app cookies for backward compatibility
+    const token = jwt.sign(
+      {
+        sellerId: sellerDetails._id,
+        role: "seller"
+      },
+      secret,
+      {
+        expiresIn: "7d"
+      }
+    );
+
+    // STEP 8 - Cookie
+    const isProd = process.env.NODE_ENV === "production";
+    const cookieOpts = {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isProd,
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    };
+    
+    res.cookie("SellerAccessToken", token, cookieOpts);
 
     // Clear password and other sensitive fields
     sellerDetails.password = undefined;
@@ -157,26 +166,39 @@ const Login = async (req, res) => {
 
     let tokenData = sellerDetails.toObject();
     tokenData.role = "Seller";
+    tokenData.accessToken = token;
 
-    const { accessToken, refreshToken } = await userCookies(res, tokenData);
-    tokenData.accessToken = accessToken;
-    tokenData.refreshToken = refreshToken;
-
-    console.log("[AUTH LOGGER] JWT Created & Cookie Sent: true");
-    console.log("[AUTH LOGGER] Redirect Success: true");
+    // Save refresh token to database for compatibility with other endpoints (like /refresh)
+    const refreshToken = jwt.sign(
+      {
+        _id: sellerDetails._id,
+        role: "Seller",
+        email: sellerDetails.email
+      },
+      secret,
+      {
+        expiresIn: "30d"
+      }
+    );
+    sellerDetails.refreshToken = refreshToken;
+    await SellerModel.findByIdAndUpdate(sellerDetails._id, { refreshToken });
+    res.cookie("SellerRefreshToken", refreshToken, {
+      ...cookieOpts,
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
 
     // STEP 9 - Response
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      token: accessToken,
-      accessToken: accessToken, // compatibility
+      token,
+      accessToken: token, // compatibility
       refreshToken,       // compatibility
       seller: tokenData,
       data: tokenData     // compatibility
     });
   } catch (err) {
-    console.error("[AUTH LOGGER] Fatal Login Error:", err);
+    console.error("Fatal Login Error:", err);
     return res.status(500).json(
       new ApiError(500, err.message || "Internal server error", [
         { message: err.message, name: err.name },
@@ -278,7 +300,8 @@ const authOtp = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    const seller = await SellerModel.findById(req.user._id).select("-password");
+    const sellerId = req.user._id || req.user.sellerId || req.user.id;
+    const seller = await SellerModel.findById(sellerId).select("-password");
     if (!seller) {
       return res.status(401).json(new ApiError(401, "Seller account not found"));
     }
@@ -508,72 +531,6 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-const googleAuth = async (req, res) => {
-  try {
-    const { email, name, picture, googleId } = req.body;
-    if (!email) {
-      return res.status(400).json(new ApiError(400, "Email is required for Google login"));
-    }
-
-    let sellerDetails = await SellerModel.findOne({
-      $or: [{ email: email.trim().toLowerCase() }, ...(googleId ? [{ googleId }] : [])]
-    });
-
-    if (!sellerDetails) {
-      const nameParts = (name || "Google Seller").trim().split(" ");
-      const firstName = nameParts[0] || "Google";
-      const lastName = nameParts.slice(1).join(" ") || "Seller";
-      const randomPassword = crypto.randomBytes(16).toString("hex") + "Gg1!";
-
-      sellerDetails = new SellerModel({
-        email: email.trim().toLowerCase(),
-        firstName,
-        lastName,
-        name: name || `${firstName} ${lastName}`,
-        password: randomPassword,
-        googleId: googleId || "google_seller_" + Date.now(),
-        isEmailVerified: true,
-        isVerified: true,
-        isApproved: true,
-        status: "active",
-        logo: picture || "",
-        authProvider: "google"
-      });
-      await sellerDetails.save();
-    } else {
-      if (googleId && !sellerDetails.googleId) sellerDetails.googleId = googleId;
-      if (picture && !sellerDetails.logo) sellerDetails.logo = picture;
-      sellerDetails.isEmailVerified = true;
-      if (sellerDetails.status !== "active") sellerDetails.status = "active";
-      if (!sellerDetails.isApproved) sellerDetails.isApproved = true;
-      await sellerDetails.save();
-    }
-
-    sellerDetails.password = undefined;
-    sellerDetails.securityKeyId = undefined;
-
-    let tokenData = sellerDetails.toObject();
-    tokenData.role = "Seller";
-
-    const { accessToken, refreshToken } = await userCookies(res, tokenData);
-    tokenData.accessToken = accessToken;
-    tokenData.refreshToken = refreshToken;
-
-    return res.status(200).json({
-      success: true,
-      message: "Google Login successful",
-      token: accessToken,
-      accessToken: accessToken,
-      refreshToken,
-      seller: tokenData,
-      data: tokenData
-    });
-  } catch (err) {
-    console.error("[Seller GoogleAuth Error]:", err);
-    return res.status(500).json(new ApiError(500, err.message || "Google authentication failed"));
-  }
-};
-
 export {
   Signup,
   Login,
@@ -585,6 +542,5 @@ export {
   getAllSellers,
   Logout,
   refreshTokenHandler,
-  verifyEmail,
-  googleAuth
+  verifyEmail
 };

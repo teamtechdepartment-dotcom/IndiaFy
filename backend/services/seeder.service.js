@@ -716,13 +716,14 @@ const CATEGORIES_DATA = [
 
 export const seedDatabase = async (force = false) => {
   try {
-    console.log("Starting DB Seeding Process...");
 
-    // Find the dynamic store named Sharma Mart
-    const sharmaMart = await SellerNode.findOne({ storeName: /Sharma Mart/i });
+    // Find the dynamic store named Sharma Mart or fall back to any available seller node
+    let sharmaMart = await SellerNode.findOne({ storeName: /Sharma Mart/i });
     if (!sharmaMart) {
-      console.warn("⚠️ Sharma Mart seller node not found in DB! Cannot seed products.");
-      return { success: false, message: "Sharma Mart seller node not found in DB." };
+      sharmaMart = await SellerNode.findOne({ status: "ACTIVE" }) || await SellerNode.findOne({});
+    }
+    if (!sharmaMart) {
+      return { success: false, message: "No seller node found in DB to seed products." };
     }
 
     const nodeId = sharmaMart._id;

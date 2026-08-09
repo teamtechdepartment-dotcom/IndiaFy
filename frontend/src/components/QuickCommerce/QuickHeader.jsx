@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MagneticButton } from "../lightswind/magnetic-button";
+import { toast } from "react-toastify";
 
 // Store Imports (Adjust path if needed)
 import { useAuthStore } from "../../store/authStore";
@@ -316,11 +316,8 @@ export default function QuickHeader() {
                   onMouseEnter={() => setMegaOpen(true)}
                   onMouseLeave={() => setMegaOpen(false)}
                 >
-                  <MagneticButton
-                    variant="custom"
-                    size="custom"
-                    radius={32}
-                    strength={0.25}
+                  <button
+                    onClick={() => setMegaOpen(!megaOpen)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-primary hover:bg-brand-background rounded-lg transition-colors"
                     aria-expanded={megaOpen}
                     aria-haspopup="true"
@@ -328,7 +325,7 @@ export default function QuickHeader() {
                     <Menu size={14} />
                     All Categories
                     <ChevronDown size={12} className={`transition-transform ${megaOpen ? "rotate-180" : ""}`} />
-                  </MagneticButton>
+                  </button>
 
                   {megaOpen && (
                     <div
@@ -367,12 +364,8 @@ export default function QuickHeader() {
                 {categoryPills.map((pill) => {
                   const active = location.pathname === pill.path;
                   return (
-                    <MagneticButton
+                    <button
                       key={pill.label}
-                      variant="custom"
-                      size="custom"
-                      radius={32}
-                      strength={0.25}
                       onClick={() => navigate(pill.path)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors rounded-lg ${
                         active
@@ -382,15 +375,11 @@ export default function QuickHeader() {
                     >
                       {pill.icon}
                       {pill.label}
-                    </MagneticButton>
+                    </button>
                   );
                 })}
 
-                <MagneticButton
-                  variant="custom"
-                  size="custom"
-                  radius={32}
-                  strength={0.25}
+                <button
                   onClick={() => navigate("/quick-commerce")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] transition-colors rounded-lg ${
                     location.pathname === "/quick-commerce"
@@ -400,13 +389,9 @@ export default function QuickHeader() {
                 >
                   <Zap size={16} className="fill-brand-accent" />
                   Under 30-Min Delivery
-                </MagneticButton>
+                </button>
 
-                <MagneticButton
-                  variant="custom"
-                  size="custom"
-                  radius={32}
-                  strength={0.25}
+                <button
                   onClick={() => navigate("/wholesale")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors rounded-lg ${
                     location.pathname === "/wholesale"
@@ -416,13 +401,9 @@ export default function QuickHeader() {
                 >
                   <Package size={16} />
                   Wholesale
-                </MagneticButton>
+                </button>
 
-                <MagneticButton
-                  variant="custom"
-                  size="custom"
-                  radius={32}
-                  strength={0.25}
+                <button
                   onClick={() => navigate("/stores")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors rounded-lg ${
                     location.pathname === "/stores"
@@ -432,7 +413,7 @@ export default function QuickHeader() {
                 >
                   <Store size={16} />
                   Stores
-                </MagneticButton>
+                </button>
               </div>
             </div>
           </div>

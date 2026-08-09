@@ -52,7 +52,7 @@ export default function OrderHistoryPage() {
       rawDate: new Date(o.createdAt),
       status: o.status || (o.isDelivered ? "Delivered" : "Pending"),
       total: o.totalPrice,
-      seller: o.orderItems[0]?.seller?.businessName || o.orderItems[0]?.seller?.firstName || "Indiafy Seller",
+      seller: o.orderItems[0]?.nodeId?.storeName || o.orderItems[0]?.nodeId?.businessName || o.orderItems[0]?.product?.nodeId?.storeName || o.orderItems[0]?.seller?.businessName || o.orderItems[0]?.seller?.firstName || "Indiafy Store Node",
       sector: "Local",
       videoAvailable: !!o.packingVideoUrl, 
       packingVideoUrl: o.packingVideoUrl,
@@ -74,7 +74,7 @@ export default function OrderHistoryPage() {
       result = result.filter((order) => {
         if (activeFilter === "Active")
           return (
-            order.status === "Pending" || order.status === "Processing" || order.status === "Shipped"
+            order.status === "Pending" || order.status === "Accepted" || order.status === "Processing" || order.status === "Shipped"
           );
         return order.status === activeFilter;
       });
@@ -231,6 +231,7 @@ function OrderCard({ order }) {
   const getStatusStyles = (status) => {
     if (status === "Delivered") return "bg-emerald-50 text-emerald-600 border-emerald-100";
     if (status === "Cancelled") return "bg-red-50 text-red-600 border-red-100";
+    if (status === "Accepted") return "bg-blue-50 text-blue-600 border-blue-100";
     return "bg-amber-50 text-amber-600 border-amber-100";
   };
 

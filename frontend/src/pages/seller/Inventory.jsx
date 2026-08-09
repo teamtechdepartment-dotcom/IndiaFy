@@ -14,7 +14,7 @@ import { toast } from 'react-toastify';
 export default function Inventory({ search: globalSearch = "" }) {
   const { activeNode } = useNodeStore();
 
-  const { products, fetchProducts, isLoading, deleteProduct, updateProduct } = useProductStore();
+  const { products, fetchProducts, isLoading, deleteProduct, updateProduct, createProduct } = useProductStore();
   const { user } = useSellerAuthStore();
   const [localSearch, setLocalSearch] = useState("");
   const activeSearch = globalSearch || localSearch;
@@ -152,19 +152,71 @@ export default function Inventory({ search: globalSearch = "" }) {
     reader.readAsText(file);
   };
 
-  const confirmBulkImport = () => {
-    if (!bulkPreview) return;
-    const existingSkus = new Set(products.map(p => p.sku));
-    const newProducts = bulkPreview.rows.filter(p => !existingSkus.has(p.sku));
-    const updatedProducts = bulkPreview.rows.filter(p => existingSkus.has(p.sku));
+  const confirmBulkImport = async () => {
+    if (!bulkPreview || !activeNode?._id) return;
 
-    const merged = products.map(p => {
-      const updated = updatedProducts.find(u => u.sku === p.sku);
-      return updated ? { ...p, ...updated, id: p.id } : p;
-    });
+    const existingSkus = new Set(products.map(p => (p.productSkuId || p.sku)?.toUpperCase()));
+    const newRows = bulkPreview.rows.filter(p => !existingSkus.has(p.sku?.toUpperCase()));
+    const skippedCount = bulkPreview.rows.length - newRows.length;
 
-    setProducts([...merged, ...newProducts]);
-    setBulkStatus({ type: 'success', message: `✓ Imported ${newProducts.length} new & updated ${updatedProducts.length} existing product(s).` });
+    if (newRows.length === 0) {
+      setBulkStatus({ type: 'error', message: `All ${bulkPreview.rows.length} SKU(s) already exist. Nothing to import.` });
+      setBulkPreview(null);
+      return;
+    }
+
+    setBulkStatus({ type: 'preview', message: `Importing ${newRows.length} product(s)...` });
+
+    let successCount = 0;
+    let failCount = 0;
+    let firstErrorMsg = null;
+
+    for (const row of newRows) {
+      try {
+        const formData = new FormData();
+        formData.append('productName', row.name);
+        formData.append('productSkuId', row.sku);
+        formData.append('categoryName', row.category || 'General');
+        formData.append('stock', String(row.stock || 0));
+        formData.append('nodeType', activeNode.nodeType);
+        formData.append('nodeId', activeNode._id);
+        formData.append('shortDescription', '');
+        formData.append('description', '');
+        const attribute = {
+          quantity: String(row.stock || 0),
+          salePrice: row.price || 0,
+          mrp: row.price || 0,
+          unit: 'pcs',
+        };
+        formData.append('attribute', JSON.stringify(attribute));
+
+        await createProduct(formData);
+        successCount++;
+      } catch (_err) {
+        const errMsg = _err?.response?.data?.message || _err?.message || 'Unknown error';
+        console.warn(`Failed to import SKU ${row.sku}:`, errMsg);
+        if (!firstErrorMsg) firstErrorMsg = errMsg;
+        failCount++;
+        // If store not approved, no point retrying the rest of the rows
+        if (errMsg.toLowerCase().includes('locked') || errMsg.toLowerCase().includes('approval') || _err?.response?.status === 403) {
+          failCount += (newRows.length - successCount - failCount);
+          break;
+        }
+      }
+    }
+
+    // Refresh product list
+    if (successCount > 0 && user?._id && activeNode?._id) {
+      await fetchProducts('', '', user._id, activeNode.nodeType, activeNode._id);
+    }
+
+    const parts = [
+      successCount > 0 ? `✓ Imported ${successCount} new product(s).` : '',
+      skippedCount > 0 ? `${skippedCount} skipped (SKU already exists).` : '',
+      failCount > 0 ? `${failCount} failed${firstErrorMsg ? `: ${firstErrorMsg}` : ''}.` : '',
+    ].filter(Boolean);
+
+    setBulkStatus({ type: successCount > 0 ? 'success' : 'error', message: parts.join(' ') });
     setBulkPreview(null);
     if (bulkInputRef.current) bulkInputRef.current.value = '';
   };
@@ -235,10 +287,17 @@ export default function Inventory({ search: globalSearch = "" }) {
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    (p.productName || p.name || "").toLowerCase().includes(activeSearch.toLowerCase()) || 
-    (p.productSkuId || p.sku || "").toLowerCase().includes(activeSearch.toLowerCase())
-  );
+  const filteredProducts = products.filter(p => {
+    const targetNodeId = activeNode?._id;
+    const pNodeId = p.nodeId?._id ? String(p.nodeId._id) : (p.nodeId ? String(p.nodeId) : null);
+    if (targetNodeId && pNodeId && String(pNodeId) !== String(targetNodeId)) {
+      return false;
+    }
+    return (
+      (p.productName || p.name || "").toLowerCase().includes(activeSearch.toLowerCase()) || 
+      (p.productSkuId || p.sku || "").toLowerCase().includes(activeSearch.toLowerCase())
+    );
+  });
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -391,7 +450,17 @@ export default function Inventory({ search: globalSearch = "" }) {
             <div key={product._id || product.id} className="p-4 space-y-4">
               <div className="flex items-start gap-4">
                 <div className="w-16 h-16 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
-                  <img loading="lazy" decoding="async" src={product.productImage?.[0] || product.image} alt={product.productName || product.name} className="w-full h-full object-cover" />
+                  <img 
+                    loading="lazy" 
+                    decoding="async" 
+                    src={product.productImage?.[0] || product.image || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&auto=format&fit=crop'} 
+                    alt={product.productName || product.name} 
+                    className="w-full h-full object-cover" 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&auto=format&fit=crop";
+                    }}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
@@ -455,7 +524,17 @@ export default function Inventory({ search: globalSearch = "" }) {
                   <td className="p-4 whitespace-nowrap">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
-                        <img loading="lazy" decoding="async" src={product.productImage?.[0] || product.image} alt={product.productName || product.name} className="w-full h-full object-cover" />
+                        <img 
+                          loading="lazy" 
+                          decoding="async" 
+                          src={product.productImage?.[0] || product.image || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&auto=format&fit=crop'} 
+                          alt={product.productName || product.name} 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&auto=format&fit=crop";
+                          }}
+                        />
                       </div>
                       <div>
                         <div className="text-sm font-bold text-slate-900">{product.productName || product.name}</div>
@@ -566,7 +645,7 @@ export default function Inventory({ search: globalSearch = "" }) {
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Product Name</label>
                 <input required type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-medium transition-all" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">SKU (Read Only)</label>
                   <input type="text" value={editingProduct.sku} disabled className="w-full px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-medium uppercase text-slate-500 cursor-not-allowed" />
@@ -578,7 +657,7 @@ export default function Inventory({ search: globalSearch = "" }) {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Price (₹)</label>
                   <input required type="number" min="0" step="0.01" value={editingProduct.price} onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 font-bold transition-all" />
