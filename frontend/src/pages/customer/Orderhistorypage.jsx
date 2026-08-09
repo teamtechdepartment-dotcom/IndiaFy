@@ -254,8 +254,8 @@ function OrderCard({ order, deleteOrder }) {
     }
   };
 
-  // Orders that cannot be deleted (actively being processed/shipped)
-  const canDelete = !["Processing", "Shipped"].includes(order.status);
+  // Orders that cannot be deleted (actively being shipped)
+  const canDelete = !["Shipped"].includes(order.status);
 
   return (
     <div className="bg-white border border-zinc-200/60 shadow-sm rounded-[2rem] overflow-hidden hover:border-emerald-200 hover:shadow-lg transition-all duration-300">
