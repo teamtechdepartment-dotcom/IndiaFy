@@ -37,14 +37,6 @@ export default function OrderHistoryPage() {
     fetchMyOrders();
   }, [fetchMyOrders]);
 
-  // Auto-refresh orders every 10s for real-time status updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchMyOrders();
-    }, 10000); // 10s for real-time updates
-    return () => clearInterval(interval);
-  }, [fetchMyOrders]);
-
   // Transform backend orders to match UI structure
   const formattedOrders = useMemo(() => {
     return orders.map(o => ({
