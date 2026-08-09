@@ -281,7 +281,7 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
             logout();
             logoutCustomer();
             setSidebarOpen(false);
-            navigate("/seller/login");
+            navigate("/", { replace: true });
           }}
           className="w-full flex items-center justify-between px-4 py-3 rounded-2xl font-bold text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-all border border-transparent hover:border-red-100"
         >
