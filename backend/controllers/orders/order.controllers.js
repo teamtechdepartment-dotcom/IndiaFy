@@ -205,13 +205,15 @@ export const createOrder = asyncHandler(async (req, res, next) => {
         if (paymentMethod === "COD") {
             // STEP 10: Inventory, clear customer cart, notifications, invoice
             for (const item of enrichedOrderItems) {
-                const product = await ProductModel.findById(item.product);
-                if (product) {
-                    const newQty = Math.max(0, parseInt(product.attribute.quantity || "0") - item.quantity);
-                    product.attribute.quantity = newQty.toString();
-                    product.stock = newQty;
-                    await product.save();
-                    console.log(`[Inventory Update] Stock updated for product ${product.productName}. Remaining: ${newQty}`);
+                const updatedProduct = await ProductModel.findOneAndUpdate(
+                    { _id: item.product },
+                    { $inc: { stock: -item.quantity } },
+                    { new: true }
+                );
+                if (updatedProduct) {
+                    updatedProduct.attribute.quantity = Math.max(0, updatedProduct.stock).toString();
+                    await updatedProduct.save();
+                    console.log(`[Inventory Update] Stock updated for product ${updatedProduct.productName}. Remaining: ${updatedProduct.stock}`);
                 }
             }
 

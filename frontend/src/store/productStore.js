@@ -58,7 +58,7 @@ export const useProductStore = create((set) => ({
       const res = await axiosInstance.get(`/products/${id}`);
       return res.data || res;
     } catch (_err) {
-      console.error(err);
+      console.error(_err);
       return null;
     }
   },

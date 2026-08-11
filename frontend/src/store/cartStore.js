@@ -16,7 +16,7 @@ const getProductDetails = async (productId) => {
     const res = await axiosInstance.get(`/products/${productId}`);
     return res.data || res;
   } catch (_e) {
-    console.error("Failed to fetch product details for guest cart:", e);
+    console.error("Failed to fetch product details for guest cart:", _e);
     return null;
   }
 };
@@ -61,7 +61,7 @@ export const useCartStore = create((set, get) => ({
           }
         }
       } catch (_e) {
-        console.error("Failed to merge guest cart into database:", e);
+        console.error("Failed to merge guest cart into database:", _e);
       } finally {
         localStorage.removeItem("indiafy_guest_cart");
       }

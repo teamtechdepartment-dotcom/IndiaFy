@@ -213,7 +213,6 @@ app.use("/api/v1/indiafy/seller/applications", sellerApplicationRoutes);
 app.use("/api/v1/indiafy/delivery", deliveryRoutes);
 
 app.use("/api/v1/indiafy", storeApprovalRoutes);
-// app.use("/api/v1/indiafy", storeApprovalRoutes);
 app.use("/api/v1/indiafy/seller/notifications", orderNotificationRoutes);
 app.get("/api/v1/indiafy/seller/dashboard-access", requiredLogin, getDashboardAccess);
 app.get("/api/v1/indiafy/seller/node/status", requiredLogin, getLatestNodeStatus);
