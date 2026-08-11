@@ -238,11 +238,13 @@ export const submitApplication = asyncHandler(async (req, res) => {
     status: { $in: EDITABLE_APPLICATION_STATUSES }
   });
 
+  const targetUserId = mongoose.Types.ObjectId.isValid(sellerId) ? new mongoose.Types.ObjectId(sellerId) : sellerId;
+
   // 2. Prevent duplicate business identity checks (GST, PAN, Aadhaar) across OTHER sellers
   const duplicateGst = await SellerApplication.findOne({
     gstHash: calculatedGstHash,
     status: { $in: [...ACTIVE_APPLICATION_STATUSES, REVIEW_STATUS.CHANGES_REQUESTED, "additional_information_required"] },
-    userId: { $ne: sellerId }
+    userId: { $ne: targetUserId }
   });
   if (duplicateGst) {
     return res.status(400).json({
@@ -254,7 +256,7 @@ export const submitApplication = asyncHandler(async (req, res) => {
   const duplicatePan = await SellerApplication.findOne({
     panHash: calculatedPanHash,
     status: { $in: [...ACTIVE_APPLICATION_STATUSES, REVIEW_STATUS.CHANGES_REQUESTED, "additional_information_required"] },
-    userId: { $ne: sellerId }
+    userId: { $ne: targetUserId }
   });
   if (duplicatePan) {
     return res.status(400).json({
@@ -266,7 +268,7 @@ export const submitApplication = asyncHandler(async (req, res) => {
   const duplicateAadhaar = await SellerApplication.findOne({
     aadhaarHash: calculatedAadhaarHash,
     status: { $in: [...ACTIVE_APPLICATION_STATUSES, REVIEW_STATUS.CHANGES_REQUESTED, "additional_information_required"] },
-    userId: { $ne: sellerId }
+    userId: { $ne: targetUserId }
   });
   if (duplicateAadhaar) {
     return res.status(400).json({

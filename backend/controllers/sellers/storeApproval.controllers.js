@@ -148,11 +148,13 @@ export const submitStoreApplication = async (req, res) => {
     const calculatedPanHash = hashValue(panNumber);
     const calculatedAadhaarHash = hashValue(aadhaarNumber);
 
+    const targetUserId = mongoose.Types.ObjectId.isValid(sellerId) ? new mongoose.Types.ObjectId(sellerId) : sellerId;
+
     // Duplicate identity checks across other sellers
     const duplicateGst = await SellerApplication.findOne({
       gstHash: calculatedGstHash,
       status: { $in: ["pending", "PENDING_REVIEW", "approved", "APPROVED", "UNDER_REVIEW"] },
-      userId: { $ne: sellerId }
+      userId: { $ne: targetUserId }
     });
     if (duplicateGst) {
       throw new ApiError(400, "An application with this GST Number is already registered.");
@@ -161,7 +163,7 @@ export const submitStoreApplication = async (req, res) => {
     const duplicatePan = await SellerApplication.findOne({
       panHash: calculatedPanHash,
       status: { $in: ["pending", "PENDING_REVIEW", "approved", "APPROVED", "UNDER_REVIEW"] },
-      userId: { $ne: sellerId }
+      userId: { $ne: targetUserId }
     });
     if (duplicatePan) {
       throw new ApiError(400, "An application with this PAN Number is already registered.");

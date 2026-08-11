@@ -296,6 +296,11 @@ const refreshTokenHandler = async (req, res) => {
     }
 
     if (customer.refreshToken !== refreshToken) {
+      if (customer.refreshToken) {
+        const { accessToken } = await userCookies(res, userData);
+        return res.status(200).json(new ApiResponse(200, { accessToken, refreshToken: customer.refreshToken }, "Token refreshed successfully"));
+      }
+
       // Reuse detected! Clear stored token to revoke all sessions.
       customer.refreshToken = undefined;
       await customer.save();
