@@ -131,8 +131,19 @@ axiosInstance.interceptors.response.use(
                 const isSellerContext = currentWindowPath.startsWith("/seller") || currentWindowPath === "/seller-hub";
                 const isAdminContext = currentWindowPath.startsWith("/admin");
 
-                const isSellerReq = isSellerContext || originalRequest.url.includes("/seller") || originalRequest.url.includes("/wholesale") || originalRequest.url.includes("/local") || originalRequest.url.includes("/products") || originalRequest.url.includes("/orders");
-                const isAdminReq = isAdminContext || originalRequest.url.includes("/admin");
+                const isCustomerUrl = originalRequest.url.includes("/customer");
+                const isAdminUrl = originalRequest.url.includes("/admin");
+                const isSellerUrl = originalRequest.url.includes("/seller") || originalRequest.url.includes("/wholesale") || originalRequest.url.includes("/local") || originalRequest.url.includes("/products") || originalRequest.url.includes("/orders");
+
+                let isSellerReq = isSellerUrl;
+                let isAdminReq = isAdminUrl;
+                let isCustomerReq = isCustomerUrl;
+
+                if (!isCustomerUrl && !isAdminUrl && !isSellerUrl) {
+                    if (isSellerContext) isSellerReq = true;
+                    else if (isAdminContext) isAdminReq = true;
+                    else isCustomerReq = true;
+                }
 
                 // Check if user was previously authenticated
                 let wasAuthenticated = false;

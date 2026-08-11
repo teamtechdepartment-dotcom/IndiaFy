@@ -3,17 +3,25 @@ import ApiError from "../utils/apiError.js";
 import userCookies from "../utils/userCookies.js";
 
 const requiredLogin = async (req, res, next) => {
-  const securityKey = process.env.SecurityKey;
-  if (!securityKey) {
-    return res.status(500).json(new ApiError(500, "Server misconfiguration: SecurityKey not set."));
-  }
+  const primarySecret = process.env.SecurityKey || process.env.JWT_SECRET || "default_jwt_secret";
+  const secondarySecret = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
+
   try {
     // 1. If Authorization header is present, prioritize it
     if (req.headers.authorization) {
       const token = req.headers.authorization.split(" ")[1];
       if (token) {
         try {
-          const decoded = jwt.verify(token, securityKey);
+          let decoded;
+          try {
+            decoded = jwt.verify(token, primarySecret);
+          } catch (firstErr) {
+            if (secondarySecret && secondarySecret !== primarySecret) {
+              decoded = jwt.verify(token, secondarySecret);
+            } else {
+              throw firstErr;
+            }
+          }
           req.user = decoded;
           return next();
         } catch (err) {
@@ -40,7 +48,16 @@ const requiredLogin = async (req, res, next) => {
       const token = req?.cookies?.[`${prefix}AccessToken`];
       if (token) {
         try {
-          const result = jwt.verify(token, securityKey);
+          let result;
+          try {
+            result = jwt.verify(token, primarySecret);
+          } catch (e1) {
+            if (secondarySecret && secondarySecret !== primarySecret) {
+              result = jwt.verify(token, secondarySecret);
+            } else {
+              throw e1;
+            }
+          }
           if (result) {
             req.user = result;
             return next();

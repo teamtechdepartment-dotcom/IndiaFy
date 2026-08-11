@@ -477,7 +477,15 @@ const refreshTokenHandler = async (req, res) => {
     }
 
     if (seller.refreshToken !== refreshToken) {
-      // Reuse detected! Clear stored token to revoke all sessions.
+      // If refreshToken differs from DB stored token, check if seller.refreshToken exists.
+      // During concurrent rapid page refreshes or parallel in-flight requests,
+      // a previous request may have already rotated the token.
+      if (seller.refreshToken) {
+        const { accessToken } = await userCookies(res, userData);
+        return res.status(200).json(new ApiResponse(200, { accessToken, refreshToken: seller.refreshToken }, "Token refreshed successfully"));
+      }
+
+      // Reuse detected on a fully revoked token! Clear stored token to revoke session.
       seller.refreshToken = undefined;
       await seller.save();
 
