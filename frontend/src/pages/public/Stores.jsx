@@ -254,7 +254,7 @@ export default function Stores() {
         </section>
 
         {/* FILTERS */}
-        <div className="sticky top-[116px] lg:top-[124px] z-30 bg-white border-b border-slate-200 shadow-xs">
+        <div className="sticky top-16 lg:top-[124px] z-40 bg-white border-b border-slate-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-3 overflow-x-auto scrollbar-none">
               {/* Type filter chips */}
