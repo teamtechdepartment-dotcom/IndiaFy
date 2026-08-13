@@ -856,8 +856,8 @@ export default function Products() {
               </div>
 
               <div className="pt-4 flex gap-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-2xl transition-all shadow-sm">Cancel</button>
-                <button type="submit" onClick={handleAddProduct} disabled={isLoading} className="flex-1 py-3.5 font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-2xl transition-all shadow-sm cursor-pointer">Cancel</button>
+                <button type="submit" disabled={isLoading} className="flex-1 py-3.5 font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                   {isLoading ? <Loader2 size={16} className="animate-spin" /> : "Save Product"}
                 </button>
               </div>
