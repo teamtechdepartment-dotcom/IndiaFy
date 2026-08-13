@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Globe, Sparkles, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Search, Globe, Sparkles, AlertTriangle, RefreshCw, Trash2 } from 'lucide-react';
 import Sidebar from "../../components/admin/Sidebar";
 import Header from "../../components/admin/Header";
 import AdminErrorBoundary from "../../components/admin/AdminErrorBoundary";
@@ -61,6 +61,23 @@ export default function StoreManagement() {
     }
   };
 
+  const handleDeleteStore = async (id, storeName) => {
+    if (!id) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to PERMANENTLY delete store "${storeName || 'Store'}" from the database? This action CANNOT be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await axiosInstance.delete(`/admin/management/stores/${id}`);
+      toast.success(`Store "${storeName || 'Store'}" permanently deleted successfully!`);
+      fetchStores();
+    } catch (_err) {
+      console.error("Error deleting store:", _err);
+      toast.error(_err?.response?.data?.message || "Failed to delete store");
+    }
+  };
+
   const safeStores = Array.isArray(stores) ? stores : [];
 
   const filteredStores = safeStores.filter((store) => {
@@ -69,9 +86,12 @@ export default function StoreManagement() {
     if (!query) return true;
 
     const firstName = (store.firstName ?? "").toLowerCase();
-    const bName = (store.customerId?.businessName ?? store.businessName ?? "").toLowerCase();
+    const lastName = (store.lastName ?? "").toLowerCase();
+    const bName = (store.storeName ?? store.businessName ?? store.customerId?.businessName ?? "").toLowerCase();
+    const nodeType = (store.nodeType ?? store.sellerType ?? "").toLowerCase();
+    const city = (store.city ?? "").toLowerCase();
 
-    return firstName.includes(query) || bName.includes(query);
+    return firstName.includes(query) || lastName.includes(query) || bName.includes(query) || nodeType.includes(query) || city.includes(query);
   });
 
   return (
@@ -143,12 +163,13 @@ export default function StoreManagement() {
                 ) : (
                   filteredStores.map((store) => {
                     const sId = store?._id || Math.random().toString();
-                    const bName = store?.customerId?.businessName ?? store?.businessName ?? "Unnamed Store";
+                    const bName = store?.storeName ?? store?.businessName ?? store?.customerId?.businessName ?? "Unnamed Store";
                     const fName = store?.firstName ?? "";
                     const lName = store?.lastName ?? "";
                     const status = store?.warehouseVerificationStatus ?? "Verified";
                     const isVerified = status === "Verified";
                     const radius = store?.dispatchRadius ?? 10;
+                    const logoUrl = store?.logo || store?.profileImage || store?.storeFrontPhoto;
 
                     return (
                       <div key={sId} className="bg-white border border-slate-200/80 rounded-[2rem] p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-300">
@@ -156,7 +177,18 @@ export default function StoreManagement() {
                         {/* Header */}
                         <div>
                           <div className="flex justify-between items-start mb-4">
-                            <div className="w-12 h-12 bg-[#10B981]/10 border border-[#10B981]/25 rounded-xl flex items-center justify-center text-[#2874F0] font-extrabold text-lg">
+                            {logoUrl ? (
+                              <img 
+                                src={logoUrl} 
+                                alt={bName} 
+                                className="w-12 h-12 rounded-xl border border-slate-200 object-cover bg-white shadow-xs"
+                                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                              />
+                            ) : null}
+                            <div 
+                              className="w-12 h-12 bg-[#10B981]/10 border border-[#10B981]/25 rounded-xl flex items-center justify-center text-[#2874F0] font-extrabold text-lg"
+                              style={{ display: logoUrl ? 'none' : 'flex' }}
+                            >
                               {(bName[0] ?? "S").toUpperCase()}
                             </div>
                             <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider ${
@@ -167,7 +199,9 @@ export default function StoreManagement() {
                           </div>
 
                           <h3 className="font-extrabold text-slate-800 text-lg leading-tight">{bName}</h3>
-                          <p className="text-xs text-slate-400 font-medium mt-1">Owner: {fName} {lName}</p>
+                          <p className="text-xs text-slate-400 font-medium mt-1">
+                            Owner: {fName} {lName} {store?.city ? `• ${store.city}` : ""}
+                          </p>
                           
                           <hr className="my-4 border-slate-100" />
 
@@ -181,7 +215,7 @@ export default function StoreManagement() {
                             </div>
                             <div className="flex justify-between font-medium">
                               <span className="text-slate-400">Merchant Type:</span>
-                              <span className="font-bold uppercase text-slate-750">{store?.sellerType ?? "Retailer"}</span>
+                              <span className="font-bold uppercase text-slate-750">{store?.sellerType ?? store?.nodeType ?? "Retailer"}</span>
                             </div>
                             <div className="flex justify-between font-medium">
                               <span className="text-slate-400">Delivery coverage:</span>
@@ -190,12 +224,21 @@ export default function StoreManagement() {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => handleOpenEdit(store)}
-                          className="mt-6 w-full flex items-center justify-center gap-2 py-3 bg-slate-900 text-white hover:bg-black font-bold rounded-xl text-xs transition active:scale-95 border border-slate-200"
-                        >
-                          Configure SEO & Radius
-                        </button>
+                        <div className="mt-6 flex items-center gap-2">
+                          <button
+                            onClick={() => handleOpenEdit(store)}
+                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-900 text-white hover:bg-black font-bold rounded-xl text-xs transition active:scale-95 border border-slate-200 cursor-pointer"
+                          >
+                            Configure SEO & Radius
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStore(store._id, bName)}
+                            className="p-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition active:scale-95 cursor-pointer shadow-xs flex items-center justify-center"
+                            title="Delete Store Permanently"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
 
                       </div>
                     );

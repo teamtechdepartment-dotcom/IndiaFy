@@ -140,7 +140,7 @@ export default function LocalSellers() {
                   placeholder="Search stores, groceries, hardware..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-100 border border-transparent focus:border-zinc-300 focus:bg-white rounded-2xl py-3.5 pl-12 pr-4 text-sm font-bold text-slate-900 placeholder:text-slate-600 transition-all outline-none shadow-sm"
+                  className="w-full bg-slate-100 border border-transparent focus:border-zinc-300 focus:bg-white rounded-2xl py-3.5 pl-12 pr-4 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-500 transition-all outline-none shadow-sm truncate"
                 />
               </div>
 
@@ -151,12 +151,12 @@ export default function LocalSellers() {
             </div>
 
             {/* Horizontal Scrollable Filter Chips */}
-            <div className="flex overflow-x-auto hide-scrollbar gap-2 mt-5 pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="flex overflow-x-auto scrollbar-none gap-2 mt-5 pb-2 -mx-4 px-4 md:mx-0 md:px-0">
               {FILTERS.map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
-                  className={`whitespace-nowrap px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                  className={`shrink-0 whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 ${
                     activeFilter === filter
                       ? "bg-white shadow-sm border border-slate-200 text-slate-900 shadow-xl shadow-slate-200"
                       : "bg-white border border-zinc-200 text-slate-500 hover:border-zinc-300 hover:text-slate-900"

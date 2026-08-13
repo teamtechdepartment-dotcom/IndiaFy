@@ -555,12 +555,77 @@ export const deleteSeller = async (req, res) => {
   }
 };
 
+// Helper to safely parse activeSectors/operatingSectors as Array
+const parseSectors = (val) => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
+  if (typeof val === "string") return val.split(",").map(s => s.trim()).filter(Boolean);
+  return [];
+};
+
 // --- STORE MANAGEMENT ---
 export const getStoreList = async (req, res) => {
   try {
-    const stores = await SellerProfileModel.find({}).populate("customerId", "businessName email");
-    return res.status(200).json(new ApiResponse(200, stores, "Stores fetched successfully"));
+    const nodes = await SellerNode.find({}).populate({ path: "seller", model: SellerModel, select: "businessName email firstName lastName" });
+    const profiles = await SellerProfileModel.find({}).populate({ path: "customerId", model: SellerModel, select: "businessName email firstName lastName" });
+
+    const nodeMap = new Map();
+
+    (nodes || []).forEach((n) => {
+      if (!n || !n._id) return;
+      const sName = n.storeName || n.businessName || n.seller?.businessName || "Unnamed Store";
+      nodeMap.set(String(n._id), {
+        _id: n._id,
+        storeName: sName,
+        businessName: sName,
+        firstName: n.ownerFullName || n.seller?.firstName || "Merchant",
+        lastName: n.seller?.lastName || "",
+        sellerType: n.nodeType || "Retailer",
+        nodeType: n.nodeType || "LOCAL_RETAIL",
+        warehouseVerificationStatus: n.status === "ACTIVE" || n.status === "APPROVED" || n.isVerified ? "Verified" : (n.status || "Pending"),
+        dispatchRadius: n.deliveryRadius || 10,
+        operatingSectors: parseSectors(n.activeSectors),
+        indiafyVerifiedBadge: Boolean(n.isVerified),
+        city: n.city || "",
+        address: n.address || "",
+        logo: n.logo || n.storeFrontPhoto || "",
+        banner: n.banner || "",
+        isNode: true
+      });
+    });
+
+    (profiles || []).forEach((p) => {
+      if (!p || !p._id) return;
+      const pid = String(p._id);
+      if (!nodeMap.has(pid)) {
+        const sName = p.businessName || p.customerId?.businessName || "Unnamed Store";
+        const primaryAddr = Array.isArray(p.address) && p.address[0] ? p.address[0] : {};
+        nodeMap.set(pid, {
+          _id: p._id,
+          storeName: sName,
+          businessName: sName,
+          firstName: p.firstName || p.customerId?.firstName || "Merchant",
+          lastName: p.customerId?.lastName || "",
+          sellerType: p.sellerType || "Retailer",
+          nodeType: p.sellerType || "LOCAL_RETAIL",
+          warehouseVerificationStatus: p.warehouseVerificationStatus || "Verified",
+          dispatchRadius: p.dispatchRadius || 10,
+          operatingSectors: parseSectors(p.operatingSectors),
+          indiafyVerifiedBadge: Boolean(p.indiafyVerifiedBadge),
+          city: primaryAddr.city || "",
+          address: primaryAddr.street || "",
+          logo: p.profileImage || "",
+          banner: "",
+          customerId: p.customerId,
+          isNode: false
+        });
+      }
+    });
+
+    const storesList = Array.from(nodeMap.values());
+    return res.status(200).json(new ApiResponse(200, storesList, "Stores fetched successfully"));
   } catch (err) {
+    console.error("[getStoreList] Error:", err);
     return res.status(500).json(new ApiError(500, err.message));
   }
 };
@@ -570,20 +635,66 @@ export const updateStoreSEO = async (req, res) => {
     const { id } = req.params;
     const { operatingSectors, dispatchRadius } = req.body;
 
-    const profile = await SellerProfileModel.findById(id);
-    if (!profile) {
-      throw new ApiError(404, "Store profile not found");
+    let target = await SellerNode.findById(id);
+    if (target) {
+      if (operatingSectors) target.activeSectors = Array.isArray(operatingSectors) ? operatingSectors.join(",") : operatingSectors;
+      if (dispatchRadius) target.deliveryRadius = Number(dispatchRadius);
+      await target.save();
+    } else {
+      target = await SellerProfileModel.findById(id);
+      if (!target) {
+        throw new ApiError(404, "Store not found");
+      }
+      if (operatingSectors) target.operatingSectors = operatingSectors;
+      if (dispatchRadius) target.dispatchRadius = dispatchRadius;
+      await target.save();
     }
 
-    const before = { operatingSectors: profile.operatingSectors, dispatchRadius: profile.dispatchRadius };
-    
-    if (operatingSectors) profile.operatingSectors = operatingSectors;
-    if (dispatchRadius) profile.dispatchRadius = dispatchRadius;
-    await profile.save();
+    await logAdminAction(req, "UPDATE_STORE_SEO", `store:${id}`, null, { operatingSectors, dispatchRadius });
 
-    await logAdminAction(req, "UPDATE_STORE_SEO", `store:${id}`, before, { operatingSectors, dispatchRadius });
+    return res.status(200).json(new ApiResponse(200, target, "Store SEO/Dispatch properties updated"));
+  } catch (err) {
+    return res.status(500).json(new ApiError(500, err.message));
+  }
+};
 
-    return res.status(200).json(new ApiResponse(200, profile, "Store SEO/Dispatch properties updated"));
+export const deleteStore = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const node = await SellerNode.findById(id);
+    if (node) {
+      const sellerId = node.seller;
+      await Promise.all([
+        SellerNode.findByIdAndDelete(id),
+        ProductModel.deleteMany({ nodeId: id }),
+        SellerApplication.deleteMany({ node: id }),
+        ...(sellerId ? [
+          ProductModel.deleteMany({ sellerId }),
+          SellerProfileModel.deleteMany({ customerId: sellerId }),
+          SellerModel.findByIdAndDelete(sellerId)
+        ] : [])
+      ]);
+      await logAdminAction(req, "DELETE_STORE_NODE", `storeNode:${id}`, { storeName: node.storeName }, null);
+      return res.status(200).json(new ApiResponse(200, null, "Store node permanently deleted from database"));
+    }
+
+    const profile = await SellerProfileModel.findById(id);
+    if (profile) {
+      const customerId = profile.customerId;
+      await Promise.all([
+        SellerProfileModel.findByIdAndDelete(id),
+        ...(customerId ? [
+          SellerModel.findByIdAndDelete(customerId),
+          SellerNode.deleteMany({ seller: customerId }),
+          ProductModel.deleteMany({ sellerId: customerId })
+        ] : [])
+      ]);
+      await logAdminAction(req, "DELETE_STORE_PROFILE", `storeProfile:${id}`, { businessName: profile.businessName }, null);
+      return res.status(200).json(new ApiResponse(200, null, "Store profile permanently deleted from database"));
+    }
+
+    return res.status(404).json(new ApiError(404, "Store not found"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
   }

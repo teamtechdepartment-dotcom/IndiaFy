@@ -4,12 +4,12 @@ const sellerNodeSchema = new mongoose.Schema(
   {
     seller: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Seller",
+      ref: "seller",
       required: true,
     },
 
     sellerSnapshot: {
-      sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "Seller" },
+      sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "seller" },
       storeName: { type: String, trim: true, default: "" },
       storeSlug: { type: String, trim: true, default: "" },
       businessInfo: { type: mongoose.Schema.Types.Mixed, default: {} },

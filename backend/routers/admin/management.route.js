@@ -18,6 +18,7 @@ import {
   suspendSellerApplication,
   getStoreList,
   updateStoreSEO,
+  deleteStore,
   getProductList,
   updateProductStatus,
   deleteProduct,
@@ -83,6 +84,7 @@ router.patch("/store-applications/:id/suspend", permissionGuard("sellers:write")
 // Store Governance
 router.get("/stores", permissionGuard("stores:read"), getStoreList);
 router.put("/stores/:id/seo", permissionGuard("stores:write"), updateStoreSEO);
+router.delete("/stores/:id", permissionGuard("stores:write"), deleteStore);
 
 // Product Governance
 router.get("/products", permissionGuard("products:read"), getProductList);
