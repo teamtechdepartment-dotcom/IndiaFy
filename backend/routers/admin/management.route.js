@@ -9,6 +9,7 @@ import {
   updateCustomerStatus,
   getSellerList,
   updateSellerStatus,
+  deleteSeller,
   getSellerApplications,
   getSellerApplicationById,
   approveSellerApplication,
@@ -19,6 +20,7 @@ import {
   updateStoreSEO,
   getProductList,
   updateProductStatus,
+  deleteProduct,
   getOrderList,
   updateOrderState,
   getFinancialStats,
@@ -56,6 +58,7 @@ router.put("/customers/:id/status", permissionGuard("users:write"), updateCustom
 // Seller Governance
 router.get("/sellers", permissionGuard("sellers:read"), getSellerList);
 router.put("/sellers/:id/status", permissionGuard("sellers:write"), updateSellerStatus);
+router.delete("/sellers/:id", permissionGuard("sellers:write"), deleteSeller);
 
 // Seller Onboarding Applications Governance
 router.get("/seller-applications", permissionGuard("sellers:read"), getSellerApplications);
@@ -84,6 +87,7 @@ router.put("/stores/:id/seo", permissionGuard("stores:write"), updateStoreSEO);
 // Product Governance
 router.get("/products", permissionGuard("products:read"), getProductList);
 router.put("/products/:id/status", permissionGuard("products:write"), updateProductStatus);
+router.delete("/products/:id", permissionGuard("products:write"), deleteProduct);
 
 // Order Governance & Commerce
 router.get("/orders", permissionGuard("orders:read"), getOrderList);

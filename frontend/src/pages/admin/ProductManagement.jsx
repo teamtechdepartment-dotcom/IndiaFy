@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Search,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
@@ -70,6 +71,23 @@ export default function ProductManagement() {
       fetchProducts();
     } catch (_err) {
       toast.error("Failed to update product status");
+    }
+  };
+
+  const handleDeleteProduct = async (id, productName) => {
+    if (!id) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to PERMANENTLY delete product "${productName || 'Product'}" from the database? This action CANNOT be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await axiosInstance.delete(`/admin/management/products/${id}`);
+      toast.success(`Product "${productName || 'Product'}" permanently deleted successfully!`);
+      fetchProducts();
+    } catch (_err) {
+      console.error("Error deleting product:", _err);
+      toast.error(_err?.response?.data?.message || "Failed to delete product");
     }
   };
 
@@ -405,10 +423,10 @@ export default function ProductManagement() {
                               </td>
 
                               {/* Actions */}
-                              <td className="py-4 px-4 text-right space-x-2">
+                              <td className="py-4 px-4 text-right space-x-2 whitespace-nowrap">
                                 <button
                                   onClick={() => handleTogglePublished(p?._id, Boolean(p?.isPublished))}
-                                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition ${
+                                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
                                     p?.isPublished
                                       ? "bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200"
                                       : "bg-[#0B1528] text-white hover:bg-black border border-[#D4AF37]/30"
@@ -418,13 +436,21 @@ export default function ProductManagement() {
                                 </button>
                                 <button
                                   onClick={() => handleToggleActive(p?._id, p?.isActive !== false)}
-                                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition ${
+                                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
                                     p?.isActive !== false
-                                      ? "bg-red-50 hover:bg-red-100 text-red-600 border border-red-200"
+                                      ? "bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200"
                                       : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200"
                                   }`}
                                 >
                                   {p?.isActive !== false ? "Suspend" : "Activate"}
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteProduct(p?._id, p?.productName)}
+                                  className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer shadow-xs ml-1"
+                                  title="Delete Product Permanently"
+                                >
+                                  <Trash2 size={12} />
+                                  Delete
                                 </button>
                               </td>
 

@@ -526,6 +526,35 @@ export const updateSellerStatus = async (req, res) => {
   }
 };
 
+export const deleteSeller = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const seller = await SellerModel.findById(id);
+    if (!seller) {
+      return res.status(404).json(new ApiError(404, "Seller not found"));
+    }
+
+    // Permanently delete seller and all associated records from DB
+    await Promise.all([
+      SellerModel.findByIdAndDelete(id),
+      SellerProfileModel.deleteMany({ customerId: id }),
+      SellerNode.deleteMany({ seller: id }),
+      SellerNode.deleteMany({ "sellerSnapshot.sellerId": id }),
+      SellerApplication.deleteMany({ seller: id }),
+      SellerApplication.deleteMany({ userId: id }),
+      ProductModel.deleteMany({ sellerId: id }),
+      ProductModel.deleteMany({ "sellerSnapshot.sellerId": id }),
+    ]);
+
+    await logAdminAction(req, "DELETE_SELLER", `seller:${id}`, { businessName: seller.businessName, email: seller.email }, null);
+
+    return res.status(200).json(new ApiResponse(200, null, "Store permanently deleted from database"));
+  } catch (err) {
+    return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
 // --- STORE MANAGEMENT ---
 export const getStoreList = async (req, res) => {
   try {
@@ -589,6 +618,25 @@ export const updateProductStatus = async (req, res) => {
     await logAdminAction(req, "UPDATE_PRODUCT_STATUS", `product:${id}`, before, { isPublished, isActive });
 
     return res.status(200).json(new ApiResponse(200, product, "Product status updated"));
+  } catch (err) {
+    return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
+export const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await ProductModel.findById(id);
+    if (!product) {
+      return res.status(404).json(new ApiError(404, "Product not found"));
+    }
+
+    await ProductModel.findByIdAndDelete(id);
+
+    await logAdminAction(req, "DELETE_PRODUCT", `product:${id}`, { productName: product.productName, sku: product.productSkuId }, null);
+
+    return res.status(200).json(new ApiResponse(200, null, "Product permanently deleted from database"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
   }

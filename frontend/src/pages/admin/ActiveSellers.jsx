@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search, Store, ShieldCheck, Star, ExternalLink, Filter, MoreVertical,
-  XCircle, SearchX, CheckCircle, Ban, AlertTriangle, RefreshCw, Eye, Settings
+  XCircle, SearchX, CheckCircle, Ban, AlertTriangle, RefreshCw, Eye, Settings, Trash2
 } from 'lucide-react';
 import Sidebar from "../../components/admin/Sidebar";
 import Header from "../../components/admin/Header";
@@ -51,6 +51,21 @@ export default function ActiveSellers() {
       fetchSellers();
     } catch (_err) {
       toast.error("Failed to modify seller status");
+    }
+  };
+
+  const handleDeleteSeller = async (id, storeName) => {
+    if (!id) return;
+    const confirmed = window.confirm(`Are you sure you want to PERMANENTLY delete store "${storeName}" and all its data from the database? This action CANNOT be undone.`);
+    if (!confirmed) return;
+
+    try {
+      await axiosInstance.delete(`/admin/management/sellers/${id}`);
+      toast.success(`Store "${storeName}" permanently deleted successfully!`);
+      fetchSellers();
+    } catch (_err) {
+      console.error("Error deleting store:", _err);
+      toast.error(_err?.response?.data?.message || "Failed to delete store");
     }
   };
 
@@ -278,7 +293,7 @@ export default function ActiveSellers() {
                             <td className="py-4 px-6 text-right space-x-2 whitespace-nowrap">
                               <button
                                 onClick={() => { setSelectedSeller(seller); setModalOpen(true); }}
-                                className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-[#2874F0] dark:text-blue-400 border border-blue-500/25 rounded-xl text-[10px] font-bold transition flex-inline items-center gap-1 cursor-pointer"
+                                className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-[#2874F0] dark:text-blue-400 border border-blue-500/25 rounded-xl text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
                               >
                                 View Details
                               </button>
@@ -286,11 +301,19 @@ export default function ActiveSellers() {
                                 onClick={() => handleUpdateStatus(seller?._id, isApproved ? "Suspended" : "Active")}
                                 className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition cursor-pointer ${
                                   isApproved
-                                    ? "bg-red-500/10 text-red-500 border border-red-500/25 hover:bg-red-500/20"
+                                    ? "bg-amber-500/10 text-amber-600 border border-amber-500/25 hover:bg-amber-500/20"
                                     : "bg-emerald-500/10 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/20"
                                 }`}
                               >
                                 {isApproved ? "Suspend" : "Activate"}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteSeller(seller?._id, bName)}
+                                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer shadow-sm ml-1"
+                                title="Delete Store Permanently"
+                              >
+                                <Trash2 size={12} />
+                                Delete
                               </button>
                             </td>
                           </tr>
@@ -379,17 +402,25 @@ export default function ActiveSellers() {
                             onClick={() => { setSelectedSeller(seller); setModalOpen(true); }}
                             className="flex-1 px-3 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-[#2874F0] dark:text-blue-400 border border-blue-500/25 rounded-xl text-[10px] font-black uppercase tracking-widest transition text-center cursor-pointer"
                           >
-                            View Profile Details
+                            View Details
                           </button>
                           <button
                             onClick={() => handleUpdateStatus(seller?._id, isApproved ? "Suspended" : "Active")}
                             className={`px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition cursor-pointer ${
                               isApproved
-                                ? "bg-red-500/10 text-red-500 border border-red-500/25 hover:bg-red-500/20"
+                                ? "bg-amber-500/10 text-amber-600 border border-amber-500/25 hover:bg-amber-500/20"
                                 : "bg-emerald-500/10 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/20"
                             }`}
                           >
                             {isApproved ? "Suspend" : "Activate"}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSeller(seller?._id, bName)}
+                            className="px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition cursor-pointer inline-flex items-center gap-1 shadow-sm"
+                            title="Delete Store Permanently"
+                          >
+                            <Trash2 size={12} />
+                            Delete
                           </button>
                         </div>
                       </div>
