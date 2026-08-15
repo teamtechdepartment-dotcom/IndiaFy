@@ -132,11 +132,23 @@ export const createProduct = asyncHandler(async (req, res) => {
         } catch (_e) { /* ignore parse error */ }
     }
 
-    const parsedAttribute = typeof attribute === "string" ? JSON.parse(attribute) : attribute;
+    const parsedAttribute = typeof attribute === "string" ? JSON.parse(attribute) : (attribute || {});
     const finalStock = req.body.stock !== undefined ? Number(req.body.stock) : (parsedAttribute?.quantity !== undefined ? Number(parsedAttribute.quantity) : 0);
-    if (parsedAttribute) {
-        parsedAttribute.quantity = finalStock.toString();
+    
+    // Ensure attribute object has required fields with safe fallbacks
+    parsedAttribute.quantity = finalStock.toString();
+    if (parsedAttribute.salePrice === undefined && req.body.price !== undefined) {
+        parsedAttribute.salePrice = Number(req.body.price);
     }
+    if (parsedAttribute.mrpPrice === undefined) {
+        parsedAttribute.mrpPrice = parsedAttribute.mrp !== undefined ? Number(parsedAttribute.mrp) : (parsedAttribute.salePrice || 0);
+    }
+    if (!parsedAttribute.weight) {
+        parsedAttribute.weight = "500g";
+    }
+
+    const finalShortDescription = (shortDescription && String(shortDescription).trim()) ? String(shortDescription).trim() : (productName || "Product Short Description");
+    const finalDescription = (description && String(description).trim()) ? String(description).trim() : (productName || "Product Description");
 
     const normalizeNodeType = (type) => {
         if (!type) return "HOME_ESSENTIALS";
@@ -165,8 +177,8 @@ export const createProduct = asyncHandler(async (req, res) => {
         productImage,
         attribute: parsedAttribute,
         stock: finalStock,
-        shortDescription,
-        description,
+        shortDescription: finalShortDescription,
+        description: finalDescription,
         nodeType: validNodeType,
         nodeId: finalNodeId
     });

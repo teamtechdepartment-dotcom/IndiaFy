@@ -4,7 +4,7 @@ import { Timer, Minus, Plus } from "lucide-react";
 
 export function ProductCard({ p, cartQty, onAdd, onInc, onDec }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-2.5 flex flex-col relative shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-[#f4f5f7] border border-gray-200/60 rounded-xl p-2.5 flex flex-col relative shadow-sm hover:shadow-md transition-shadow">
       {p.discountPct > 0 && (
         <div className="absolute top-0 left-0 bg-[#00B55D] text-white text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-tl-xl rounded-br-lg z-10 shadow-sm">
           {p.discountPct}% OFF
@@ -12,7 +12,7 @@ export function ProductCard({ p, cartQty, onAdd, onInc, onDec }) {
       )}
       
       {/* Top: Image */}
-      <div className="w-full aspect-square bg-gray-50 rounded-lg mb-2 overflow-hidden border border-gray-50">
+      <div className="w-full aspect-square bg-[#eef0f2] rounded-lg mb-2 overflow-hidden border border-gray-200/40">
          <img src={p.img} alt={p.name} className="w-full h-full object-contain mix-blend-multiply hover:scale-105 transition-transform" />
       </div>
 

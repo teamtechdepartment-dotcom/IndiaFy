@@ -61,10 +61,19 @@
     @apply py-section-mobile md:py-section-tablet lg:py-section-desktop;
   }
 
-  /* Card base */
+  /* Card base with soft light grey tint */
   .card-base {
-    @apply bg-brand-surface rounded-card border border-brand-border shadow-card 
+    @apply bg-[#f4f5f7] rounded-card border border-gray-200/60 shadow-card 
            hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300;
+  }
+
+  /* Product card container & image wrapper light grey tint */
+  .card-gray-tint {
+    background-color: #f4f5f7 !important;
+  }
+
+  .card-img-gray-tint {
+    background-color: #eef0f2 !important;
   }
 
   /* Primary button */

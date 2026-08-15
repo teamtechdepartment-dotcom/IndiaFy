@@ -68,7 +68,7 @@ function ProductCard({ product, cart, onAdd, onInc, onDec }) {
       layout
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="bg-white rounded-2xl p-2.5 sm:p-3 border border-zinc-100 hover:border-brand-accent/20 hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-200 flex flex-col relative group cursor-pointer"
+      className="bg-[#f4f5f7] rounded-2xl p-2.5 sm:p-3 border border-gray-200/60 hover:border-brand-accent/20 hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-200 flex flex-col relative group cursor-pointer"
       onClick={() => navigate(`/product/${product.id}`)}
     >
       {/* Discount badge */}
@@ -86,7 +86,7 @@ function ProductCard({ product, cart, onAdd, onInc, onDec }) {
       )}
 
       {/* Image */}
-      <div className="w-full aspect-square bg-zinc-50 rounded-xl mb-2 overflow-hidden relative border border-zinc-100/50">
+      <div className="w-full aspect-square bg-[#eef0f2] rounded-xl mb-2 overflow-hidden relative border border-gray-200/40">
         <img
           src={product.img}
           alt={product.name}

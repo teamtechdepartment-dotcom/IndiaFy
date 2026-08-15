@@ -318,9 +318,9 @@ function ProductCardGrid({ p }) {
   const dp = pct(p.price, p.orig);
 
   return (
-    <div className="group relative bg-white border border-brand-border rounded-md hover:shadow-card-hover transition-all flex flex-col overflow-hidden h-full">
+    <div className="group relative bg-[#f4f5f7] border border-gray-200/60 rounded-xl hover:shadow-card-hover transition-all flex flex-col overflow-hidden h-full">
       {/* Image Container */}
-      <div className="relative aspect-[4/5] bg-brand-background/30 p-4 flex items-center justify-center overflow-hidden">
+      <div className="relative aspect-[4/5] bg-[#eef0f2] p-4 flex items-center justify-center overflow-hidden">
         <img loading="lazy" src={p.img} alt={p.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
         
         {/* Wishlist Button */}

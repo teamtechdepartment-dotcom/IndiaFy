@@ -105,11 +105,15 @@ export default function Inventory({ search: globalSearch = "" }) {
         name: row.name || 'Unnamed Product',
         sku: row.sku?.toUpperCase() || `SKU-${Date.now() + idx}`,
         price: parseFloat(row.price) || 0,
+        mrpPrice: parseFloat(row.mrp || row.mrpprice || row.price) || parseFloat(row.price) || 0,
+        weight: row.weight || '500g',
+        shortDescription: row.shortdescription || row.description || row.name || 'Product Short Description',
+        description: row.description || row.shortdescription || row.name || 'Product Description',
         stock,
         category: row.category || 'General',
         demand: row.demand || 'stable',
         status: stock > 10 ? 'Active' : stock > 0 ? 'Low Stock' : 'Out of Stock',
-        image: row.image || 'https://placehold.co/60x60/e2e8f0/94a3b8?text=IMG',
+        image: row.image || '',
         images: row.image ? [row.image] : [],
       };
     });
@@ -180,15 +184,25 @@ export default function Inventory({ search: globalSearch = "" }) {
         formData.append('stock', String(row.stock || 0));
         formData.append('nodeType', activeNode.nodeType);
         formData.append('nodeId', activeNode._id);
-        formData.append('shortDescription', '');
-        formData.append('description', '');
+        formData.append('shortDescription', row.shortDescription || row.name || 'Product Short Description');
+        formData.append('description', row.description || row.name || 'Product Description');
+        
         const attribute = {
           quantity: String(row.stock || 0),
-          salePrice: row.price || 0,
-          mrp: row.price || 0,
+          salePrice: Number(row.price || 0),
+          mrpPrice: Number(row.mrpPrice || row.price || 0),
+          weight: row.weight || '500g',
           unit: 'pcs',
         };
         formData.append('attribute', JSON.stringify(attribute));
+
+        if (row.image) {
+          formData.append('pastedImages', JSON.stringify([row.image]));
+        } else {
+          formData.append('pastedImages', JSON.stringify([
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(row.name.trim())}&size=400&background=f1f5f9&color=334155&bold=true&format=png`
+          ]));
+        }
 
         await createProduct(formData);
         successCount++;

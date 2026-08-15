@@ -13,9 +13,9 @@ function ProductCard({ product, viewMode }) {
     return (
       <div 
         onClick={() => navigate(`/product/${product.id}`)}
-        className="group flex flex-col sm:flex-row gap-4 p-4 bg-white border-b border-gray-100 hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-shadow cursor-pointer relative"
+        className="group flex flex-col sm:flex-row gap-4 p-4 bg-[#f4f5f7] border-b border-gray-200/60 hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-shadow cursor-pointer relative rounded-xl"
       >
-        <div className="w-full sm:w-[200px] aspect-square sm:aspect-[3/4] shrink-0 relative bg-white flex items-center justify-center p-2">
+        <div className="w-full sm:w-[200px] aspect-square sm:aspect-[3/4] shrink-0 relative bg-[#eef0f2] rounded-lg flex items-center justify-center p-2">
            <img 
             src={product.img} 
             alt={product.name} 
@@ -23,11 +23,11 @@ function ProductCard({ product, viewMode }) {
             decoding="async"
             width="200"
             height="200"
-            className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
           />
           <button 
             onClick={(e) => { e.stopPropagation(); setWishlisted(!wishlisted); }}
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-sm hover:scale-110 transition-transform"
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 shadow-sm hover:scale-110 transition-transform"
           >
             <Heart size={16} className={wishlisted ? "fill-[#ff4343] text-[#ff4343]" : "text-gray-400"} />
           </button>
@@ -79,10 +79,10 @@ function ProductCard({ product, viewMode }) {
   return (
     <div 
       onClick={() => navigate(`/product/${product.id}`)}
-      className="group flex flex-col bg-white border border-gray-100 hover:border-[#2874F0]/30 hover:shadow-xl transition-all duration-300 cursor-pointer relative h-full rounded-2xl overflow-hidden"
+      className="group flex flex-col bg-[#f4f5f7] border border-gray-200/60 hover:border-[#2874F0]/30 hover:shadow-xl transition-all duration-300 cursor-pointer relative h-full rounded-2xl overflow-hidden"
     >
       {/* Top: Image */}
-      <div className="relative w-full aspect-[4/5] bg-white p-6 flex items-center justify-center overflow-hidden group-hover:bg-gray-50/50 transition-colors">
+      <div className="relative w-full aspect-[4/5] bg-[#eef0f2] p-6 flex items-center justify-center overflow-hidden group-hover:bg-[#e4e7ea] transition-colors">
         <img 
           src={product.img} 
           alt={product.name} 
@@ -117,7 +117,7 @@ function ProductCard({ product, viewMode }) {
       </div>
 
       {/* Middle & Bottom: Info */}
-      <div className="p-4 flex flex-col flex-1 bg-white">
+      <div className="p-4 flex flex-col flex-1 bg-[#f4f5f7]">
         {/* Brand & Name */}
         <div className="text-[11px] font-bold text-[#2874F0] mb-1.5 uppercase tracking-widest break-words">
           {product.brand}

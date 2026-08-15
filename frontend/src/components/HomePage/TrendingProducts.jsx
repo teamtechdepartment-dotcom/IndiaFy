@@ -103,11 +103,11 @@ export default function TrendingProducts() {
                   viewport={{ once: true }}
                   className="group"
                 >
-                  <div className="group border border-transparent hover:border-gray-200 hover:shadow-md rounded-md overflow-hidden transition-all duration-300 p-2 sm:p-3 relative bg-white">
+                  <div className="group border border-gray-200/60 hover:border-gray-200 hover:shadow-md rounded-xl overflow-hidden transition-all duration-300 p-2 sm:p-3 relative bg-[#f4f5f7]">
                     {/* Image */}
                     <div
                       onClick={() => navigate(`/product/${id}`)}
-                      className="relative aspect-square overflow-hidden cursor-pointer bg-white mb-3"
+                      className="relative aspect-square overflow-hidden cursor-pointer bg-[#eef0f2] rounded-lg mb-3"
                     >
                       <img
                         src={image}
