@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useRecommendationStore } from '../../../store/recommendationStore';
+import { useRecommendationStore } from '../../store/recommendationStore';
 import { ProductSkeleton } from '../ui/skeletons/ProductSkeleton';
 import ProductCard from '../Category/ProductCard';
 
