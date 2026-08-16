@@ -1,18 +1,64 @@
 /* eslint-disable react/prop-types */
-import { memo, useState } from "react";
+import { memo, useState, useEffect } from "react";
 import { Star, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useInView } from "react-intersection-observer";
+import { useInteractionStore } from "../../store/interactionStore";
 
-function ProductCard({ product, viewMode }) {
+function ProductCard({ product, viewMode, source = "organic", surface = "none" }) {
   const navigate = useNavigate();
   const [wishlisted, setWishlisted] = useState(false);
+  const trackInteraction = useInteractionStore(state => state.trackInteraction);
+
+  // Intersection observer for VIEW attribution
+  const { ref, inView } = useInView({
+    triggerOnce: true, // Only track VIEW once per render
+    threshold: 0.5, // 50% of the card must be visible
+  });
+
+  useEffect(() => {
+    if (inView && product?.id) {
+      trackInteraction({
+        action: "VIEW",
+        productId: product.id,
+        categoryName: product.categoryName || "none",
+        metadata: { source, surface }
+      });
+    }
+  }, [inView, product, source, surface, trackInteraction]);
+
+  const handleCardClick = () => {
+    trackInteraction({
+      action: "CLICK",
+      productId: product.id,
+      categoryName: product.categoryName || "none",
+      metadata: { source, surface }
+    });
+    const refParam = source === "recommendation" && surface ? `?ref=${surface}` : "";
+    navigate(`/product/${product.id}${refParam}`);
+  };
+
+  const handleWishlistToggle = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const newWishlistState = !wishlisted;
+    setWishlisted(newWishlistState);
+    
+    trackInteraction({
+      action: newWishlistState ? "WISHLIST_ADD" : "WISHLIST_REMOVE",
+      productId: product.id,
+      categoryName: product.categoryName || "none",
+      metadata: { source, surface }
+    });
+  };
 
   const isList = viewMode === "list";
 
   if (isList) {
     return (
       <div 
-        onClick={() => navigate(`/product/${product.id}`)}
+        ref={ref}
+        onClick={handleCardClick}
         className="group flex flex-col sm:flex-row gap-4 p-4 bg-[#f4f5f7] border-b border-gray-200/60 hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-shadow cursor-pointer relative rounded-xl"
       >
         <div className="w-full sm:w-[200px] aspect-square sm:aspect-[3/4] shrink-0 relative bg-[#eef0f2] rounded-lg flex items-center justify-center p-2">
@@ -26,7 +72,7 @@ function ProductCard({ product, viewMode }) {
             className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
           />
           <button 
-            onClick={(e) => { e.stopPropagation(); setWishlisted(!wishlisted); }}
+            onClick={handleWishlistToggle}
             className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 shadow-sm hover:scale-110 transition-transform"
           >
             <Heart size={16} className={wishlisted ? "fill-[#ff4343] text-[#ff4343]" : "text-gray-400"} />
@@ -78,7 +124,8 @@ function ProductCard({ product, viewMode }) {
   // Grid View (Default)
   return (
     <div 
-      onClick={() => navigate(`/product/${product.id}`)}
+      ref={ref}
+      onClick={handleCardClick}
       className="group flex flex-col bg-[#f4f5f7] border border-gray-200/60 hover:border-[#2874F0]/30 hover:shadow-xl transition-all duration-300 cursor-pointer relative h-full rounded-2xl overflow-hidden"
     >
       {/* Top: Image */}
@@ -95,7 +142,7 @@ function ProductCard({ product, viewMode }) {
         
         {/* Wishlist Button */}
         <button 
-          onClick={(e) => { e.stopPropagation(); setWishlisted(!wishlisted); }}
+          onClick={handleWishlistToggle}
           className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-md hover:scale-110 transition-transform z-10 text-gray-400 hover:text-[#FB641B]"
         >
           <Heart size={18} className={wishlisted ? "fill-[#FB641B] text-[#FB641B]" : ""} />

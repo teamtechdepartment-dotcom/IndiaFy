@@ -6,6 +6,7 @@ import {
   Search, ChevronDown, Filter, Star, Heart, 
   Truck, MapPin, Grid, List, Check, X 
 } from "lucide-react";
+import SearchRecommendations from "../../components/Search/SearchRecommendations";
 
 const mapDbProduct = (p) => {
   const price = p.attribute?.salePrice ?? p.price ?? 0;
@@ -243,6 +244,9 @@ export default function SearchResultsPage() {
 
           {/* Main Results Area */}
           <div className="flex-1 flex flex-col min-w-0">
+            {/* Personalized Recommendations Section */}
+            {query && <SearchRecommendations query={query} organicIds={new Set(paginated.map(p => p.id))} />}
+
             {isLoading ? (
               <div className="flex items-center justify-center min-h-[400px] bg-white border border-brand-border rounded-md w-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>

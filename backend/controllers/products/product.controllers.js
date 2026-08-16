@@ -8,6 +8,7 @@ import { seedDatabase } from "../../services/seeder.service.js";
 import SellerNode from "../../models/sellerNodes/sellerNode.model.js";
 import SellerModel from "../../models/sellers/auth.model.js";
 import { uploadBuffer } from "../../utils/cloudinary.js";
+import LocationService from "../../services/location.service.js";
 
 // Helper to get active products from active stores
 const getActiveFilterQuery = async (extraQuery = {}) => {
@@ -67,6 +68,58 @@ const enrichProductsWithInventory = async (products) => {
     return isArray ? plainProducts : plainProducts[0];
 };
 
+// Helper to fetch and prioritize products based on location
+const fetchProductsWithLocationPriority = async (baseQuery, lat, lng, sortOption = {}, limit = 100) => {
+    let products = [];
+    let nearbyNodeMap = {};
+
+    if (lat && lng) {
+        const nearbyNodes = await LocationService.getNearbySellerNodes(lat, lng, 5000);
+        if (nearbyNodes.length > 0) {
+            nearbyNodes.forEach(n => {
+                nearbyNodeMap[n._id.toString()] = n.distanceMeters;
+            });
+            const nearbyNodeIds = nearbyNodes.map(n => n._id);
+            
+            const nearbyQuery = await getActiveFilterQuery({ ...baseQuery, nodeId: { $in: nearbyNodeIds } });
+            products = await ProductModel.find(nearbyQuery)
+                .populate("sellerId", "firstName lastName email businessName")
+                .populate("nodeId", "storeName nodeType status logo location")
+                .populate("subCategoryId", "subCategoryName")
+                .sort(sortOption)
+                .limit(limit);
+                
+            // Attach distance
+            products.forEach(p => {
+                if (p.nodeId && nearbyNodeMap[p.nodeId._id.toString()] !== undefined) {
+                    p.distanceMeters = nearbyNodeMap[p.nodeId._id.toString()];
+                    if(p._doc) p._doc.distanceMeters = p.distanceMeters;
+                }
+            });
+        }
+    }
+
+    if (products.length < limit) {
+        const remainingLimit = limit - products.length;
+        const fallbackQueryBase = { ...baseQuery };
+        if (Object.keys(nearbyNodeMap).length > 0) {
+            // Exclude already fetched nearby nodes
+            fallbackQueryBase.nodeId = { $nin: Object.keys(nearbyNodeMap).map(id => new mongoose.Types.ObjectId(id)) };
+        }
+        
+        const fallbackQuery = await getActiveFilterQuery(fallbackQueryBase);
+        const fallbackProducts = await ProductModel.find(fallbackQuery)
+            .populate("sellerId", "firstName lastName email businessName")
+            .populate("nodeId", "storeName nodeType status logo location")
+            .populate("subCategoryId", "subCategoryName")
+            .sort(sortOption)
+            .limit(remainingLimit);
+            
+        products = [...products, ...fallbackProducts];
+    }
+    
+    return products;
+};
 
 // @desc    Create a new product
 // @route   POST /api/v1/indiafy/products
@@ -238,13 +291,10 @@ export const getAllProducts = asyncHandler(async (req, res) => {
         query.productName = { $regex: search, $options: "i" };
     }
 
-    const activeQuery = await getActiveFilterQuery(query);
+    const lat = req.headers["x-user-lat"];
+    const lng = req.headers["x-user-lng"];
 
-    const products = await ProductModel.find(activeQuery)
-        .populate("sellerId", "firstName lastName email")
-        .populate("nodeId", "storeName nodeType status")
-        .populate("subCategoryId", "subCategoryName")
-        .limit(100);
+    const products = await fetchProductsWithLocationPriority(query, lat, lng, {}, 100);
     
     const enriched = await enrichProductsWithInventory(products);
     return res.status(200).json(new ApiResponse(200, enriched, "Products fetched successfully"));
@@ -361,25 +411,20 @@ export const seedProducts = asyncHandler(async (req, res) => {
 });
 
 export const getLatestProducts = asyncHandler(async (req, res) => {
-    const activeQuery = await getActiveFilterQuery({});
-    const products = await ProductModel.find(activeQuery)
-        .populate("sellerId", "firstName lastName email")
-        .populate("nodeId", "storeName nodeType status")
-        .populate("subCategoryId", "subCategoryName")
-        .sort({ createdAt: -1 })
-        .limit(30);
+    const lat = req.headers["x-user-lat"];
+    const lng = req.headers["x-user-lng"];
+
+    const products = await fetchProductsWithLocationPriority({}, lat, lng, { createdAt: -1 }, 30);
 
     const enriched = await enrichProductsWithInventory(products);
     return res.status(200).json(new ApiResponse(200, enriched, "Latest products fetched successfully"));
 });
 
 export const getFeaturedProducts = asyncHandler(async (req, res) => {
-    const activeQuery = await getActiveFilterQuery({ isFeatured: true });
-    const products = await ProductModel.find(activeQuery)
-        .populate("sellerId", "firstName lastName email")
-        .populate("nodeId", "storeName nodeType status")
-        .populate("subCategoryId", "subCategoryName")
-        .limit(30);
+    const lat = req.headers["x-user-lat"];
+    const lng = req.headers["x-user-lng"];
+
+    const products = await fetchProductsWithLocationPriority({ isFeatured: true }, lat, lng, {}, 30);
 
     const enriched = await enrichProductsWithInventory(products);
     return res.status(200).json(new ApiResponse(200, enriched, "Featured products fetched successfully"));
@@ -443,14 +488,10 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
         ];
     }
 
-    const activeQuery = await getActiveFilterQuery(categoryFilter);
+    const lat = req.headers["x-user-lat"];
+    const lng = req.headers["x-user-lng"];
 
-    const products = await ProductModel.find(activeQuery)
-        .populate("sellerId", "firstName lastName email businessName")
-        .populate("nodeId", "storeName nodeType status logo")
-        .populate("subCategoryId", "subCategoryName")
-        .sort({ createdAt: -1 })
-        .limit(100);
+    const products = await fetchProductsWithLocationPriority(categoryFilter, lat, lng, { createdAt: -1 }, 100);
 
     const enriched = await enrichProductsWithInventory(products);
     return res.status(200).json(new ApiResponse(200, enriched, "Products by category fetched successfully"));
@@ -467,13 +508,10 @@ export const searchProducts = asyncHandler(async (req, res) => {
             { shortDescription: { $regex: q, $options: "i" } }
         ];
     }
-    const activeQuery = await getActiveFilterQuery(query);
+    const lat = req.headers["x-user-lat"];
+    const lng = req.headers["x-user-lng"];
 
-    const products = await ProductModel.find(activeQuery)
-        .populate("sellerId", "firstName lastName email")
-        .populate("nodeId", "storeName nodeType status")
-        .populate("subCategoryId", "subCategoryName")
-        .limit(100);
+    const products = await fetchProductsWithLocationPriority(query, lat, lng, {}, 100);
 
     const enriched = await enrichProductsWithInventory(products);
     return res.status(200).json(new ApiResponse(200, enriched, "Search results fetched successfully"));

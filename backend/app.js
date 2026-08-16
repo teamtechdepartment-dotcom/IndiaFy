@@ -26,6 +26,7 @@ import { getSellerOrders } from "./controllers/orders/order.controllers.js";
 import paymentRoutes from "./routers/payment/payment.route.js";
 import customerCartRoutes from "./routers/customer/cart.route.js";
 import customerProfileRoutes from "./routers/customer/profile.route.js";
+import interactionRoutes from "./routers/customer/interaction.route.js";
 import wholesaleRoutes from "./routers/wholesale/wholesale.routes.js";
 import deliveryRoutes from "./routers/delivery/delivery.route.js";
 import storeApprovalRoutes from "./routers/seller/storeApproval.route.js";
@@ -200,6 +201,7 @@ app.get("/api/v1/indiafy/seller/orders", requiredLogin, requireSeller, dashboard
 app.use("/api/v1/indiafy/payments", paymentRoutes);
 app.use("/api/v1/indiafy/customer/cart", customerCartRoutes);
 app.use("/api/v1/indiafy/customer/profile", customerProfileRoutes);
+app.use("/api/v1/indiafy/interactions", interactionRoutes);
 
 // Root-level route aliases
 app.use("/api/orders", orderRoutes);

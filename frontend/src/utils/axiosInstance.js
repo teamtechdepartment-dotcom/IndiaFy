@@ -96,6 +96,17 @@ axiosInstance.interceptors.request.use(
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
+
+            // Inject location headers if available
+            const locationStorage = localStorage.getItem('indiafy-location-storage');
+            if (locationStorage) {
+                const { state } = JSON.parse(locationStorage);
+                if (state && state.latitude && state.longitude) {
+                    config.headers['x-user-lat'] = state.latitude.toString();
+                    config.headers['x-user-lng'] = state.longitude.toString();
+                }
+            }
+
         } catch (_errStorage) {
             // ignore storage read errors
         }

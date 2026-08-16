@@ -20,6 +20,8 @@ import Notification from "../../models/notifications/notification.model.js";
 import { decrypt } from "../../utils/encryption.js";
 import { queueEmail, getApprovalTemplate, getRejectionTemplate } from "../../services/emailService.js";
 import { getIO } from "../../utils/socket.js";
+import { getRecommendationHealth as getRecHealth } from "../../services/recommendationObservability.service.js";
+import { getRecommendationTuningAnalysis } from "../../services/recommendationExperiment.service.js";
 
 const REVIEW_STATUS = {
   PENDING_REVIEW: "PENDING_REVIEW",
@@ -101,6 +103,20 @@ export const getSystemHealth = async (req, res) => {
 };
 
 // --- EXECUTIVE DASHBOARD STATS ---
+export const getSystemHealth = async (req, res) => {
+  try {
+    const healthStatus = {
+      status: "OK",
+      timestamp: new Date(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+    };
+    return res.status(200).json(new ApiResponse(200, "System health retrieved successfully", healthStatus));
+  } catch (error) {
+    res.status(500).json(new ApiError(500, "Error retrieving system health", error.message));
+  }
+};
+
 export const getDashboardStats = async (req, res) => {
   try {
     // Collect stats from DB
@@ -891,7 +907,30 @@ export const deleteCategory = async (req, res) => {
   }
 };
 
-// --- SUPPORT TICKETS ---
+export const getRecommendationHealth = async (req, res) => {
+  try {
+    const health = getRecHealth();
+    res.status(200).json(new ApiResponse(200, "Recommendation engine health retrieved", health));
+  } catch (error) {
+    console.error("Health check error:", error);
+    res.status(500).json(new ApiResponse(500, null, "Error fetching recommendation health", error.message));
+  }
+};
+
+export const getRecommendationExperimentTuning = async (req, res) => {
+  try {
+    const { experimentKey } = req.params;
+    const days = parseInt(req.query.days) || 7;
+    const analysis = await getRecommendationTuningAnalysis(experimentKey, days);
+    res.status(200).json(new ApiResponse(200, analysis, "Recommendation Tuning Analysis Fetched"));
+  } catch (error) {
+    console.error("Experiment tuning error:", error);
+    res.status(500).json(new ApiResponse(500, null, "Error fetching tuning analysis", error.message));
+  }
+};
+
+// ============================================================================
+// DASHBOARD STATSICKETS ---
 export const getSupportTickets = async (req, res) => {
   try {
     const tickets = await SupportTicket.find({}).sort({ updatedAt: -1 });

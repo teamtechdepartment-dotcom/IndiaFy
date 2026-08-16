@@ -13,7 +13,9 @@ import {
     searchProducts,
     resolveProductImage
 } from "../../controllers/products/product.controllers.js";
+import { getPersonalizedRecommendations } from "../../controllers/products/recommendation.controllers.js";
 import requiredLogin from "../../middlewares/requiredLogin.middleware.js";
+import optionalLogin from "../../middlewares/optionalLogin.middleware.js";
 import roleGuard from "../../middlewares/roleGuard.middleware.js";
 import { uploadProductImages } from "../../middlewares/upload.middleware.js";
 
@@ -25,6 +27,7 @@ router.route("/seed").get(seedProducts).post(seedProducts);
 router.route("/").get(getAllProducts);
 router.route("/latest").get(getLatestProducts);
 router.route("/featured").get(getFeaturedProducts);
+router.route("/recommendations").get(optionalLogin, getPersonalizedRecommendations);
 router.route("/category/:slug").get(getProductsByCategory);
 router.route("/search").get(searchProducts);
 router.route("/categories").get(getAvailableCategories);

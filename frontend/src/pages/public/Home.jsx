@@ -21,6 +21,7 @@ const NearbyStores = lazy(() => import("../../components/HomePage/NearbyStores")
 const TrustSection = lazy(() => import("../../components/HomePage/TrustSection"));
 const Testimonials = lazy(() => import("../../components/HomePage/Testimonials"));
 const AppDownload = lazy(() => import("../../components/HomePage/AppDownload"));
+const PersonalizedRecommendations = lazy(() => import("../../components/HomePage/PersonalizedRecommendations"));
 
 // Lightweight section fallback
 const SectionLoader = () => (
@@ -102,6 +103,11 @@ const Home = memo(() => {
         {/* 09 Recommended Products (Recently Viewed) */}
         <Suspense fallback={<SectionLoader />}>
           <RecentlyViewed />
+        </Suspense>
+
+        {/* 09.5 Personalized Recommendations */}
+        <Suspense fallback={<SectionLoader />}>
+          <PersonalizedRecommendations />
         </Suspense>
 
         {/* 10 Nearby Stores */}

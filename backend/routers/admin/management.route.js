@@ -40,6 +40,8 @@ import {
   getRoles,
   updateRolePermissions,
   logSystemError,
+  getRecommendationHealth,
+  getRecommendationExperimentTuning
 } from "../../controllers/admins/management.controllers.js";
 
 const router = Router();
@@ -50,6 +52,8 @@ router.use(roleGuard(["Admin"]));
 
 // Health & Stats
 router.get("/health", permissionGuard("dashboard:read"), getSystemHealth);
+router.get("/recommendations/health", permissionGuard("dashboard:read"), getRecommendationHealth);
+router.get("/recommendations/experiments/:experimentKey/tuning", permissionGuard("dashboard:read"), getRecommendationExperimentTuning);
 router.get("/dashboard/stats", permissionGuard("dashboard:read"), getDashboardStats);
 
 // Customer Governance

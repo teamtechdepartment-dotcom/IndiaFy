@@ -28,6 +28,7 @@ const fmt = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
 
 import { useProfileStore } from "../../store/profileStore";
 import { useAuthStore } from "../../store/authStore";
+import { useInteractionStore } from "../../store/interactionStore";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
   const { cartItems, fetchCart, clearCartStore } = useCartStore();
   const { profile, fetchProfile } = useProfileStore();
   const { isAuthenticated, user } = useAuthStore();
+  const trackInteraction = useInteractionStore(state => state.trackInteraction);
 
   const [quickAddr, setQuickAddr] = useState({ street: "", city: "", pincode: "" });
   const [showNewAddrForm, setShowNewAddrForm] = useState(false);
@@ -114,6 +116,53 @@ export default function CheckoutPage() {
 
   const goToSuccess = (orderId) => {
     orderPlacedRef.current = true;
+    
+    // Track PURCHASE for attribution funnel with idempotency and TTL
+    try {
+      const trackedOrders = JSON.parse(localStorage.getItem('indiafy_tracked_orders') || '[]');
+      if (!trackedOrders.includes(orderId)) {
+        trackedOrders.push(orderId);
+        if (trackedOrders.length > 50) trackedOrders.shift();
+        localStorage.setItem('indiafy_tracked_orders', JSON.stringify(trackedOrders));
+
+        const storedAttribution = JSON.parse(localStorage.getItem('indiafy_item_attribution') || '{}');
+        let attributionChanged = false;
+        
+        displayItems.forEach(item => {
+          const pId = item.productId?._id || item.productId;
+          const attr = storedAttribution[pId];
+          
+          let finalSource = 'organic';
+          let finalSurface = 'none';
+
+          // Validate TTL (7 days)
+          if (attr && attr.createdAt && (Date.now() - attr.createdAt < 7 * 24 * 60 * 60 * 1000)) {
+            finalSource = attr.source || 'organic';
+            finalSurface = attr.surface || 'none';
+          }
+          
+          trackInteraction({
+            action: "PURCHASE",
+            productId: pId,
+            categoryName: item.productId?.categoryName || "none",
+            metadata: { source: finalSource, surface: finalSurface, orderId }
+          });
+
+          // Clear attribution only for the purchased item
+          if (storedAttribution[pId]) {
+            delete storedAttribution[pId];
+            attributionChanged = true;
+          }
+        });
+
+        if (attributionChanged) {
+          localStorage.setItem('indiafy_item_attribution', JSON.stringify(storedAttribution));
+        }
+      }
+    } catch (e) {
+      // Ignore attribution parsing errors
+    }
+
     navigate("/orders/success", { state: { orderId } });
     clearCartStore().catch(() => { /* ignore cart clear errors */ });
   };

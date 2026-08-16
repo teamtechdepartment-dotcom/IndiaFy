@@ -1,12 +1,13 @@
 /* eslint-disable no-unused-vars, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-undef, no-empty */
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { toast } from "react-toastify";
 
 // Global Stores
 import { useCartStore } from "../../store/cartStore";
 import { useAuthStore } from "../../store/authStore";
+import { useInteractionStore } from "../../store/interactionStore";
 import axiosInstance from "../../utils/axiosInstance";
 
 // Components
@@ -87,8 +88,34 @@ const RELATED_PRODUCTS = [
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const addToCart = useCartStore((state) => state.addToCart);
   const { isAuthenticated } = useAuthStore();
+  const trackInteraction = useInteractionStore(state => state.trackInteraction);
+
+  // Validate and extract attribution from URL
+  const { source, surface } = useMemo(() => {
+    const ref = searchParams.get('ref');
+    const ALLOWED_REFS = ["homepage_recommendation", "search_recommendation", "organic", "search"];
+    const isValidRef = ALLOWED_REFS.includes(ref);
+    return {
+      source: isValidRef && ref.includes("recommendation") ? "recommendation" : "organic",
+      surface: isValidRef ? ref : "none"
+    };
+  }, [searchParams]);
+
+  // Persist item-level attribution for Checkout purchase tracking with TTL
+  useEffect(() => {
+    if (id && source === "recommendation") {
+      try {
+        const stored = JSON.parse(localStorage.getItem('indiafy_item_attribution') || '{}');
+        stored[id] = { source, surface, createdAt: Date.now() };
+        localStorage.setItem('indiafy_item_attribution', JSON.stringify(stored));
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
+  }, [id, source, surface]);
 
   const [productData, setProductData] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -127,6 +154,17 @@ export default function ProductDetailPage() {
     if (id) fetchProduct();
     else setIsLoading(false);
   }, [id]);
+
+  useEffect(() => {
+    if (productData && productData._id) {
+      trackInteraction({
+        action: "VIEW",
+        productId: productData._id,
+        categoryName: productData.categoryName || "none",
+        metadata: { source, surface }
+      });
+    }
+  }, [productData, source, surface, trackInteraction]);
 
   if (isLoading) {
     return (
@@ -186,11 +224,26 @@ export default function ProductDetailPage() {
       navigate("/login");
       return;
     }
+    
+    trackInteraction({
+      action: "CART_ADD",
+      productId: mappedProduct.id,
+      categoryName: p.categoryName || "none",
+      metadata: { source, surface }
+    });
+
     await addToCart(mappedProduct.id, quantity);
     toast.success("Added to Cart!");
   };
 
   const handleBuyNow = async () => {
+    trackInteraction({
+      action: "CART_ADD",
+      productId: mappedProduct.id,
+      categoryName: p.categoryName || "none",
+      metadata: { source, surface }
+    });
+
     if (!isAuthenticated) {
       localStorage.setItem("pending_purchase", JSON.stringify({ productId: mappedProduct.id, quantity, product: p }));
       navigate("/login?redirect=checkout");

@@ -101,6 +101,17 @@ const sellerNodeSchema = new mongoose.Schema(
     country: { type: String, default: "" },
     latitude: { type: Number, default: 0 },
     longitude: { type: Number, default: 0 },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point"
+      },
+      coordinates: {
+        type: [Number],
+        default: [0, 0] // [longitude, latitude]
+      }
+    },
     storeFrontPhoto: { type: String, default: "" },
     storeInteriorPhoto: { type: String, default: "" },
 
@@ -219,6 +230,9 @@ const sellerNodeSchema = new mongoose.Schema(
 
 // Text index for search
 sellerNodeSchema.index({ storeName: "text", description: "text", storeCategory: "text" });
+
+// Geospatial index for location-based queries
+sellerNodeSchema.index({ location: "2dsphere" });
 
 const SellerNode = mongoose.model("SellerNode", sellerNodeSchema);
 

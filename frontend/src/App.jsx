@@ -26,6 +26,8 @@ import { useSellerAuthStore } from "./store/sellerAuthStore";
 import { useCartStore } from "./store/cartStore";
 import { useProfileStore } from "./store/profileStore";
 import { useProductStore } from "./store/productStore";
+import { useLocationStore } from "./store/locationStore";
+import { useInteractionStore } from "./store/interactionStore";
 import axiosInstance from "./utils/axiosInstance";
 
 /* =========================================================
@@ -193,6 +195,8 @@ export default function App() {
   const { fetchCart } = useCartStore();
   const { fetchProfile } = useProfileStore();
   const { fetchProducts } = useProductStore();
+  const { requestLocation } = useLocationStore();
+  const { initSession } = useInteractionStore();
 
   // Track whether auth init has completed so we don't redirect based on stale state
   const [authReady, setAuthReady] = useState(false);
@@ -232,6 +236,8 @@ export default function App() {
     };
 
     checkBackendHealth();
+    requestLocation();
+    initSession();
 
     // Run both fetchMe calls in parallel, then mark auth as ready
     Promise.allSettled([
