@@ -86,6 +86,8 @@ const productSchema = new Schema(
       type: String,
       lowercase: true,
       trim: true,
+      unique: true,
+      sparse: true,
     },
 
     productSkuId: {
@@ -335,6 +337,38 @@ const productSchema = new Schema(
     timestamps: true,
   }
 );
+
+/* =========================================================
+   PRE-SAVE HOOK (SLUG GENERATION)
+========================================================= */
+
+productSchema.pre("validate", async function (next) {
+  if (this.isModified("productName") || !this.slug) {
+    const baseSlug = (this.productName || "product")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "") // Remove unsafe characters
+      .replace(/\s+/g, "-") // Replace spaces with hyphens
+      .replace(/-+/g, "-"); // Remove duplicate hyphens
+
+    let finalSlug = baseSlug || `product-${this.productSkuId || this._id.toString()}`;
+    
+    // Collision resolution
+    if (!this.slug || this.slug !== finalSlug) {
+      let counter = 2;
+      let existingProduct = await this.constructor.findOne({ slug: finalSlug, _id: { $ne: this._id } });
+      while (existingProduct) {
+        finalSlug = `${baseSlug}-${counter}`;
+        counter++;
+        existingProduct = await this.constructor.findOne({ slug: finalSlug, _id: { $ne: this._id } });
+      }
+      this.slug = finalSlug;
+    }
+  }
+  next();
+});
 
 /* =========================================================
    INDEXES

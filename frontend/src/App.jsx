@@ -73,6 +73,8 @@ const Stores = lazy(() => import("./pages/public/Stores"));
 const PrivacyPolicy = lazy(() => import("./pages/public/PrivacyPolicy"));
 const TermsAndConditions = lazy(() => import("./pages/public/TermsAndConditions"));
 const Contact = lazy(() => import("./pages/public/Contact"));
+const BrandLandingPage = lazy(() => import("./pages/public/BrandLandingPage"));
+const LocationLandingPage = lazy(() => import("./pages/public/LocationLandingPage"));
 const RefundPolicy = lazy(() => import("./pages/public/RefundPolicy"));
 const SellerGuidelines = lazy(() => import("./pages/public/SellerGuidelines"));
 const CommunityStandards = lazy(() => import("./pages/public/CommunityStandards"));
@@ -314,14 +316,22 @@ export default function App() {
               <Route path="/orders/success" element={<Ordersuccesspage />} />
               <Route path="/search" element={<Searchresultspage />} />
               <Route path="/local-sellers" element={<LocalSellers />} />
-              <Route path="/product/:id" element={<Productdetailpage />} />
-              <Route path="/category/:categoryName" element={<Categorylistingpage />} />
-              <Route path="/store/:id" element={<Storepage />} />
+              <Route path="/search" element={<Searchresultspage />} />
+              <Route path="/store/:slug" element={<Storepage />} />
+              <Route path="/stores" element={<Stores />} />
+
+              {/* SEO Dynamic Routes */}
+              <Route path="/brand/:brandSlug" element={<Suspense fallback={<PageLoader />}><BrandLandingPage /></Suspense>} />
+              <Route path="/location/:citySlug" element={<Suspense fallback={<PageLoader />}><LocationLandingPage /></Suspense>} />
+
+              {/* Legal & Policy Pages */}
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/refund-policy" element={<RefundPolicy />} />
               <Route path="/seller-guidelines" element={<SellerGuidelines />} />
+              <Route path="/product/:id" element={<Productdetailpage />} />
+              <Route path="/category/:categoryName" element={<Categorylistingpage />} />
               <Route path="/community-standards" element={<CommunityStandards />} />
               <Route path="/trust-safety" element={<TrustSafety />} />
               <Route path="/become-seller-info" element={<BecomeSellerInfo />} />

@@ -103,19 +103,6 @@ export const getSystemHealth = async (req, res) => {
 };
 
 // --- EXECUTIVE DASHBOARD STATS ---
-export const getSystemHealth = async (req, res) => {
-  try {
-    const healthStatus = {
-      status: "OK",
-      timestamp: new Date(),
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-    };
-    return res.status(200).json(new ApiResponse(200, "System health retrieved successfully", healthStatus));
-  } catch (error) {
-    res.status(500).json(new ApiError(500, "Error retrieving system health", error.message));
-  }
-};
 
 export const getDashboardStats = async (req, res) => {
   try {

@@ -13,7 +13,8 @@ import axiosInstance from "../../utils/axiosInstance";
 // Components
 import WebsiteNavbar from "../../components/WebsiteNavbar";
 import Footer from "../../components/Footer";
-import SEOHead from "../../components/seo/SEOHead";
+import SEO from "../../components/seo/SEO";
+import JsonLd from "../../components/seo/JsonLd";
 
 // Revamped Components
 import ImageGallery from "../../components/ProductDetail/ImageGallery";
@@ -128,16 +129,29 @@ export default function ProductDetailPage() {
         const res = await axiosInstance.get(`/products/${id}`);
         const data = res.data?.data || res.data;
         setProductData(data);
-        if (data?.categoryName) {
+        if (data?.categoryName || data?.brand) {
           const relRes = await axiosInstance.get('/products', {
-            params: { categoryName: data.categoryName }
+            params: { categoryName: data.categoryName } // In reality this is a simple fetch, we will sort below
           });
           const list = relRes.data?.data || relRes.data || [];
+          
+          // Phase 13 Priority Sorting: 1. same category+brand 2. same category 3. same brand
+          const sortedList = list.filter(item => (item._id || item.id) !== id).sort((a, b) => {
+            const aCatMatch = a.categoryName === data.categoryName;
+            const bCatMatch = b.categoryName === data.categoryName;
+            const aBrandMatch = a.brand && data.brand && a.brand === data.brand;
+            const bBrandMatch = b.brand && data.brand && b.brand === data.brand;
+            
+            const aScore = (aCatMatch ? 1 : 0) + (aBrandMatch ? 2 : 0);
+            const bScore = (bCatMatch ? 1 : 0) + (bBrandMatch ? 2 : 0);
+            return bScore - aScore; // Descending
+          }).slice(0, 8); // Max 8
+
           setRelatedProducts(
-            list
-              .filter(item => (item._id || item.id) !== id)
+            sortedList
               .map(item => ({
                 id: item._id || item.id,
+                slug: item.slug || item._id || item.id,
                 name: item.productName,
                 price: item.attribute?.salePrice || item.price || 0,
                 rating: item.ratingAverage || 4.5,
@@ -177,6 +191,7 @@ export default function ProductDetailPage() {
   if (!productData) {
     return (
       <div className="min-h-screen bg-white flex flex-col justify-between font-sans">
+        <SEO title="Product Not Found - IndiaFy" robots="noindex, nofollow" />
         <WebsiteNavbar />
         <div className="pt-[130px] md:pt-[160px] pb-20 text-center max-w-md mx-auto px-4">
           <h2 className="text-2xl font-bold mb-4">Product Not Found</h2>
@@ -196,7 +211,7 @@ export default function ProductDetailPage() {
     ...PRODUCT,
     id: p._id || p.id,
     title: p.productName || p.name,
-    brand: p.brand || "Generic",
+    brand: p.brand || "",
     rating: p.ratingAverage || 4.5,
     reviewCount: p.ratingCount || 0,
     currentPrice: attribute?.salePrice || p.price || 0,
@@ -259,7 +274,67 @@ export default function ProductDetailPage() {
 
   return (
     <div className="bg-white min-h-screen font-sans">
-      <SEOHead title={`${mappedProduct.title} | Indiafy`} description={mappedProduct.description} image={mappedProduct.images[0]} />
+      <SEO 
+        title={`${mappedProduct.title} | Buy Online in India | IndiaFy`.substring(0, 60)} 
+        description={`Buy ${mappedProduct.title}${mappedProduct.brand ? ` by ${mappedProduct.brand}` : ''} online in India at ₹${mappedProduct.currentPrice}. Explore more in ${p.categoryName || 'our store'}.`} 
+        ogImage={mappedProduct.images[0]}
+        canonical={`https://indiafy.com/product/${p.slug || mappedProduct.id}`}
+      />
+      <JsonLd data={[
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": mappedProduct.title,
+          "image": mappedProduct.images,
+          "description": mappedProduct.description,
+          ...(p.productSkuId ? { "sku": p.productSkuId } : {}),
+          ...(mappedProduct.brand ? {
+            "brand": {
+              "@type": "Brand",
+              "name": mappedProduct.brand
+            }
+          } : {}),
+          ...(p.ratingCount > 0 ? {
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": p.ratingAverage || 4.5,
+              "reviewCount": p.ratingCount
+            }
+          } : {}),
+          "offers": {
+            "@type": "Offer",
+            "url": `https://indiafy.com/product/${p.slug || mappedProduct.id}`,
+            "priceCurrency": "INR",
+            "price": mappedProduct.currentPrice,
+            "availability": mappedProduct.delivery.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "itemCondition": "https://schema.org/NewCondition"
+          }
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://indiafy.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": p.categoryName || "Products",
+              "item": `https://indiafy.com/category/${encodeURIComponent(p.categoryName || "Products")}`
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": mappedProduct.title,
+              "item": `https://indiafy.com/product/${p.slug || mappedProduct.id}`
+            }
+          ]
+        }
+      ]} />
       <WebsiteNavbar />
 
       <main className="w-full mx-auto pt-[120px] md:pt-[140px] pb-20 px-2 lg:px-4">
@@ -267,7 +342,7 @@ export default function ProductDetailPage() {
         {/* Amazon-style Breadcrumb */}
         <div className="px-4 sm:px-6 mb-4 flex items-center gap-1.5 text-xs text-[#565959]">
           <a href="/" className="hover:underline">Home</a> <ChevronRight size={12} />
-          <a href="/category" className="hover:underline">Electronics</a> <ChevronRight size={12} />
+          <a href={`/category/${encodeURIComponent(p.categoryName || "Products")}`} className="hover:underline">{p.categoryName || "Products"}</a> <ChevronRight size={12} />
           <span className="text-[#0F1111] line-clamp-1">{mappedProduct.title}</span>
         </div>
 
@@ -277,7 +352,7 @@ export default function ProductDetailPage() {
           {/* Left Column: Image Gallery (Col span 5) */}
           <div className="lg:col-span-5 mb-8 lg:mb-0">
             <div className="sticky top-[100px]">
-              <ImageGallery images={mappedProduct.images} />
+              <ImageGallery images={mappedProduct.images} productName={mappedProduct.title} />
             </div>
           </div>
 

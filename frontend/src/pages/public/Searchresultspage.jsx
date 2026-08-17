@@ -7,6 +7,7 @@ import {
   Truck, MapPin, Grid, List, Check, X 
 } from "lucide-react";
 import SearchRecommendations from "../../components/Search/SearchRecommendations";
+import SEO from "../../components/seo/SEO";
 
 const mapDbProduct = (p) => {
   const price = p.attribute?.salePrice ?? p.price ?? 0;
@@ -111,8 +112,11 @@ export default function SearchResultsPage() {
 
   return (
     <div className="min-h-screen bg-brand-background text-brand-text-primary">
+      <SEO 
+        title={query ? `Search results for "${query}" - IndiaFy` : "Search - IndiaFy"}
+        robots="noindex, nofollow"
+      />
       <WebsiteNavbar />
-
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 lg:pt-32">
         {/* Breadcrumb / Top Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-md shadow-sm border border-brand-border mb-4">

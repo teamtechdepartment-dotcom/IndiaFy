@@ -2,7 +2,7 @@
 import { memo, useState } from "react";
 import { Heart, Share2 } from "lucide-react";
 
-function ImageGallery({ images }) {
+function ImageGallery({ images, productName = "Product" }) {
   const [activeImg, setActiveImg] = useState(0);
 
   return (
@@ -18,7 +18,7 @@ function ImageGallery({ images }) {
               activeImg === i ? "border-[#2874F0]" : "border-gray-200 hover:border-gray-400"
             }`}
           >
-            <img src={img} alt="thumbnail" className="w-full h-full object-contain" />
+            <img src={img} alt={`${productName} thumbnail ${i + 1}`} className="w-full h-full object-contain" />
           </button>
         ))}
       </div>
@@ -27,7 +27,7 @@ function ImageGallery({ images }) {
       <div className="relative flex-1 bg-white border border-gray-200 rounded flex items-center justify-center p-4 min-h-[300px] lg:min-h-[500px] group order-1 lg:order-2 overflow-hidden cursor-crosshair">
         <img
           src={images[activeImg]}
-          alt="Product Main"
+          alt={productName}
           className="max-w-full max-h-full object-contain group-hover:scale-150 transition-transform duration-500 ease-out origin-center"
         />
         

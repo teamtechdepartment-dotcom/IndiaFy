@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { 
   X, 
   ShoppingBag, 
@@ -15,6 +15,8 @@ import Footer from "../../components/Footer";
 import FilterSidebar from "../../components/Category/FilterSidebar";
 import TopToolbar from "../../components/Category/TopToolbar";
 import ProductGrid from "../../components/Category/ProductGrid";
+import SEO from "../../components/seo/SEO";
+import JsonLd from "../../components/seo/JsonLd";
 
 const mapDbProductToCategory = (p) => {
   const price = p.attribute?.salePrice ?? p.price ?? 0;
@@ -43,8 +45,10 @@ const mapDbProductToCategory = (p) => {
 
 export default function CategoryListingPage() {
   const { categoryName } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [dbProducts, setDbProducts] = useState([]);
+  const [seoData, setSeoData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState("grid");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -73,6 +77,8 @@ export default function CategoryListingPage() {
   useEffect(() => {
     setIsLoading(true);
     const activeSlug = categoryName || "all";
+    
+    // Fetch products
     axiosInstance.get(`/products/category/${activeSlug}`)
       .then(res => {
         const raw = res.data?.data || res.data || [];
@@ -80,6 +86,15 @@ export default function CategoryListingPage() {
       })
       .catch(err => {
         console.error("Failed to fetch category products", err);
+      });
+      
+    // Fetch SEO metadata
+    axiosInstance.get(`/content/category/${activeSlug}`)
+      .then(res => {
+        setSeoData(res.data?.data || res.data);
+      })
+      .catch(err => {
+        console.error("Failed to fetch category seo data", err);
       })
       .finally(() => {
         setIsLoading(false);
@@ -108,7 +123,42 @@ export default function CategoryListingPage() {
   }, []);
 
   return (
-    <div className="bg-[#f8fafc] min-h-screen font-sans selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen bg-slate-50 font-sans selection:bg-emerald-200 selection:text-emerald-900">
+      <SEO 
+        title={seoData?.title || `${formattedTitle} | IndiaFy`} 
+        description={seoData?.description || `Shop ${formattedTitle} online at IndiaFy. Best prices from local sellers.`}
+        canonical={seoData?.canonical || `https://indiafy.com/category/${encodeURIComponent(categoryName || "all")}`}
+        robots={location.search.match(/[?&](sort|price|brand|dist)=/i) ? "noindex, follow" : "index, follow"}
+      />
+      <JsonLd data={[
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://indiafy.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": formattedTitle,
+              "item": seoData?.canonical || `https://indiafy.com/category/${encodeURIComponent(categoryName || "all")}`
+            }
+          ]
+        },
+        filteredProducts.length > 0 && {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": filteredProducts.slice(0, 20).map((p, idx) => ({
+            "@type": "ListItem",
+            "position": idx + 1,
+            "url": `https://indiafy.com/product/${p.slug || p.id}`
+          }))
+        }
+      ].filter(Boolean)} />
       <WebsiteNavbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-[130px] lg:pt-[140px] pb-16">
@@ -117,8 +167,29 @@ export default function CategoryListingPage() {
         <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-4">
           <Link to="/" className="hover:text-slate-900 transition-colors">Home</Link>
           <ChevronRight size={12} className="text-slate-400" />
-          <span className="text-slate-900 font-bold">{formattedTitle}</span>
+          <h1 className="text-slate-900 font-bold">{formattedTitle}</h1>
         </div>
+
+        {/* SEO Intro Content */}
+        {seoData?.intro && (
+          <div className="mb-6 max-w-4xl">
+            <p className="text-sm text-slate-600 leading-relaxed">{seoData.intro}</p>
+            {seoData.popularBrands && seoData.popularBrands.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                <span className="font-semibold text-slate-700">Popular Brands:</span>
+                {seoData.popularBrands.map(brand => (
+                  <Link 
+                    key={brand} 
+                    to={`/brand/${brand.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/[\s-]+/g, "-")}`}
+                    className="text-emerald-600 hover:underline"
+                  >
+                    {brand}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           

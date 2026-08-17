@@ -19,7 +19,7 @@ function RelatedProducts({ products, title }) {
               <img src={p.img} alt={p.name} className="max-w-full max-h-full object-contain mix-blend-multiply hover:scale-105 transition-transform" />
             </div>
             
-            <a href={`/product/${p.id}`} className="text-[13px] md:text-sm text-[#2874F0] hover:text-[#FB641B] hover:underline line-clamp-2 mb-2 font-medium break-words">
+            <a href={`/product/${p.slug || p.id}`} className="text-[13px] md:text-sm text-[#2874F0] hover:text-[#FB641B] hover:underline line-clamp-2 mb-2 font-medium break-words">
               {p.name}
             </a>
             

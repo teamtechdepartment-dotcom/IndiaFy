@@ -304,7 +304,16 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/indiafy/products/:id
 // @access  Public / Customer
 export const getProductById = asyncHandler(async (req, res) => {
-    const product = await ProductModel.findById(req.params.id).populate("sellerId", "firstName lastName email");
+    const identifier = req.params.id;
+    let product;
+
+    // 1. Try slug first
+    product = await ProductModel.findOne({ slug: identifier }).populate("sellerId", "firstName lastName email");
+
+    // 2. Fallback to ID if not found and is valid ObjectId
+    if (!product && mongoose.Types.ObjectId.isValid(identifier)) {
+        product = await ProductModel.findById(identifier).populate("sellerId", "firstName lastName email");
+    }
 
     if (!product) {
         throw new ApiError(404, "Product not found");

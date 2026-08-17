@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, memo } from "react";
-import SEOHead from "../../components/seo/SEOHead";
+import SEO from "../../components/seo/SEO";
+import JsonLd from "../../components/seo/JsonLd";
 import { ProductSkeleton } from "../../components/ui/skeletons/ProductSkeleton";
 
 // Layout Components - eagerly loaded (always visible)
@@ -35,20 +36,20 @@ const Home = memo(() => {
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Indiafy",
-      "url": "https://india-fy.vercel.app/",
+      "name": "IndiaFy",
+      "url": "https://indiafy.com/",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://india-fy.vercel.app/search?q={search_term_string}",
+        "target": "https://indiafy.com/search?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
     },
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "Indiafy",
-      "url": "https://india-fy.vercel.app",
-      "logo": "https://india-fy.vercel.app/logo.png",
+      "name": "IndiaFy",
+      "url": "https://indiafy.com",
+      "logo": "https://indiafy.com/logo.png",
       "sameAs": [
         "https://www.facebook.com/indiafy",
         "https://twitter.com/indiafy",
@@ -59,11 +60,12 @@ const Home = memo(() => {
 
   return (
     <>
-      <SEOHead 
-        title="Indiafy | Best Shopping Platform in Gurugram & Verified Sellers Marketplace"
-        description="Indiafy is the most trusted marketplace in India and the best online shopping platform in Gurugram. Discover a local marketplace platform with wholesale suppliers and quick commerce delivery."
-        schemas={homeSchemas}
+      <SEO 
+        title="IndiaFy — Buy Products Online from Local & Trusted Sellers"
+        description="IndiaFy is an ecommerce platform connecting customers with local retail, wholesale, and quick-commerce sellers. Discover a local marketplace with quick delivery."
+        canonical="https://indiafy.com"
       />
+      <JsonLd data={homeSchemas} />
       <WebsiteNavbar />
 
       <main className="overflow-hidden">

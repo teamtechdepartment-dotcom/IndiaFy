@@ -4,6 +4,8 @@ import './index.css'
 import App from './App.jsx'
 import GlobalErrorBoundary from './components/GlobalErrorBoundary.jsx'
 
+import { HelmetProvider } from 'react-helmet-async';
+
 createRoot(document.getElementById('root')).render(
   <>
     {/* Skip-to-content link for keyboard/screen reader users (WCAG 2.1 AA) */}
@@ -11,7 +13,9 @@ createRoot(document.getElementById('root')).render(
       Skip to main content
     </a>
     <GlobalErrorBoundary>
-      <App />
+      <HelmetProvider>
+        <App />
+      </HelmetProvider>
     </GlobalErrorBoundary>
   </>,
 )

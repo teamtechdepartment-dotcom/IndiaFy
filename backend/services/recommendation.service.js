@@ -549,4 +549,17 @@ export const getRecommendations = async ({
             hasSearch
         }
     };
+    } catch (err) {
+        recordRecommendationError(surface, 'UNEXPECTED_ERROR', experimentAssignment.variant);
+        console.error("Recommendation Engine Error:", err);
+        return {
+            products: [],
+            context: {
+                hasLocation: false,
+                hasSessionInterest: false,
+                hasPersistentInterest: false,
+                hasSearch: hasSearch
+            }
+        };
+    }
 };

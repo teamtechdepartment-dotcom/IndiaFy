@@ -32,6 +32,7 @@ import deliveryRoutes from "./routers/delivery/delivery.route.js";
 import storeApprovalRoutes from "./routers/seller/storeApproval.route.js";
 import orderNotificationRoutes from "./routers/seller/orderNotification.route.js";
 import { getDashboardAccess, getLatestNodeStatus } from "./controllers/sellers/node.controllers.js";
+import seoRoutes from "./routers/seo/seo.route.js";
 import requiredLogin from "./middlewares/requiredLogin.middleware.js";
 import { requireSeller } from "./middlewares/roleGuard.middleware.js";
 import { dashboardGuard } from "./middlewares/dashboardGuard.middleware.js";
@@ -186,6 +187,7 @@ app.get("/api/v1/indiafy/health", (req, res) => {
 });
 
 // Routes
+app.use("/", seoRoutes);
 app.use("/api/v1/indiafy/admin/auth", adminAuthRoutes);
 app.use("/api/v1/indiafy/admin/management", adminManagementRoutes);
 app.use("/api/v1/indiafy/admin", adminManagementRoutes);
