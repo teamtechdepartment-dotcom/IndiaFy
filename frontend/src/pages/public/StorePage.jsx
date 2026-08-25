@@ -28,7 +28,8 @@ import { Skeleton } from "../../components/ui/Skeleton";
 import { ProductSkeleton } from "../../components/ui/skeletons/ProductSkeleton";
 
 export default function StorePage() {
-  const { id } = useParams();
+  const params = useParams();
+  const storeIdentifier = params.slug || params.id;
   const navigate = useNavigate();
 
   const [activeCategory, setActiveCategory] = useState("All");
@@ -42,51 +43,50 @@ export default function StorePage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!storeIdentifier) return;
       try {
         setLoading(true);
         // 1. Fetch Store Node from public endpoint (no auth required)
-        const storeRes = await axiosInstance.get(`/public/stores?limit=1`);
-        // Try to find the specific store by ID from all stores
-        // Better: fetch single store from seller nodes endpoint (public-safe read)
-        const nodeRes = await axiosInstance.get(`/seller/nodes/${id}`).catch(() => null);
-        
-        let storeData = nodeRes?.node || null;
+        const storeRes = await axiosInstance.get(`/public/stores/${storeIdentifier}`).catch(() => null);
+        let storeData = storeRes?.data?.store || storeRes?.store || null;
         
         if (!storeData) {
           // Fallback: search in all public stores
-          const allRes = await axiosInstance.get(`/public/stores?limit=100`);
-          storeData = (allRes?.stores || []).find((s) => s._id === id) || null;
+          const allRes = await axiosInstance.get(`/public/stores?limit=100`).catch(() => null);
+          const allStores = allRes?.data?.stores || allRes?.stores || [];
+          storeData = allStores.find((s) => s.slug === storeIdentifier || s._id === storeIdentifier) || null;
         }
 
         if (storeData) {
           setStoreInfo(storeData);
+
+          // 2. Fetch Store Products (by storeData._id)
+          const targetNodeId = storeData._id || storeIdentifier;
+          const prodRes = await axiosInstance.get(`/products?nodeId=${targetNodeId}`).catch(() => null);
+          const rawData = prodRes?.data?.data || prodRes?.data || prodRes?.products || prodRes || [];
+          const productsArray = Array.isArray(rawData) ? rawData : [];
+
+          setProducts(productsArray.map(p => ({
+            id: p._id,
+            name: p.productName || p.name,
+            price: p.attribute?.salePrice || p.price || 0,
+            originalPrice: p.attribute?.mrpPrice || p.mrp || p.attribute?.salePrice || 0,
+            weight: p.attribute?.weight || p.weight || "N/A",
+            category: p.categoryName || "General",
+            tag: p.discountPercentage ? `${p.discountPercentage}% OFF` : (p.isBestseller ? "Bestseller" : (p.isFeatured ? "Featured" : "")),
+            img: p.productImage?.[0] || p.thumbnail || p.image || "https://images.unsplash.com/photo-1550583724-b2692b85b150?q=80&w=400",
+          })));
         } else {
-          console.error("Store not found for id:", id);
+          console.error("Store not found for identifier:", storeIdentifier);
         }
-
-        // 2. Fetch Store Products (by nodeId)
-        const prodRes = await axiosInstance.get(`/products?nodeId=${id}`).catch(() => null);
-        const productsData = prodRes?.data || prodRes?.products || prodRes || [];
-        const productsArray = Array.isArray(productsData) ? productsData : [];
-
-        setProducts(productsArray.map(p => ({
-          id: p._id,
-          name: p.productName,
-          price: p.attribute?.salePrice || 0,
-          originalPrice: p.attribute?.mrpPrice || 0,
-          weight: p.attribute?.weight || "N/A",
-          category: p.categoryName || "General",
-          tag: "",
-          img: p.productImage?.[0] || "https://images.unsplash.com/photo-1550583724-b2692b85b150?q=80&w=400",
-        })));
       } catch (_err) {
         console.error("Fetch store data failed", _err);
       } finally {
         setLoading(false);
       }
     };
-    if (id) fetchData();
-  }, [id]);
+    fetchData();
+  }, [storeIdentifier]);
 
   const getProductQty = (productId) => {
     if (!cartItems) return 0;
@@ -98,8 +98,11 @@ export default function StorePage() {
     addToCart(product.id, delta);
   };
 
+  // Dynamic Categories from fetched products
+  const availableCategories = ["All", ...new Set(products.map(p => p.category).filter(Boolean))];
+
   const filteredProducts = products.filter((p) => {
-    const matchesSearch = p.name
+    const matchesSearch = (p.name || "")
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     if (!matchesSearch) return false;
@@ -125,7 +128,7 @@ export default function StorePage() {
          <Package size={64} className="text-slate-900 mb-6" />
          <h1 className="text-3xl font-black text-slate-900 mb-2">Store Not Found</h1>
          <p className="text-slate-500 mb-8 max-w-xs">The store you are looking for does not exist or has been deactivated.</p>
-         <button onClick={() => navigate("/local-sellers")} className="px-8 py-4 bg-white shadow-sm border border-slate-200 text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest">Back to Directory</button>
+         <button onClick={() => navigate("/stores")} className="px-8 py-4 bg-white shadow-sm border border-slate-200 text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50">Back to Stores</button>
       </div>
     );
   }
@@ -262,7 +265,7 @@ export default function StorePage() {
 
           {/* Horizontal Scrollable Categories */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar hide-scrollbar pb-1">
-            {CATEGORIES.map((cat) => (
+            {availableCategories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -302,7 +305,10 @@ export default function StorePage() {
                     )}
 
                     {/* Product Image */}
-                    <div className="w-full aspect-square bg-zinc-50 rounded-xl md:rounded-2xl mb-3 overflow-hidden relative p-4">
+                    <div 
+                      onClick={() => navigate(`/product/${product.id}`)}
+                      className="w-full aspect-square bg-zinc-50 rounded-xl md:rounded-2xl mb-3 overflow-hidden relative p-4 cursor-pointer"
+                    >
                       <img loading="lazy" decoding="async"
                         src={product.img}
                         alt={product.name}
@@ -312,7 +318,10 @@ export default function StorePage() {
 
                     {/* Details */}
                     <div className="flex flex-col flex-1">
-                      <h3 className="font-bold text-slate-900 text-xs md:text-sm leading-tight line-clamp-2 mb-1">
+                      <h3 
+                        onClick={() => navigate(`/product/${product.id}`)}
+                        className="font-bold text-slate-900 text-xs md:text-sm leading-tight line-clamp-2 mb-1 cursor-pointer hover:text-emerald-600 transition-colors"
+                      >
                         {product.name}
                       </h3>
                       <p className="text-[10px] font-bold text-slate-600 mb-3">
@@ -334,16 +343,16 @@ export default function StorePage() {
                         {/* Add to Cart / Counter Logic */}
                         {qty === 0 ? (
                           <button
-                            onClick={() => handleUpdateCart(product, 1)}
-                            className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-colors active:scale-95 shadow-sm"
+                            onClick={(e) => { e.stopPropagation(); handleUpdateCart(product, 1); }}
+                            className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-colors active:scale-95 shadow-sm cursor-pointer"
                           >
                             Add
                           </button>
                         ) : (
                           <div className="flex items-center gap-3 bg-emerald-500 text-white px-2 py-1.5 rounded-lg shadow-md shadow-emerald-500/20">
                             <button
-                              onClick={() => handleUpdateCart(product, -1)}
-                              className="p-0.5 active:scale-90"
+                              onClick={(e) => { e.stopPropagation(); handleUpdateCart(product, -1); }}
+                              className="p-0.5 active:scale-90 cursor-pointer"
                             >
                               <Minus size={14} />
                             </button>
@@ -351,8 +360,8 @@ export default function StorePage() {
                               {qty}
                             </span>
                             <button
-                              onClick={() => handleUpdateCart(product, 1)}
-                              className="p-0.5 active:scale-90"
+                              onClick={(e) => { e.stopPropagation(); handleUpdateCart(product, 1); }}
+                              className="p-0.5 active:scale-90 cursor-pointer"
                             >
                               <Plus size={14} />
                             </button>

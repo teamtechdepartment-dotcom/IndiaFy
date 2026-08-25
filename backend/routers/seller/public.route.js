@@ -1,5 +1,5 @@
 import express from "express";
-import { getPublicStores } from "../../controllers/sellers/node.controllers.js";
+import { getPublicStores, getPublicStoreByIdOrSlug } from "../../controllers/sellers/node.controllers.js";
 
 const router = express.Router();
 
@@ -9,5 +9,6 @@ const router = express.Router();
    Used by homepage marketplace and store discovery pages
 ========================================================= */
 router.get("/stores", getPublicStores);
+router.get("/stores/:identifier", getPublicStoreByIdOrSlug);
 
 export default router;

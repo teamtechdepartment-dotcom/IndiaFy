@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import SellerNode from "../../models/sellerNodes/sellerNode.model.js";
 import OrderModel from "../../models/orders/order.model.js";
 import ProductModel from "../../models/products/product.model.js";
@@ -376,6 +377,48 @@ export const getPublicStores = asyncHandler(async (req, res) => {
     success: true,
     total,
     stores,
+  });
+});
+
+/* =========================================================
+   GET PUBLIC STORE BY ID OR SLUG
+   GET /public/stores/:identifier
+   Returns single store node data for public storefront
+========================================================= */
+export const getPublicStoreByIdOrSlug = asyncHandler(async (req, res) => {
+  const { identifier } = req.params;
+
+  if (!identifier) {
+    return res.status(400).json({ success: false, message: "Store identifier is required" });
+  }
+
+  let store = await SellerNode.findOne({
+    slug: identifier,
+    isActive: true,
+    isDeactivated: false,
+  }).select("-accountNumber -ifsc -accountName -bankName -gstin -seller");
+
+  if (!store && mongoose.Types.ObjectId.isValid(identifier)) {
+    store = await SellerNode.findOne({
+      _id: identifier,
+      isActive: true,
+      isDeactivated: false,
+    }).select("-accountNumber -ifsc -accountName -bankName -gstin -seller");
+  }
+
+  // Safe fallback if not found with isActive flag
+  if (!store && mongoose.Types.ObjectId.isValid(identifier)) {
+    store = await SellerNode.findById(identifier)
+      .select("-accountNumber -ifsc -accountName -bankName -gstin -seller");
+  }
+
+  if (!store) {
+    return res.status(404).json({ success: false, message: "Store not found" });
+  }
+
+  return res.status(200).json({
+    success: true,
+    store,
   });
 });
 

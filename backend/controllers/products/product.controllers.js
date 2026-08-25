@@ -70,6 +70,17 @@ const enrichProductsWithInventory = async (products) => {
 
 // Helper to fetch and prioritize products based on location
 const fetchProductsWithLocationPriority = async (baseQuery, lat, lng, sortOption = {}, limit = 100) => {
+    // If querying for a specific node or seller (e.g. Store page or Seller Catalog), return store products directly
+    if (baseQuery.nodeId || baseQuery.sellerId) {
+        const directQuery = await getActiveFilterQuery(baseQuery);
+        return await ProductModel.find(directQuery)
+            .populate("sellerId", "firstName lastName email businessName")
+            .populate("nodeId", "storeName nodeType status logo location")
+            .populate("subCategoryId", "subCategoryName")
+            .sort(sortOption)
+            .limit(limit);
+    }
+
     let products = [];
     let nearbyNodeMap = {};
 
