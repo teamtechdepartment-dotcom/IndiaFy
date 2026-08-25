@@ -9,6 +9,10 @@ const getTransporter = () => {
     const user = process.env.SMTP_USER || process.env.companyEmail || ""; 
     const pass = process.env.SMTP_PASS || process.env.BREVO_API_KEY || "";
 
+    if (!user || !pass || pass.startsWith("your_") || user.startsWith("your_")) {
+        return null;
+    }
+
     return nodemailer.createTransport({
         host,
         port,
@@ -39,12 +43,12 @@ export const queueEmail = async (to, subject, html) => {
 
         // Trigger immediate send in background
         sendEmailDirect(queueItem._id).catch(err => {
-            console.error(`[Email Service] Immediate send failed for queue item ${queueItem._id}:`, err.message);
+            console.warn(`[Email Service] Immediate send failed for queue item ${queueItem._id}:`, err.message);
         });
 
         return queueItem;
     } catch (err) {
-        console.error("[Email Service] Failed to queue email:", err.message);
+        console.warn("[Email Service] Failed to queue email:", err.message);
         // Do not throw error, never block store creation if email queue database operation fails
         return null;
     }
@@ -59,8 +63,16 @@ export const sendEmailDirect = async (queueItemId) => {
         return;
     }
 
+    const transporter = getTransporter();
+    if (!transporter) {
+        queueItem.status = "failed";
+        queueItem.lastError = "SMTP credentials not configured or placeholder detected";
+        await queueItem.save();
+        console.warn(`[Email Service] Skipping email to ${queueItem.to}: SMTP credentials not configured.`);
+        return;
+    }
+
     try {
-        const transporter = getTransporter();
         const mailOptions = {
             from: process.env.SMTP_FROM || `"Indiafy Admin" <${process.env.companyEmail || "noreply@indiafy.com"}>`,
             to: queueItem.to,
@@ -77,14 +89,16 @@ export const sendEmailDirect = async (queueItemId) => {
         await queueItem.save();
         console.log(`[Email Service] Email sent successfully to ${queueItem.to}`);
     } catch (error) {
-        console.error(`[Email Service] Email sending error to ${queueItem.to}:`, error.message);
+        console.warn(`[Email Service] Email sending error to ${queueItem.to}:`, error.message);
         
         queueItem.attempts += 1;
         queueItem.lastError = error.message;
 
-        if (queueItem.attempts >= queueItem.maxAttempts) {
+        const isAuthError = error.responseCode === 535 || error.message.includes("535") || error.message.includes("Authentication failed") || error.message.includes("Invalid login");
+
+        if (queueItem.attempts >= queueItem.maxAttempts || isAuthError) {
             queueItem.status = "failed";
-            console.error(`[Email Service] Max email retries reached for ${queueItem.to}. Marked as failed.`);
+            console.warn(`[Email Service] Email to ${queueItem.to} marked as failed (${isAuthError ? "Auth failure" : "Max retries reached"}).`);
         } else {
             queueItem.status = "retry";
             // Exponential backoff: retry in 5, 10, 20... minutes
@@ -109,13 +123,12 @@ export const processEmailQueue = async () => {
         }).limit(10); // Process 10 emails per run
 
         if (items.length > 0) {
-            console.log(`[Email Service] Processing ${items.length} emails from retry queue...`);
             for (const item of items) {
                 await sendEmailDirect(item._id);
             }
         }
     } catch (error) {
-        console.error("[Email Service] Email queue process loop error:", error.message);
+        console.warn("[Email Service] Email queue process loop error:", error.message);
     }
 };
 

@@ -342,7 +342,7 @@ const productSchema = new Schema(
    PRE-SAVE HOOK (SLUG GENERATION)
 ========================================================= */
 
-productSchema.pre("validate", async function (next) {
+productSchema.pre("validate", async function () {
   if (this.isModified("productName") || !this.slug) {
     const baseSlug = (this.productName || "product")
       .normalize("NFD")
@@ -367,7 +367,6 @@ productSchema.pre("validate", async function (next) {
       this.slug = finalSlug;
     }
   }
-  next();
 });
 
 /* =========================================================
@@ -381,10 +380,6 @@ productSchema.index({
 
 productSchema.index({
   categoryName: 1,
-});
-
-productSchema.index({
-  slug: 1,
 });
 
 productSchema.index({

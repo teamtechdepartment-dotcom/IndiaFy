@@ -107,6 +107,10 @@ axiosInstance.interceptors.request.use(
                 }
             }
 
+            if (config.data instanceof FormData) {
+                delete config.headers['Content-Type'];
+            }
+
         } catch (_errStorage) {
             // ignore storage read errors
         }

@@ -34,9 +34,7 @@ export const useProductStore = create((set) => ({
   createProduct: async (formData) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axiosInstance.post('/products', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await axiosInstance.post('/products', formData);
       const raw = res?.data || res;
       const created = raw?.data || raw?.product || raw;
       if (created && (created._id || created.id)) {

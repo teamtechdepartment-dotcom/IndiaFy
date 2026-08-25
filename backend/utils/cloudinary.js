@@ -89,10 +89,7 @@ export const uploadBuffer = async (buffer, mimetype, folder = "seller-documents"
             }
         );
 
-        const passthrough = new Readable();
-        passthrough.push(buffer);
-        passthrough.push(null);
-        passthrough.pipe(stream);
+        stream.end(buffer);
     });
 };
 

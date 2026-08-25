@@ -114,6 +114,7 @@ app.use(
           "https://images.unsplash.com",
           "https://placehold.co",
           "https://res.cloudinary.com",
+          "https://ui-avatars.com",
         ],
         connectSrc: [
           "'self'",

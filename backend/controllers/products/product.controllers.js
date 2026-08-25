@@ -24,7 +24,7 @@ const getActiveFilterQuery = async (extraQuery = {}) => {
         filter.sellerId = { $in: activeSellers.map(s => s._id) };
     }
 
-    if (!extraQuery.nodeId) {
+    if (!extraQuery.nodeId && !extraQuery.sellerId) {
         const activeNodes = await SellerNode.find({
             status: "ACTIVE",
             nodeType: { $in: ["LOCAL_RETAIL", "WHOLESALE_B2B", "QUICK_COMMERCE", "HOME_ESSENTIALS", "ELECTRONICS", "PERSONAL_CARE"] }
@@ -152,16 +152,19 @@ export const createProduct = asyncHandler(async (req, res) => {
         ]
     };
 
+    let approvedStore = null;
     if (nodeId && mongoose.Types.ObjectId.isValid(nodeId)) {
-        approvedStoreQuery._id = new mongoose.Types.ObjectId(nodeId);
-    } else if (nodeId) {
-        approvedStoreQuery._id = String(nodeId);
-    } else if (nodeType) {
-        const normalized = nodeType.toUpperCase().replace(/-/g, "_");
-        approvedStoreQuery.nodeType = { $regex: new RegExp(`^${normalized.replace(/_/g, "[-_]")}$`, "i") };
+        approvedStore = await SellerNode.findOne({
+            _id: new mongoose.Types.ObjectId(nodeId),
+            ...approvedStoreQuery
+        });
+        if (!approvedStore) {
+            approvedStore = await SellerNode.findById(nodeId);
+        }
     }
-
-    const approvedStore = await SellerNode.findOne(approvedStoreQuery);
+    if (!approvedStore) {
+        approvedStore = await SellerNode.findOne(approvedStoreQuery);
+    }
     if (!approvedStore) {
         throw new ApiError(400, "No matching store node found for this seller.");
     }
@@ -169,16 +172,20 @@ export const createProduct = asyncHandler(async (req, res) => {
     // Upload multer memory buffers to Cloudinary
     let productImage = [];
     if (req.files && req.files.length > 0) {
-        const uploadPromises = req.files.map(file =>
-            uploadBuffer(file.buffer, file.mimetype, "indiafy_products")
-        );
-        productImage = await Promise.all(uploadPromises);
+        try {
+            const uploadPromises = req.files.map(file =>
+                uploadBuffer(file.buffer, file.mimetype, "indiafy_products")
+            );
+            productImage = await Promise.all(uploadPromises);
+        } catch (uploadErr) {
+            console.error("Cloudinary upload failed:", uploadErr.message);
+        }
     }
 
     // Also accept pasted image URLs from frontend
     if (req.body.pastedImages) {
         try {
-            const pastedUrls = JSON.parse(req.body.pastedImages);
+            const pastedUrls = typeof req.body.pastedImages === "string" ? JSON.parse(req.body.pastedImages) : req.body.pastedImages;
             if (Array.isArray(pastedUrls)) {
                 productImage = [...productImage, ...pastedUrls];
             }
@@ -221,19 +228,37 @@ export const createProduct = asyncHandler(async (req, res) => {
         ? new mongoose.Types.ObjectId(nodeId)
         : approvedStore._id;
 
+    const validSubCategoryId = (subCategoryId && mongoose.Types.ObjectId.isValid(subCategoryId))
+        ? new mongoose.Types.ObjectId(subCategoryId)
+        : undefined;
+
+    const finalProductImage = productImage.length > 0 
+        ? productImage 
+        : [`https://ui-avatars.com/api/?name=${encodeURIComponent(productName || 'Product')}&size=400&background=f1f5f9&color=334155&bold=true&format=png`];
+
     const product = new ProductModel({
         sellerId: sellerIdObj,
-        subCategoryId,
-        categoryName,
+        subCategoryId: validSubCategoryId,
+        categoryName: categoryName || "Grocery",
         productName,
         productSkuId: finalSku,
-        productImage,
+        productImage: finalProductImage,
+        thumbnail: finalProductImage[0] || "",
+        brand: req.body.brand || "",
+        barcode: req.body.barcode || "",
+        hsnCode: req.body.hsnCode || "",
+        unit: req.body.unit || "pcs",
+        isFeatured: req.body.isFeatured === "true" || req.body.isFeatured === true,
+        isBestseller: req.body.isBestseller === "true" || req.body.isBestseller === true,
+        discountPercentage: Number(req.body.discountPercentage) || 0,
         attribute: parsedAttribute,
         stock: finalStock,
         shortDescription: finalShortDescription,
         description: finalDescription,
         nodeType: validNodeType,
-        nodeId: finalNodeId
+        nodeId: finalNodeId,
+        isActive: true,
+        isDeleted: false
     });
 
     const savedProduct = await product.save();

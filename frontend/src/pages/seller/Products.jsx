@@ -96,22 +96,53 @@ export default function Products() {
   const categoriesList = ["All", ...new Set(products.map(p => p.categoryName).filter(Boolean))];
 
   // --- IMAGE UPLOAD LOGIC ---
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const validFiles = files.filter(f => f.size <= 2 * 1024 * 1024);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const processFiles = (selectedFiles) => {
+    const files = Array.from(selectedFiles || []).filter(f => f.type.startsWith('image/'));
+    if (!files.length) return;
+    const validFiles = files.filter(f => f.size <= 10 * 1024 * 1024);
     if (validFiles.length < files.length) {
-      toast.warning("Some files were skipped because they exceed the 2MB size limit.");
+      toast.warning("Some files were skipped because they exceed the 10MB size limit.");
     }
-    setNewImageFiles(prev => [...prev, ...validFiles].slice(0, 5));
+    if (validFiles.length === 0) return;
     const newPreviews = validFiles.map(file => URL.createObjectURL(file));
+    setNewImageFiles(prev => [...prev, ...validFiles].slice(0, 5));
     setImagePreviews(prev => [...prev, ...newPreviews].slice(0, 5));
+  };
+
+  const handleImageUpload = (e) => {
+    processFiles(e.target.files);
     e.target.value = '';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer && e.dataTransfer.files) {
+      processFiles(e.dataTransfer.files);
+    }
   };
 
   const removeImage = (indexToRemove) => {
     setNewImageFiles(prev => prev.filter((_, i) => i !== indexToRemove));
     setImagePreviews(prev => {
-      URL.revokeObjectURL(prev[indexToRemove]);
+      try {
+        URL.revokeObjectURL(prev[indexToRemove]);
+      } catch (_e) { /* ignore */ }
       return prev.filter((_, i) => i !== indexToRemove);
     });
   };
@@ -203,7 +234,6 @@ export default function Products() {
       });
       setNewImageFiles([]);
       setImagePreviews([]);
-      setNewImageUrls("");
       setIsModalOpen(false);
       setSelectedCategory("All");
       setSelectedBrand("All");
@@ -710,40 +740,54 @@ export default function Products() {
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Product Images (Max 5)</label>
                 
-                {imagePreviews.length > 0 && (
-                  <div className="flex flex-wrap gap-3 mb-3">
-                    {imagePreviews.map((img, idx) => (
-                      <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 group shadow-sm">
-                        <img loading="lazy" decoding="async" src={img} alt="preview" className="w-full h-full object-cover" />
+                {imagePreviews.length > 0 ? (
+                  <div className="space-y-2 mb-3">
+                    <div className="flex flex-wrap gap-3">
+                      {imagePreviews.map((img, idx) => (
+                        <div key={idx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 group shadow-sm bg-slate-50">
+                          <img loading="lazy" decoding="async" src={img} alt={`preview-${idx}`} className="w-full h-full object-cover" />
+                          {idx === 0 && (
+                            <span className="absolute top-1.5 left-1.5 bg-slate-900/80 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">
+                              Main Logo
+                            </span>
+                          )}
+                          <button 
+                            type="button" 
+                            onClick={(e) => { e.stopPropagation(); removeImage(idx); }}
+                            className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px] cursor-pointer"
+                            title="Remove image"
+                          >
+                            <X size={20} className="text-white" />
+                          </button>
+                        </div>
+                      ))}
+                      {imagePreviews.length < 5 && (
                         <button 
                           type="button" 
-                          onClick={() => removeImage(idx)}
-                          className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]"
+                          onClick={() => document.getElementById('product-image-upload-create').click()}
+                          className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all cursor-pointer"
+                          title="Add more images"
                         >
-                          <X size={20} className="text-white" />
+                          <Plus size={22} />
+                          <span className="text-[10px] font-bold text-slate-400">Add More</span>
                         </button>
-                      </div>
-                    ))}
-                    {imagePreviews.length < 5 && (
-                      <button 
-                        type="button" 
-                        onClick={() => document.getElementById('product-image-upload-create').click()}
-                        className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all"
-                      >
-                        <Plus size={24} />
-                      </button>
-                    )}
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-medium">The first image is the primary logo displayed in your store & catalog.</p>
                   </div>
-                )}
-
-                {imagePreviews.length === 0 && (
+                ) : (
                   <div 
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
                     onClick={() => document.getElementById('product-image-upload-create').click()}
-                    className="w-full py-8 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer group shadow-sm mb-3"
+                    className={`w-full py-8 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all cursor-pointer group shadow-sm mb-3 ${
+                      isDragging ? 'border-blue-500 bg-blue-50/50' : 'border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50 hover:border-slate-300'
+                    }`}
                   >
-                    <ImagePlus size={24} className="mb-2 text-slate-400" />
-                    <p className="text-sm font-bold text-slate-700">Click to upload product images</p>
-                    <p className="text-xs text-slate-400 mt-0.5">PNG, JPG up to 2MB (Max 5)</p>
+                    <ImagePlus size={28} className={`mb-2 ${isDragging ? 'text-blue-600 animate-bounce' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                    <p className="text-sm font-bold text-slate-700">Click or drag & drop to upload product images</p>
+                    <p className="text-xs text-slate-400 mt-0.5">PNG, JPG, WEBP up to 10MB (Max 5)</p>
                   </div>
                 )}
                 
@@ -751,7 +795,7 @@ export default function Products() {
                   id="product-image-upload-create" 
                   type="file" 
                   multiple 
-                  accept="image/png, image/jpeg, image/jpg" 
+                  accept="image/png, image/jpeg, image/jpg, image/webp, image/avif, image/*" 
                   className="hidden" 
                   onChange={handleImageUpload} 
                 />

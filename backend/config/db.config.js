@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import dns from "node:dns";
+
+// Fix Node.js / macOS DNS resolution issues with MongoDB Atlas shard domain names
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,9 +38,12 @@ export const databaseConfig = async () => {
     console.log("Attempting to connect to MongoDB...");
     const db = await mongoose.connect(dbUrl || "mongodb://127.0.0.1:27017/indiafy", {
       dbName: "test",
-      serverSelectionTimeoutMS: 10000, // Wait up to 10s for DNS/server selection
+      serverSelectionTimeoutMS: 30000, // Wait up to 30s for DNS/server selection
+      connectTimeoutMS: 30000,
       heartbeatFrequencyMS: 10000,
       socketTimeoutMS: 45000,
+      retryWrites: true,
+      family: 4, // Force IPv4 to avoid macOS DNS lookup issues
     });
     console.log("✅ Database Connect Successfully");
     return db;
