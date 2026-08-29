@@ -178,6 +178,10 @@ const productSchema = new Schema(
       default: 0,
     },
 
+    processedPaymentOrderIds: [{
+      type: String
+    }],
+
     /* =========================================================
        PRICING
     ========================================================= */

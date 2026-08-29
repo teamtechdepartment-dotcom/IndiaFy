@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 
 const optionalLogin = async (req, res, next) => {
-    const primarySecret = process.env.SecurityKey || process.env.JWT_SECRET || "default_jwt_secret";
-    const secondarySecret = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
+    const primarySecret = process.env.SecurityKey || process.env.JWT_SECRET;
+    const secondarySecret = process.env.JWT_SECRET || process.env.SecurityKey;
+    if (!primarySecret) throw new Error("CRITICAL SECURITY ERROR: JWT Secret is missing");
 
     try {
         // 1. Check Authorization header

@@ -83,15 +83,14 @@ export const getSystemHealth = async (req, res) => {
           uptime: process.uptime(),
           latencyMs: Date.now() - start,
           database: dbStatus,
-          cache: "Active (Redis Mocked/Offline Mode)",
+          cache: process.env.REDIS_URL ? "Configured" : "Offline",
           memory: {
             heapUsedMb: Math.round(memoryUsage.heapUsed / 1024 / 1024),
             heapTotalMb: Math.round(memoryUsage.heapTotal / 1024 / 1024),
           },
           gateways: {
-            razorpay: "Online",
-            stripe: "Online",
-            smtp: "Connected",
+            razorpay: process.env.RAZORPAY_KEY_ID ? "Configured" : "Offline",
+            smtp: process.env.SMTP_HOST ? "Configured" : "Offline",
           },
         },
         "System Health stats fetched successfully"
@@ -169,9 +168,8 @@ export const getDashboardStats = async (req, res) => {
       }
     ]);
 
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const trendData = trendAggregate.map(item => ({
-      name: monthNames[item._id.month - 1],
+      name: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
       sales: item.sales,
       revenue: item.revenue,
       growth: Math.round(item.revenue * 0.1)
@@ -182,7 +180,9 @@ export const getDashboardStats = async (req, res) => {
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
-      const mName = monthNames[d.getMonth()];
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const mName = `${year}-${month}`;
       const existing = trendData.find(t => t.name === mName);
       if (existing) {
         paddedTrendData.push(existing);
@@ -251,28 +251,38 @@ export const getDashboardStats = async (req, res) => {
             pendingRefunds: pendingRefunds,
             failedTransactions: failedTransactions,
           },
-          insights: [
-            {
-              type: "warning",
-              title: "Low Performing Sellers",
-              message: "3 sellers in 'Groceries' fell below 3.5 average ratings this week.",
-            },
-            {
-              type: "danger",
-              title: "Fraud Detection Alerts",
-              message: "Multiple accounts sharing PAN documents flag in verification pipeline.",
-            },
-            {
-              type: "success",
-              title: "Revenue Opportunities",
-              message: "Wholesale bulk packaging in Gurugram sector 4 shows high demand growth.",
-            },
-            {
-              type: "info",
-              title: "Churn Risk Alerts",
-              message: "Customers with no orders in 60 days rose by 2.1%. Check email settings for outreach.",
-            },
-          ],
+          insights: (() => {
+            const dynamicInsights = [];
+            if (pendingApprovals > 0) {
+              dynamicInsights.push({
+                type: "warning",
+                title: "Pending Approvals",
+                message: `There are ${pendingApprovals} store application(s) awaiting review.`,
+              });
+            }
+            if (failedTransactions > 0) {
+              dynamicInsights.push({
+                type: "danger",
+                title: "Payment Failures",
+                message: `${failedTransactions} failed transaction(s) recorded recently.`,
+              });
+            }
+            if (pendingRefunds > 0) {
+              dynamicInsights.push({
+                type: "info",
+                title: "Refunds Processing",
+                message: `You have ${pendingRefunds} refund request(s) requiring attention.`,
+              });
+            }
+            if (dynamicInsights.length === 0) {
+              dynamicInsights.push({
+                type: "success",
+                title: "All Systems Operational",
+                message: "No immediate action required on major operational metrics.",
+              });
+            }
+            return dynamicInsights;
+          })(),
           trendData: paddedTrendData,
           categoryOrders: categoryOrders,
           paymentData: paymentData,
@@ -326,7 +336,7 @@ export const getCustomerList = async (req, res) => {
           addresses: profile?.address || [],
           ordersCount: orderCount,
           totalSpend: ordersSum[0]?.total || 0,
-          isBlocked: false, // Default
+          isBlocked: c.isBlocked || false,
         };
       })
     );

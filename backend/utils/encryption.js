@@ -1,11 +1,13 @@
 import crypto from "crypto";
 
 const ALGORITHM = "aes-256-cbc";
-// Standard AES key must be exactly 32 bytes. Pad or slice string fallback to guarantee 32 bytes
-const ENCRYPTION_KEY = process.env.KYC_ENCRYPTION_KEY || "d6F3E0a4F2987a98ec561a357f81a7b4"; 
+const ENCRYPTION_KEY = process.env.KYC_ENCRYPTION_KEY; 
 const IV_LENGTH = 16; 
 
 const getKeyBuffer = () => {
+    if (!ENCRYPTION_KEY) {
+        throw new Error("CRITICAL SECURITY ERROR: KYC_ENCRYPTION_KEY is not defined in environment.");
+    }
     return Buffer.from(ENCRYPTION_KEY.padEnd(32).slice(0, 32), "utf8");
 };
 

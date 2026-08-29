@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
 
 const jwtToken = async (user) => {
-  const securityKey = process.env.SecurityKey || process.env.JWT_SECRET || "default_jwt_secret";
+  const securityKey = process.env.SecurityKey || process.env.JWT_SECRET;
+  if (!securityKey) throw new Error("CRITICAL SECURITY ERROR: JWT Secret is not defined in environment.");
+  
   try {
     // Only sign essential fields to avoid JWT inflation (prevents ERR_RESPONSE_HEADERS_TOO_BIG)
     const payload = {

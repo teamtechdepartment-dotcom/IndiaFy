@@ -135,13 +135,14 @@ const Login = async (req, res) => {
 
     // STEP 7 - Verify JWT
     const jwt = (await import("jsonwebtoken")).default;
-    const secret = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
+    const secret = process.env.JWT_SECRET || process.env.SecurityKey;
+    if (!secret) throw new Error("CRITICAL SECURITY ERROR: JWT Secret is missing");
     
     // We sign both a standard 7-day token and set standard app cookies for backward compatibility
     const token = jwt.sign(
       {
         sellerId: sellerDetails._id,
-        role: "seller"
+        role: "Seller"
       },
       secret,
       {
@@ -370,6 +371,9 @@ const updateSettings = async (req, res) => {
       "_id",
       "initials",
       "promotionalEmails",
+      "isApproved",
+      "status",
+      "isVerified"
     ];
     forbiddenFields.forEach((field) => delete updateData[field]);
 
@@ -424,7 +428,16 @@ const getSellerProfile = async (req, res) => {
 
 const getAllSellers = async (req, res) => {
   try {
-    const sellers = await SellerModel.find({}, { password: 0, securityKeyId: 0 });
+    const sellers = await SellerModel.find({}, { 
+      password: 0, 
+      securityKeyId: 0,
+      otp: 0,
+      refreshToken: 0,
+      accountNumber: 0,
+      ifsc: 0,
+      bankName: 0,
+      gstin: 0
+    });
     return res
       .status(200)
       .json(new ApiResponse(200, sellers, "Fetched all sellers successfully"));
@@ -458,7 +471,8 @@ const refreshTokenHandler = async (req, res) => {
       return res.status(401).json(new ApiError(401, "No refresh token provided"));
     }
 
-    const securityKey = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
+    const securityKey = process.env.JWT_SECRET || process.env.SecurityKey;
+    if (!securityKey) throw new Error("CRITICAL SECURITY ERROR: JWT Secret is missing");
     const jwt = (await import("jsonwebtoken")).default;
     
     let result;

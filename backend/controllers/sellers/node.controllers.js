@@ -351,7 +351,7 @@ export const getPublicStores = asyncHandler(async (req, res) => {
 
   const filter = {
     isActive: true,
-    isDeactivated: false,
+    isDeactivated: { $ne: true },
   };
 
   if (nodeType) filter.nodeType = nodeType;

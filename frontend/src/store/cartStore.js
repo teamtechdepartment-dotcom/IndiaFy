@@ -50,20 +50,35 @@ export const useCartStore = create((set, get) => ({
     const guestCartData = localStorage.getItem("indiafy_guest_cart");
     if (guestCartData) {
       try {
-        const { items } = JSON.parse(guestCartData);
-        if (items && items.length > 0) {
+        const guestCart = JSON.parse(guestCartData);
+        const items = guestCart.items || [];
+        const remainingItems = [];
+        let anyFailed = false;
+
+        if (items.length > 0) {
           for (const item of items) {
             const pId = item.productId?._id || item.productId;
             if (pId) {
-              // Add guest items sequentially to the backend cart
-              await axiosInstance.post('/customer/cart/add', { productId: pId, quantity: item.quantity });
+              try {
+                await axiosInstance.post('/customer/cart/add', { productId: pId, quantity: item.quantity });
+              } catch (err) {
+                console.error(`Failed to sync guest cart item ${pId}:`, err);
+                remainingItems.push(item);
+                anyFailed = true;
+              }
             }
           }
         }
+
+        if (anyFailed && remainingItems.length > 0) {
+          // Recalculate guest cart total for the items that failed
+          const newTotal = remainingItems.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
+          localStorage.setItem("indiafy_guest_cart", JSON.stringify({ items: remainingItems, totalPrice: newTotal }));
+        } else {
+          localStorage.removeItem("indiafy_guest_cart");
+        }
       } catch (_e) {
         console.error("Failed to merge guest cart into database:", _e);
-      } finally {
-        localStorage.removeItem("indiafy_guest_cart");
       }
     }
 

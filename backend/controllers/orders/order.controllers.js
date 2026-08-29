@@ -24,12 +24,6 @@ export const createOrder = asyncHandler(async (req, res, next) => {
             isWholesaleOrder, billingDetails, poNotes, deliverySlot, scheduledDispatchDate, warehouseDispatch
         } = req.body;
 
-        // Trace logging
-        console.log(`[Checkout Trace] Request received at POST /api/orders`);
-        console.log(`[Checkout Trace] User ID: ${req.user?._id}, Role: ${req.user?.role}`);
-        console.log(`[Checkout Trace] Payment Method: ${paymentMethod}`);
-        console.log(`[Checkout Trace] Payload:`, JSON.stringify(req.body));
-
         // STEP 4: Verify authentication
         if (!req.user) {
             console.error("[Checkout Error] Authentication missing: req.user is undefined");
@@ -712,12 +706,12 @@ export const uploadPackingVideo = asyncHandler(async (req, res) => {
         }
     }
 
-    order.status = "Shipped";
+    order.status = "Packed";
     order.packingVideoUrl = videoUrl;
     await order.save();
 
     if (sellerOrder) {
-        sellerOrder.orderStatus = "Shipped";
+        sellerOrder.orderStatus = "Packed";
         await sellerOrder.save();
     }
 
@@ -746,7 +740,18 @@ export const deleteOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
-    if (order.customer.toString() !== req.user._id.toString()) {
+    const isCustomer = req.user.role === "customer";
+    const isSeller = req.user.role?.toLowerCase() === "seller";
+    const isAdmin = req.user.role?.toLowerCase() === "admin";
+
+    const isCustomerOwner = isCustomer && order.customer.toString() === req.user._id.toString();
+    
+    const rawUserId = (req.user?.sellerId || req.user?._id || "").toString();
+    const isSellerOwner = isSeller && order.orderItems.some(item => 
+        (item.seller?._id || item.seller || "").toString() === rawUserId
+    );
+
+    if (!isCustomerOwner && !isSellerOwner && !isAdmin) {
         throw new ApiError(403, "Not authorized to delete this order");
     }
 

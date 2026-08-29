@@ -40,6 +40,9 @@ import { dashboardGuard } from "./middlewares/dashboardGuard.middleware.js";
 
 const app = express();
 
+// Trust reverse proxy (e.g., Render) to properly parse client IPs for rate-limiting
+app.set("trust proxy", 1);
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
@@ -191,7 +194,6 @@ app.get("/api/v1/indiafy/health", (req, res) => {
 app.use("/", seoRoutes);
 app.use("/api/v1/indiafy/admin/auth", adminAuthRoutes);
 app.use("/api/v1/indiafy/admin/management", adminManagementRoutes);
-app.use("/api/v1/indiafy/admin", adminManagementRoutes);
 app.use("/api/v1/indiafy/customer/auth", customerAuthRoutes);
 app.use("/api/v1/indiafy/seller/auth", sellerAuthRoutes);
 app.use("/api/v1/indiafy/seller/nodes", sellerNodeRoutes);

@@ -33,6 +33,10 @@ const authSchema = new Schema({
     isEmailVerified: {
         type: Boolean,
         default: false
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
     }
 },
     { timestamps: true }

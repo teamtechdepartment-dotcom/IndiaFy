@@ -15,6 +15,8 @@ import {
 } from "react-router-dom";
 
 import { Toaster } from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import CookieConsent from "./components/CookieConsent";
@@ -292,6 +294,7 @@ export default function App() {
           },
         }}
       />
+      <ToastContainer position="top-right" autoClose={4000} />
       <CookieConsent />
 
       <ErrorBoundary>

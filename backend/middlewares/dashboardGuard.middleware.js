@@ -35,6 +35,13 @@ export const dashboardGuard = async (req, res, next) => {
       return res.status(403).json(new ApiError(403, "Unauthorized access attempt."));
     }
 
+    // Business rules: block if rejected, suspended, or explicitly deactivated
+    const blockedStatuses = ["REJECTED", "SUSPENDED", "rejected", "blocked", "inactive"];
+    if (blockedStatuses.includes(node.status) || node.isDeactivated) {
+      console.warn(`[DashboardGuard] Access blocked: Node ${nodeId} is ${node.status} or deactivated.`);
+      return res.status(403).json(new ApiError(403, `Store is currently unavailable (${node.status || 'Deactivated'}).`));
+    }
+
     next();
   } catch (err) {
     console.error("[DashboardGuard Error]:", err);

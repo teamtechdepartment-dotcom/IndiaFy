@@ -187,7 +187,7 @@ const VideoVerification = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      toast.success("Video verified & Order Shipped!");
+      toast.success("Video verified & Order Packed!");
       if (fetchSellerOrders) fetchSellerOrders();
       navigate(`/seller/dashboard/${nodeId}/live`);
     } catch (_err) {

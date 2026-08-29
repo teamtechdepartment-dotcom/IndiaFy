@@ -3,8 +3,9 @@ import ApiError from "../utils/apiError.js";
 import userCookies from "../utils/userCookies.js";
 
 const requiredLogin = async (req, res, next) => {
-  const primarySecret = process.env.SecurityKey || process.env.JWT_SECRET || "default_jwt_secret";
-  const secondarySecret = process.env.JWT_SECRET || process.env.SecurityKey || "default_jwt_secret";
+  const primarySecret = process.env.SecurityKey || process.env.JWT_SECRET;
+  const secondarySecret = process.env.JWT_SECRET || process.env.SecurityKey;
+  if (!primarySecret) throw new Error("CRITICAL SECURITY ERROR: JWT Secret is missing");
 
   try {
     // 1. If Authorization header is present, prioritize it

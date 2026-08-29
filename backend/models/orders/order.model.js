@@ -112,6 +112,14 @@ const orderSchema = new mongoose.Schema({
     packingVideoUrl: {
         type: String
     },
+    // --- IDEMPOTENCY & STATE MACHINE ---
+    paymentLock: {
+        isLocked: { type: Boolean, default: false },
+        lockedUntil: { type: Date }
+    },
+    deductedStockItems: [{
+        type: String
+    }],
     // --- WHOLESALE B2B EXTENSION ---
     isWholesaleOrder: {
         type: Boolean,

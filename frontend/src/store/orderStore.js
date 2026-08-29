@@ -18,8 +18,9 @@ export const useOrderStore = create((set) => ({
     try {
       const res = await axiosInstance.get('/orders/myorders');
       // res = { statusCode, data: [orders], message }
-      const orders = res.data || res || [];
-      set({ orders: Array.isArray(orders) ? orders : [] });
+      // res could be the array itself, or { data: [...] } due to interceptor behavior
+      const orders = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.data) ? res.data.data : [];
+      set({ orders });
     } catch (_err) {
       set({ error: _err?.response?.data?.message || 'Failed to fetch orders' });
     } finally {
@@ -33,8 +34,8 @@ export const useOrderStore = create((set) => ({
       const res = await axiosInstance.get('/orders/sellerorders', {
         params: { nodeType, nodeId }
       });
-      const orders = res.data || res || [];
-      set({ sellerOrders: Array.isArray(orders) ? orders : [] });
+      const orders = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.data) ? res.data.data : [];
+      set({ sellerOrders: orders });
     } catch (_err) {
       set({ error: _err?.response?.data?.message || 'Failed to fetch seller orders' });
     } finally {

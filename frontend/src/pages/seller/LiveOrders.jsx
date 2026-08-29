@@ -38,8 +38,8 @@ export default function LiveOrders() {
     }
   }, [fetchSellerOrders, activeNode?._id, activeNode?.nodeType]);
 
-  // Show "Accepted", "Processing", and "Shipped" orders in Live Dispatch
-  const liveOrders = sellerOrders.filter(o => o.status === "Accepted" || o.status === "Processing" || o.status === "Shipped").map(o => {
+  // Show active fulfillment statuses in Live Dispatch
+  const liveOrders = sellerOrders.filter(o => ["Accepted", "Processing", "Packed", "Shipped", "Dispatched"].includes(o.status)).map(o => {
     const firstName = o.customer?.firstName || "";
     const lastName = o.customer?.lastName || "";
     const customerName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : "Customer";
@@ -256,20 +256,27 @@ export default function LiveOrders() {
                       </button>
                     ) : order.status === "Processing" ? (
                       <>
-                        <Link to={`/seller/dashboard/${nodeId || activeNode?._id}/video-verification/${order.id}`} className="w-full">
+                        <Link to={`/seller/dashboard/${nodeId || activeNode?._id}/video-verification/${order.id}`} className="w-full col-span-2 sm:col-span-1 lg:col-span-2">
                           <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-bold text-sm rounded-xl transition-colors">
                             <Video size={16}/> Record Packing
                           </button>
                         </Link>
                         
                         <button 
-                          onClick={() => handleUpdateStatus(order.id, "Shipped")}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 font-bold text-sm rounded-xl shadow-md transition-all"
+                          onClick={() => handleUpdateStatus(order.id, "Packed")}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm rounded-xl shadow-md transition-all col-span-2 sm:col-span-1 lg:col-span-2"
                         >
-                          <Truck size={18}/> Ship Order
+                          <CheckCircle size={18}/> Mark Packed
                         </button>
                       </>
-                    ) : order.status === "Shipped" ? (
+                    ) : order.status === "Packed" ? (
+                      <button 
+                        onClick={() => handleUpdateStatus(order.id, "Shipped")}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 font-bold text-sm rounded-xl shadow-md transition-all col-span-2"
+                      >
+                        <Truck size={18}/> Ship Order
+                      </button>
+                    ) : (order.status === "Shipped" || order.status === "Dispatched") ? (
                       <button 
                         onClick={() => handleUpdateStatus(order.id, "Delivered")}
                         className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm rounded-xl shadow-md transition-all col-span-2"

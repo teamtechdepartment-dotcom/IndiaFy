@@ -22,21 +22,12 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
     const key_secret = process.env.Razorpay_Key_Secret;
 
     if (!key_id || !key_secret) {
-        if (process.env.NODE_ENV === "production") {
-            throw new ApiError(500, "Razorpay credentials are not defined in production.");
-        }
-    }
-
-    const activeKeyId = key_id || "rzp_test_Sm5HFLdh2qH4N1";
-    const activeSecret = key_secret || "CIXwT8ZWQYU6j19hIqzmgeX1";
-
-    if (amount > 1000000 && activeKeyId.includes("test")) {
-        console.warn("Test Amount Warning: Amount is very high for a test account. This might be blocked by Razorpay.");
+        throw new ApiError(500, "Razorpay credentials are not defined in the server configuration.");
     }
 
     const instance = new Razorpay({
-        key_id: activeKeyId,
-        key_secret: activeSecret,
+        key_id: key_id,
+        key_secret: key_secret,
     });
 
     const options = {
@@ -73,23 +64,18 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     const key_id = process.env.Razorpay_Key_Id;
 
     if (!key_secret || !key_id) {
-        if (process.env.NODE_ENV === "production") {
-            throw new ApiError(500, "Razorpay API keys are not configured on the production server.");
-        }
+        throw new ApiError(500, "Razorpay API keys are not configured on the server.");
     }
-
-    const activeSecret = key_secret || "CIXwT8ZWQYU6j19hIqzmgeX1";
-    const activeKeyId = key_id || "rzp_test_Sm5HFLdh2qH4N1";
 
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSign = crypto
-        .createHmac("sha256", activeSecret)
+        .createHmac("sha256", key_secret)
         .update(sign.toString())
         .digest("hex");
 
     // Simulator payments are only valid while the active Razorpay key is a test key.
     // This lets deployed test-mode builds behave like localhost without opening a bypass for live keys.
-    const isKeyInTestMode = activeKeyId.includes("test") || activeKeyId.startsWith("rzp_test");
+    const isKeyInTestMode = key_id.includes("test") || key_id.startsWith("rzp_test");
     const hasOverrideParameters = razorpay_signature === "test_manual_override" || razorpay_order_id === "manual";
     const isSimulatorPaymentId = typeof razorpay_payment_id === "string" && (
         razorpay_payment_id.startsWith("test_simulator_") ||
@@ -102,15 +88,83 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid payment signature. Live transaction verification failed.");
     }
 
-    // If verification passes, update the Order in the database
-    const order = await OrderModel.findById(orderId);
-    
-    if (order) {
-        // Check if order was already paid to prevent double decrement (Idempotency Lock)
-        if (order.isPaid) {
+    // 1. Transaction initialization
+    const session = await mongoose.startSession();
+    let useTransaction = true;
+    try {
+        session.startTransaction();
+    } catch (err) {
+        useTransaction = false;
+    }
+
+    try {
+        let order;
+        if (useTransaction) {
+            order = await OrderModel.findOne({ _id: orderId }).session(session);
+        } else {
+            // Atomic lock with 5-minute timeout for non-transactional environments
+            order = await OrderModel.findOneAndUpdate(
+                {
+                    _id: orderId,
+                    isPaid: false,
+                    $or: [
+                        { "paymentLock.isLocked": { $ne: true } },
+                        { "paymentLock.lockedUntil": { $lt: new Date() } }
+                    ]
+                },
+                {
+                    $set: {
+                        "paymentLock.isLocked": true,
+                        "paymentLock.lockedUntil": new Date(Date.now() + 5 * 60000)
+                    }
+                },
+                { new: true }
+            );
+        }
+
+        if (!order) {
+            if (useTransaction) await session.abortTransaction();
+            session.endSession();
+            return res.status(200).json(new ApiResponse(200, { verified: true }, "Payment already verified or processing"));
+        }
+
+        if (useTransaction && order.isPaid) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(200).json(new ApiResponse(200, { verified: true }, "Payment already verified"));
         }
 
+        // Initialize idempotency array if missing (still keeping for backwards compat or extra safety)
+        if (!order.deductedStockItems) order.deductedStockItems = [];
+
+        // Deduct Stock idempotently
+        const { default: ProductModel } = await import("../../models/products/product.model.js");
+        for (const item of order.orderItems) {
+            const prodIdStr = item.product.toString();
+            // Transactional or atomic processedPaymentOrderIds guarantee
+            const updatedProduct = await ProductModel.findOneAndUpdate(
+                { 
+                    _id: item.product,
+                    // If not using transactions, atomically guarantee exactly-once per order ID
+                    ...(useTransaction ? {} : { processedPaymentOrderIds: { $ne: orderId.toString() } })
+                },
+                { 
+                    $inc: { stock: -item.quantity },
+                    $push: { processedPaymentOrderIds: orderId.toString() }
+                },
+                { new: true, session: useTransaction ? session : null }
+            );
+            
+            if (updatedProduct) {
+                updatedProduct.attribute.quantity = Math.max(0, updatedProduct.stock).toString();
+                await updatedProduct.save({ session: useTransaction ? session : null });
+                if (!order.deductedStockItems.includes(prodIdStr)) {
+                    order.deductedStockItems.push(prodIdStr);
+                }
+            }
+        }
+
+        // Finalize order state
         order.isPaid = true;
         order.paidAt = Date.now();
         order.paymentResult = {
@@ -118,35 +172,28 @@ export const verifyPayment = asyncHandler(async (req, res) => {
             status: "success",
             update_time: new Date().toISOString(),
         };
-        
-        // Advance order status from Pending to Processing
-        order.status = "Processing";
+        order.paymentLock = { isLocked: false, lockedUntil: undefined };
+        // We do NOT change order.status here. We leave it as "Pending" (or whatever it was).
+        // The seller's LiveOrders will pick it up as "Pending".
+        await order.save({ session: useTransaction ? session : null });
 
-        await order.save();
         await SellerOrder.updateMany(
             { parentOrderId: order._id },
-            { $set: { paymentStatus: "Paid", orderStatus: "Processing" } }
+            { $set: { paymentStatus: "Paid", orderStatus: "Processing" } },
+            { session: useTransaction ? session : null }
         );
 
-        // 1. Deduct Stock atomically to prevent overselling race conditions
-        for (const item of order.orderItems) {
-            const updatedProduct = await ProductModel.findOneAndUpdate(
-                { _id: item.product },
-                { $inc: { stock: -item.quantity } },
-                { new: true }
-            );
-            if (updatedProduct) {
-                updatedProduct.attribute.quantity = Math.max(0, updatedProduct.stock).toString();
-                await updatedProduct.save();
-            }
-        }
-
-        // Clear customer cart
         const { default: CartModel } = await import("../../models/customers/cart.model.js");
         await CartModel.findOneAndUpdate(
             { customerId: order.customer },
-            { $set: { items: [], totalPrice: 0 } }
+            { $set: { items: [], totalPrice: 0 } },
+            { session: useTransaction ? session : null }
         );
+
+        if (useTransaction) {
+            await session.commitTransaction();
+        }
+        session.endSession();
 
         // 2. Emit Socket.IO Event to Seller Nodes
         try {
@@ -156,7 +203,6 @@ export const verifyPayment = asyncHandler(async (req, res) => {
                 const nodeType = item.nodeType || "local";
                 const roomName = `seller_${sellerId}_node_${nodeType}`;
                 
-                console.log(`[Socket] Emitting NEW_ORDER to room: ${roomName}`);
                 io.to(roomName).emit("NEW_ORDER", {
                     orderId: order._id,
                     totalPrice: order.totalPrice,
@@ -173,6 +219,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         sendOrderNotifications(order).catch(err => {
             console.error("[Notification] Verification notifications failed:", err);
         });
+
+    } catch (error) {
+        if (useTransaction) {
+            await session.abortTransaction();
+        }
+        session.endSession();
+        throw error;
     }
 
     return res.status(200).json(new ApiResponse(200, { verified: true }, "Payment verified & Stock synced"));
@@ -184,12 +237,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 export const getRazorpayKey = asyncHandler(async (req, res) => {
     const key_id = process.env.Razorpay_Key_Id;
     if (!key_id) {
-        if (process.env.NODE_ENV === "production") {
-            throw new ApiError(500, "Razorpay Key ID is not configured on production.");
-        }
+        throw new ApiError(500, "Razorpay Key ID is not configured on the server.");
     }
-    const activeKeyId = key_id || "rzp_test_Sm5HFLdh2qH4N1";
-    return res.status(200).json(new ApiResponse(200, { key: activeKeyId }, "Razorpay Key ID fetched successfully"));
+    return res.status(200).json(new ApiResponse(200, { key: key_id }, "Razorpay Key ID fetched successfully"));
 });
 
 // @desc    Razorpay Webhook for payment capture events
@@ -197,13 +247,17 @@ export const getRazorpayKey = asyncHandler(async (req, res) => {
 // @access  Public (Called by Razorpay)
 export const razorpayWebhook = asyncHandler(async (req, res) => {
     const signature = req.headers["x-razorpay-signature"];
-    const webhookSecret = process.env.Razorpay_Webhook_Secret || "test_secret";
+    const webhookSecret = process.env.Razorpay_Webhook_Secret;
+
+    if (!webhookSecret) {
+        throw new ApiError(500, "Razorpay Webhook Secret is not configured on the server.");
+    }
 
     const shasum = crypto.createHmac("sha256", webhookSecret);
     shasum.update(JSON.stringify(req.body));
     const digest = shasum.digest("hex");
 
-    if (signature !== digest && process.env.NODE_ENV === "production") {
+    if (signature !== digest) {
         return res.status(400).json(new ApiError(400, "Invalid webhook signature"));
     }
 
@@ -215,8 +269,75 @@ export const razorpayWebhook = asyncHandler(async (req, res) => {
         const mongoOrderId = paymentEntity.notes?.mongoOrderId;
 
         if (mongoOrderId) {
-            const order = await OrderModel.findById(mongoOrderId);
-            if (order && !order.isPaid) {
+            // 1. Transaction initialization
+            const session = await mongoose.startSession();
+            let useTransaction = true;
+            try {
+                session.startTransaction();
+            } catch (err) {
+                useTransaction = false;
+            }
+
+            try {
+                let order;
+                if (useTransaction) {
+                    order = await OrderModel.findOne({ _id: mongoOrderId }).session(session);
+                } else {
+                    // Atomic lock with 5-minute timeout for non-transactional environments
+                    order = await OrderModel.findOneAndUpdate(
+                        {
+                            _id: mongoOrderId,
+                            isPaid: false,
+                            $or: [
+                                { "paymentLock.isLocked": { $ne: true } },
+                                { "paymentLock.lockedUntil": { $lt: new Date() } }
+                            ]
+                        },
+                        {
+                            $set: {
+                                "paymentLock.isLocked": true,
+                                "paymentLock.lockedUntil": new Date(Date.now() + 5 * 60000)
+                            }
+                        },
+                        { new: true }
+                    );
+                }
+
+                if (!order || (useTransaction && order.isPaid)) {
+                    if (useTransaction) await session.abortTransaction();
+                    session.endSession();
+                    return res.status(200).json(new ApiResponse(200, { received: true }, "Payment already processed or processing"));
+                }
+
+                // Initialize idempotency array if missing
+                if (!order.deductedStockItems) order.deductedStockItems = [];
+
+                // Deduct stock idempotently
+                const { default: ProductModel } = await import("../../models/products/product.model.js");
+                for (const item of order.orderItems) {
+                    const prodIdStr = item.product.toString();
+                    const updatedProduct = await ProductModel.findOneAndUpdate(
+                        { 
+                            _id: item.product,
+                            // Exactly-once guarantee fallback for non-transactional
+                            ...(useTransaction ? {} : { processedPaymentOrderIds: { $ne: mongoOrderId.toString() } })
+                        },
+                        { 
+                            $inc: { stock: -item.quantity },
+                            $push: { processedPaymentOrderIds: mongoOrderId.toString() }
+                        },
+                        { new: true, session: useTransaction ? session : null }
+                    );
+                    if (updatedProduct) {
+                        updatedProduct.attribute.quantity = Math.max(0, updatedProduct.stock).toString();
+                        await updatedProduct.save({ session: useTransaction ? session : null });
+                        if (!order.deductedStockItems.includes(prodIdStr)) {
+                            order.deductedStockItems.push(prodIdStr);
+                        }
+                    }
+                }
+
+                // Finalize order state
                 order.isPaid = true;
                 order.paidAt = Date.now();
                 order.paymentResult = {
@@ -224,32 +345,27 @@ export const razorpayWebhook = asyncHandler(async (req, res) => {
                     status: "success",
                     update_time: new Date().toISOString(),
                 };
-                order.status = "Processing";
-                await order.save();
+                order.paymentLock = { isLocked: false, lockedUntil: undefined };
+                await order.save({ session: useTransaction ? session : null });
+
                 await SellerOrder.updateMany(
                     { parentOrderId: order._id },
-                    { $set: { paymentStatus: "Paid", orderStatus: "Processing" } }
+                    { $set: { paymentStatus: "Paid", orderStatus: "Processing" } },
+                    { session: useTransaction ? session : null }
                 );
-
-                // Deduct stock atomically to prevent overselling
-                for (const item of order.orderItems) {
-                    const updatedProduct = await ProductModel.findOneAndUpdate(
-                        { _id: item.product },
-                        { $inc: { stock: -item.quantity } },
-                        { new: true }
-                    );
-                    if (updatedProduct) {
-                        updatedProduct.attribute.quantity = Math.max(0, updatedProduct.stock).toString();
-                        await updatedProduct.save();
-                    }
-                }
 
                 // Clear customer cart
                 const { default: CartModel } = await import("../../models/customers/cart.model.js");
                 await CartModel.findOneAndUpdate(
                     { customerId: order.customer },
-                    { $set: { items: [], totalPrice: 0 } }
+                    { $set: { items: [], totalPrice: 0 } },
+                    { session: useTransaction ? session : null }
                 );
+
+                if (useTransaction) {
+                    await session.commitTransaction();
+                }
+                session.endSession();
 
                 // Send email/SMS notifications
                 const { sendOrderNotifications } = await import("../../utils/orderNotification.js");
@@ -274,6 +390,13 @@ export const razorpayWebhook = asyncHandler(async (req, res) => {
                 } catch (err) {
                     console.error("Socket emission failed in payment webhook:", err.message);
                 }
+
+            } catch (error) {
+                if (useTransaction) {
+                    await session.abortTransaction();
+                }
+                session.endSession();
+                throw error;
             }
         }
     }

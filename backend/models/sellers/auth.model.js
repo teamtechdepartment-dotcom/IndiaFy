@@ -66,20 +66,20 @@ const authSchema = new Schema({
     },
     role: {
         type: String,
-        default: "seller"
+        default: "Seller"
     },
     isApproved: {
         type: Boolean,
-        default: true
+        default: false
     },
     isVerified: {
         type: Boolean,
-        default: true
+        default: false
     },
     status: {
         type: String,
         enum: ["active", "pending", "suspended", "blocked", "inactive"],
-        default: "active"
+        default: "pending"
     }
 },
     { timestamps: true }

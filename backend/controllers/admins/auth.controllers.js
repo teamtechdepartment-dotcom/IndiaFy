@@ -53,10 +53,10 @@ const Signup = async (req, res) => {
             return res.status(400).json(new ApiError(400, "Registration failed. Please try again."));
         }
 
-        adminDetails.password = undefined;
-        adminDetails.securityKeyId = undefined;
-
         const tokenData = adminDetails.toObject();
+        delete tokenData.password;
+        delete tokenData.securityKeyId;
+        delete tokenData.refreshToken;
         tokenData.role = "Admin";
 
         const { accessToken, refreshToken } = await userCookies(res, tokenData);
@@ -89,7 +89,10 @@ const Login = async (req, res) => {
 
         const securityKeyDetails = await SecurityKeyModel.findById(adminDetails.securityKeyId);
 
-        const isKeyMatch = securityKey ? (await passwordDecryption(securityKey, securityKeyDetails.key)) : true;
+        if (!securityKey) {
+            return res.status(400).json(new ApiError(400, "Security Key is required", [], "secretKey"));
+        }
+        const isKeyMatch = await passwordDecryption(securityKey, securityKeyDetails.key);
         const isPasswordMatch = await passwordDecryption(password, adminDetails.password);
 
         if(!isKeyMatch){
@@ -104,10 +107,10 @@ const Login = async (req, res) => {
             return res.status(403).json(new ApiError(403, "Please verify your email address before logging in."));
         }
 
-        adminDetails.password = undefined;
-        adminDetails.securityKeyId = undefined;
-
         let tokenData = adminDetails.toObject();
+        delete tokenData.password;
+        delete tokenData.securityKeyId;
+        delete tokenData.refreshToken;
         
         tokenData.role = 'Admin';
 
@@ -166,10 +169,10 @@ const forgetPassword = async (req, res) => {
             return res.status(400).json(new ApiError(400, "Password reset failed"));
         }
 
-        adminDetails.password  = undefined;
-        adminDetails.securityKeyId = undefined;
-
         let tokenData = adminDetails.toObject();
+        delete tokenData.password;
+        delete tokenData.securityKeyId;
+        delete tokenData.refreshToken;
 
         tokenData.role = "Admin";
 

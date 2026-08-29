@@ -33,7 +33,7 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "Premium stone-ground whole wheat flour for soft rotis.",
     description: "Aashirvaad Whole Wheat Atta is made from the finest grains - heavy on the palm, golden amber in color, and hard in bite. It is ground using modern chakki process which ensures that the rotis remain soft and fluffy for a longer period.",
     images: [
-      "https://images.unsplash.com/photo-1574325131876-a79997887d4a?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1627483262268-9c2b5b2834b5?q=80&w=600&auto=format&fit=crop"
     ]
@@ -55,8 +55,8 @@ const PRODUCT_TEMPLATES = [
     description: "India Gate Basmati Rice Feast Rozzana is a premium quality aged basmati rice. Ideal for everyday dishes like pulao, biryani, and jeera rice. Its sweet taste and rich aroma make every meal special.",
     images: [
       "https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1591813902994-bc1b2ad7fc42?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1598463289946-3b7f9c8d558b?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -76,8 +76,8 @@ const PRODUCT_TEMPLATES = [
     description: "Fortune Refined Sunflower Oil is a healthy and nutritious cooking oil. Rich in vitamins and consisting mainly of polyunsaturated fatty acids, it is light, easy to digest and helps keep your heart healthy.",
     images: [
       "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1620706857370-e1b977f7f13d?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1622484211148-717df3e6594d?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -117,7 +117,7 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "India's favorite instant masala noodles.",
     description: "Maggi 2-Minute Masala Noodles is the ultimate comfort food for millions of Indians. Prepared with a unique blend of 12 roasted spices, it offers a quick, delicious snack anytime of the day.",
     images: [
-      "https://images.unsplash.com/photo-1612966608997-30794915839e?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1552611052-33e04de081de?q=80&w=600&auto=format&fit=crop"
     ]
@@ -160,8 +160,8 @@ const PRODUCT_TEMPLATES = [
     description: "Amul Salted Butter is made from fresh cream and has been a favorite spread in India for over 50 years. Add delicious flavor to your toast, parathas, baking, and general cooking.",
     images: [
       "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1621528659556-9d32d0d5718a?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1610440042657-612c34dbf53e?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -182,7 +182,7 @@ const PRODUCT_TEMPLATES = [
     images: [
       "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1548940740-204726a19db3?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -222,9 +222,9 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "Twist, Lick, and Dunk vanilla cream cookies.",
     description: "Oreo is a delicious sandwich cookie consisting of two chocolate wafers with a sweet vanilla cream filling. Twist it, lick it, and dunk it in milk!",
     images: [
-      "https://images.unsplash.com/photo-1551842340-e24c52044810?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1582293041079-7814c2f12063?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1528659555-528659555-528659555-528659555?q=80"
+      "https://images.unsplash.com/photo-1582293041079-7814c2f12063?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1582293041079-7814c2f12063?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -264,9 +264,9 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "Bold and sweet carbonated beverage.",
     description: "Pepsi is a delicious and refreshing carbonated soft drink with a bold cola flavor. Perfectly complements spicy snacks and meals.",
     images: [
-      "https://images.unsplash.com/photo-1534080391095-718a3e7127c5?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1567103472667-6898f3a83cf2?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -285,7 +285,7 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "Clear lemon-lime carbonated soft drink.",
     description: "Sprite is a crisp, refreshing, lemon-lime flavored soft drink. It is caffeine-free and offers a burst of citrus refreshment.",
     images: [
-      "https://images.unsplash.com/photo-1625772291326-50b38e0b4ae7?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1596436889106-be35e843f974?q=80&w=600&auto=format&fit=crop"
     ]
@@ -371,7 +371,7 @@ const PRODUCT_TEMPLATES = [
     images: [
       "https://images.unsplash.com/photo-1559599101-f09722fb4948?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1609840114035-3c981b782dfe?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1593487568522-746db8894941?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1559599101-f09722fb4948?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -390,7 +390,7 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "Lux Soft Touch beauty bar soap with rose water.",
     description: "Lux Soft Touch soap is infused with moisturizing Silk Essence and French Rose fragrance, leaving your skin feeling soft, smooth, and delicately scented.",
     images: [
-      "https://images.unsplash.com/photo-1607006342411-9a3363f63ba2?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1546554137-f86b9593a222?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1546554137-f86b9593a222?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?q=80&w=600&auto=format&fit=crop"
     ]
@@ -455,7 +455,7 @@ const PRODUCT_TEMPLATES = [
     images: [
       "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1616671276441-2f4c174ead0c?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -475,8 +475,8 @@ const PRODUCT_TEMPLATES = [
     description: "Harpic Power Plus is a highly effective toilet cleaning liquid that kills 99.9% of germs, removes tough yellow scale, and leaves your toilet fresh.",
     images: [
       "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1585837575652-267c0ee123ff?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1528740561666-ac2479603522?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -495,8 +495,8 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "Daag acche hain - Premium detergent powder.",
     description: "Surf Excel Easy Wash is a superfine powder that dissolves easily and removes tough grease and mud stains, keeping clothes looking clean and bright.",
     images: [
-      "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1510440847474-747474747474?q=80",
+      "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?q=80&w=600&auto=format&fit=crop"
     ]
   },
@@ -516,9 +516,9 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "Power of 100 lemons dishwashing gel.",
     description: "Vim Dishwash Gel with lemon extract is a concentrated liquid that cuts through tough grease easily without scratching or leaving any residue on utensils.",
     images: [
-      "https://images.unsplash.com/photo-1585837575652-267c0ee123ff?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1528740561666-ac2479603522?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -537,9 +537,9 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "Detergent soap bar for white and bright clothes.",
     description: "Rin Detergent Bar brings clean brightness to your clothes. Scrub on collars and cuffs to dissolve yellowing and stubborn marks easily.",
     images: [
-      "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1510440847474-747474747474?q=80"
+      "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -559,8 +559,8 @@ const PRODUCT_TEMPLATES = [
     description: "Lizol Disinfectant Floor Cleaner is recommended by the Indian Medical Association. It provides 10 times better germ protection and leaves a pleasant floral fragrance.",
     images: [
       "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1528740561666-ac2479603522?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1585837575652-267c0ee123ff?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"
     ]
   },
   {
@@ -642,7 +642,7 @@ const PRODUCT_TEMPLATES = [
     shortDescription: "Delicious sweet mango juice drink.",
     description: "Paper Boat Aamras is made from high-quality mango pulp. No added preservatives, colors, or carbonation. Relive the nostalgic taste of home-made mango juice.",
     images: [
-      "https://images.unsplash.com/photo-1534080506375-15e05203360b?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=600&auto=format&fit=crop"
     ]

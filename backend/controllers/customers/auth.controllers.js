@@ -90,10 +90,6 @@ const Login = async (req, res) => {
       password,
       customerDetails.password,
     );
-    console.log(
-      "Password verification result:",
-      isMatch ? "MATCH" : "MISMATCH",
-    );
 
     if (!isMatch) {
       return res.status(401).json(new ApiError(401, "Incorrect Password"));

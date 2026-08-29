@@ -201,10 +201,20 @@ export default function CheckoutPage() {
       if (pendingOrderId) {
         newOrder = { _id: pendingOrderId };
       } else {
+        // Validate that all items have a seller ID to avoid orphaned orders
+        for (const it of displayItems) {
+          const seller = it.productId?.sellerId || it.sellerId;
+          if (!seller) {
+            toast.error(`Missing seller information for item: ${it.productId?.productName || it.name || 'Unknown'}`);
+            setIsPlacing(false);
+            return;
+          }
+        }
+
         const payload = {
           orderItems: displayItems.map(it => ({
             product: it.productId?._id || it.productId,
-            seller: it.productId?.sellerId || it.sellerId || "67a304e6727284f6760b7410",
+            seller: it.productId?.sellerId || it.sellerId,
             quantity: it.quantity,
             price: it.price
           })),
@@ -290,7 +300,7 @@ export default function CheckoutPage() {
 
       const rpOrder = rpRes.data || rpRes;
 
-      let rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_Sm5HFLdh2qH4N1";
+      let rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
       try {
         const keyRes = await axiosInstance.get("/payments/get-key");
         if (keyRes && (keyRes.key || keyRes.data?.key)) {
