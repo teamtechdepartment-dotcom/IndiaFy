@@ -25,6 +25,7 @@ import ScrollToTop from "./components/ScrollToTop";
 
 import { useAuthStore } from "./store/authStore";
 import { useSellerAuthStore } from "./store/sellerAuthStore";
+import { useAdminAuthStore } from "./store/adminAuthStore";
 import { useCartStore } from "./store/cartStore";
 import { useProfileStore } from "./store/profileStore";
 import { useProductStore } from "./store/productStore";
@@ -178,6 +179,9 @@ const CategoryManagement = lazy(() => import("./pages/admin/CategoryManagement")
 const SupportInbox = lazy(() => import("./pages/admin/SupportInbox"));
 const RoleManagement = lazy(() => import("./pages/admin/RoleManagement"));
 const AuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
+const CreateCustomer = lazy(() => import("./pages/admin/CreateCustomer"));
+const CreateOrder = lazy(() => import("./pages/admin/CreateOrder"));
+const WhatsappAutomation = lazy(() => import("./pages/admin/WhatsappAutomation"));
 
 /* =========================================================
    APP
@@ -195,6 +199,8 @@ export default function App() {
     fetchMe: fetchSeller,
     isAuthenticated: isSellerAuthenticated,
   } = useSellerAuthStore();
+
+  const { fetchMe: fetchAdmin } = useAdminAuthStore();
 
   const { fetchCart } = useCartStore();
   const { fetchProfile } = useProfileStore();
@@ -243,10 +249,11 @@ export default function App() {
     requestLocation();
     initSession();
 
-    // Run both fetchMe calls in parallel, then mark auth as ready
+    // Run fetchMe calls in parallel for customer, seller, and admin
     Promise.allSettled([
       fetchCustomer("customer"),
       fetchSeller("seller"),
+      fetchAdmin(),
     ]).finally(() => {
       setAuthReady(true);
     });
@@ -478,14 +485,18 @@ export default function App() {
             <Route path="/admin/dashboard" element={<Suspense fallback={<div className="p-6"><DashboardSkeleton /></div>}><AdminDashboard /></Suspense>} />
             <Route path="/admin/analytics" element={<Analytics />} />
             <Route path="/admin/customers" element={<CustomerManagement />} />
+            <Route path="/admin/customers/create" element={<CreateCustomer />} />
             <Route path="/admin/orders" element={<AdminOrderManagement />} />
+            <Route path="/admin/orders/create" element={<CreateOrder />} />
             <Route path="/admin/orders/:id" element={<OrderDetail />} />
             <Route path="/admin/payments" element={<Payments />} />
             <Route path="/admin/products" element={<ProductManagement />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/profile" element={<AdminProfile />} />
             <Route path="/admin/profiles" element={<AdminProfile />} />
             <Route path="/admin/coupons" element={<Coupons />} />
             <Route path="/admin/inventory" element={<AdminInventory />} />
+            <Route path="/admin/whatsapp-automation" element={<WhatsappAutomation />} />
             <Route path="/admin/active-sellers" element={<ActiveSellers />} />
             <Route path="/admin/pending-applications" element={<PendingApplications />} />
             <Route path="/admin/stores" element={<StoreManagement />} />

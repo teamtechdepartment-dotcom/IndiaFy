@@ -6,7 +6,12 @@ import {
   getSystemHealth,
   getDashboardStats,
   getCustomerList,
+  createCustomer,
   updateCustomerStatus,
+  getCoupons,
+  createCoupon,
+  updateCouponStatus,
+  deleteCoupon,
   getSellerList,
   updateSellerStatus,
   deleteSeller,
@@ -58,7 +63,14 @@ router.get("/dashboard/stats", permissionGuard("dashboard:read"), getDashboardSt
 
 // Customer Governance
 router.get("/customers", permissionGuard("users:read"), getCustomerList);
+router.post("/customers", permissionGuard("users:write"), createCustomer);
 router.put("/customers/:id/status", permissionGuard("users:write"), updateCustomerStatus);
+
+// Coupon Governance
+router.get("/coupons", permissionGuard("orders:read"), getCoupons);
+router.post("/coupons", permissionGuard("orders:write"), createCoupon);
+router.put("/coupons/:id/status", permissionGuard("orders:write"), updateCouponStatus);
+router.delete("/coupons/:id", permissionGuard("orders:write"), deleteCoupon);
 
 // Seller Governance
 router.get("/sellers", permissionGuard("sellers:read"), getSellerList);

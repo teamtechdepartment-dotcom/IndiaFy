@@ -333,7 +333,7 @@ export default function Header() {
 
                       <div className="space-y-0.5">
                         {[
-                          { label: "Profile Settings", icon: User, route: "/admin/profiles" },
+                          { label: "Profile Settings", icon: User, route: "/admin/profile" },
                           { label: "Global System Config", icon: Settings, route: "/admin/settings" },
                         ].map(({ label, icon: Icon, route }) => (
                           <button key={label}

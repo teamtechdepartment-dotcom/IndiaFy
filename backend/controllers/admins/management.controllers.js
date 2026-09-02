@@ -10,6 +10,8 @@ import SupportTicket from "../../models/admins/supportTicket.model.js";
 import SystemSettings from "../../models/admins/systemSettings.model.js";
 import AdminRole from "../../models/admins/adminRole.model.js";
 import AdminModel from "../../models/admins/auth.model.js";
+import Coupon from "../../models/admins/coupon.model.js";
+import { fallbackRolePermissions } from "../../middlewares/permissionGuard.middleware.js";
 import { logAdminAction } from "../../utils/auditLogger.js";
 import ApiResponse from "../../utils/apiResponse.js";
 import ApiError from "../../utils/apiError.js";
@@ -140,54 +142,155 @@ export const getDashboardStats = async (req, res) => {
     const pendingRefunds = await OrderModel.countDocuments({ status: "Cancelled" });
     const failedTransactions = await OrderModel.countDocuments({ isPaid: false });
 
-    // Sales Trend for the last 6 months
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-    sixMonthsAgo.setDate(1);
-    sixMonthsAgo.setHours(0, 0, 0, 0);
+    // Dynamic Sales Trend based on timeframe (Fix #GL-03)
+    const tf = (req.query.timeframe || "monthly").toLowerCase();
+    let paddedTrendData = [];
 
-    const trendAggregate = await OrderModel.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: sixMonthsAgo },
-          isPaid: true
-        }
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" }
-          },
-          sales: { $sum: 1 },
-          revenue: { $sum: "$totalPrice" }
-        }
-      },
-      {
-        $sort: { "_id.year": 1, "_id.month": 1 }
+    if (tf === "today") {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      const todayAgg = await OrderModel.aggregate([
+        { $match: { createdAt: { $gte: todayStart }, isPaid: true } },
+        {
+          $group: {
+            _id: { $hour: "$createdAt" },
+            sales: { $sum: 1 },
+            revenue: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { "_id": 1 } }
+      ]);
+
+      const hourMap = {};
+      todayAgg.forEach(item => { hourMap[item._id] = item; });
+      const intervals = [0, 4, 8, 12, 16, 20];
+      paddedTrendData = intervals.map(h => {
+        const item = hourMap[h] || { sales: 0, revenue: 0 };
+        return {
+          name: `${String(h).padStart(2, "0")}:00`,
+          sales: item.sales,
+          revenue: item.revenue,
+          growth: Math.round(item.revenue * 0.1)
+        };
+      });
+    } else if (tf === "weekly") {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+      sevenDaysAgo.setHours(0, 0, 0, 0);
+
+      const weekAgg = await OrderModel.aggregate([
+        { $match: { createdAt: { $gte: sevenDaysAgo }, isPaid: true } },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" },
+              day: { $dayOfMonth: "$createdAt" }
+            },
+            sales: { $sum: 1 },
+            revenue: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }
+      ]);
+
+      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dayName = daysOfWeek[d.getDay()];
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        const dt = d.getDate();
+        const match = weekAgg.find(w => w._id.year === y && w._id.month === m && w._id.day === dt);
+        paddedTrendData.push({
+          name: dayName,
+          sales: match ? match.sales : 0,
+          revenue: match ? match.revenue : 0,
+          growth: match ? Math.round(match.revenue * 0.1) : 0
+        });
       }
-    ]);
+    } else if (tf === "yearly") {
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+      twelveMonthsAgo.setDate(1);
+      twelveMonthsAgo.setHours(0, 0, 0, 0);
 
-    const trendData = trendAggregate.map(item => ({
-      name: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
-      sales: item.sales,
-      revenue: item.revenue,
-      growth: Math.round(item.revenue * 0.1)
-    }));
+      const yearAgg = await OrderModel.aggregate([
+        { $match: { createdAt: { $gte: twelveMonthsAgo }, isPaid: true } },
+        {
+          $group: {
+            _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+            sales: { $sum: 1 },
+            revenue: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } }
+      ]);
 
-    // Pad trendData to contain 6 months even if empty
-    const paddedTrendData = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const mName = `${year}-${month}`;
-      const existing = trendData.find(t => t.name === mName);
-      if (existing) {
-        paddedTrendData.push(existing);
-      } else {
-        paddedTrendData.push({ name: mName, sales: 0, revenue: 0, growth: 0 });
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        const match = yearAgg.find(it => it._id.year === y && it._id.month === m);
+        paddedTrendData.push({
+          name: monthNames[m - 1],
+          sales: match ? match.sales : 0,
+          revenue: match ? match.revenue : 0,
+          growth: match ? Math.round(match.revenue * 0.1) : 0
+        });
+      }
+    } else {
+      // Default: 6 months
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+      sixMonthsAgo.setDate(1);
+      sixMonthsAgo.setHours(0, 0, 0, 0);
+
+      const trendAggregate = await OrderModel.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: sixMonthsAgo },
+            isPaid: true
+          }
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" }
+            },
+            sales: { $sum: 1 },
+            revenue: { $sum: "$totalPrice" }
+          }
+        },
+        {
+          $sort: { "_id.year": 1, "_id.month": 1 }
+        }
+      ]);
+
+      const trendData = trendAggregate.map(item => ({
+        name: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
+        sales: item.sales,
+        revenue: item.revenue,
+        growth: Math.round(item.revenue * 0.1)
+      }));
+
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const mName = `${year}-${month}`;
+        const existing = trendData.find(t => t.name === mName);
+        if (existing) {
+          paddedTrendData.push(existing);
+        } else {
+          paddedTrendData.push({ name: mName, sales: 0, revenue: 0, growth: 0 });
+        }
       }
     }
 
@@ -367,14 +470,56 @@ export const updateCustomerStatus = async (req, res) => {
       throw new ApiError(404, "Customer not found");
     }
 
-    // In a real DB, we would add the field isBlocked to customer model if missing
-    // For now, let's pretend we update the profile metadata
-    const before = { isBlocked: !isBlocked };
-    const after = { isBlocked };
+    const before = { isBlocked: customer.isBlocked };
+    customer.isBlocked = Boolean(isBlocked);
+    await customer.save();
+    const after = { isBlocked: customer.isBlocked };
 
     await logAdminAction(req, "UPDATE_CUSTOMER_STATUS", `customer:${id}`, before, after);
 
-    return res.status(200).json(new ApiResponse(200, { id, isBlocked }, "Customer status updated successfully"));
+    return res.status(200).json(new ApiResponse(200, { id, isBlocked: customer.isBlocked }, "Customer status updated successfully"));
+  } catch (err) {
+    return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
+export const createCustomer = async (req, res) => {
+  try {
+    const { firstName, lastName, email, phone, password } = req.body;
+    if (!firstName || !email) {
+      return res.status(400).json(new ApiError(400, "First name and email are required"));
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const existing = await CustomerModel.findOne({ email: cleanEmail });
+    if (existing) {
+      return res.status(409).json(new ApiError(409, "Customer with this email already exists"));
+    }
+
+    const newCustomer = new CustomerModel({
+      firstName: firstName.trim(),
+      lastName: lastName ? lastName.trim() : "",
+      email: cleanEmail,
+      password: password || "Customer@123",
+      isEmailVerified: true,
+      isBlocked: false,
+    });
+
+    await newCustomer.save();
+
+    if (phone) {
+      await CustomerProfileModel.create({
+        customerId: newCustomer._id,
+        contact: phone.trim(),
+      });
+    }
+
+    await logAdminAction(req, "CREATE_CUSTOMER", `customer:${newCustomer._id}`, null, {
+      firstName: newCustomer.firstName,
+      email: newCustomer.email,
+    });
+
+    return res.status(201).json(new ApiResponse(201, newCustomer, "Customer created successfully"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
   }
@@ -809,8 +954,20 @@ export const getFinancialStats = async (req, res) => {
       { $match: { isPaid: true } },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } }
     ]);
-    const totalRevenue = ordersSum[0]?.total || 1482000;
-    const platformRevenue = totalRevenue * 0.05; // 5% platform commission
+    const totalRevenue = ordersSum[0]?.total || 0;
+    const platformRevenue = Math.round(totalRevenue * 0.05); // 5% platform commission
+
+    const recentPaidOrders = await OrderModel.find({ isPaid: true })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    const transactions = recentPaidOrders.map(o => ({
+      id: `TX-${o._id.toString().slice(-6).toUpperCase()}`,
+      amount: o.totalPrice || 0,
+      method: o.paymentMethod || "UPI",
+      status: "Success",
+      timestamp: o.createdAt || new Date(),
+    }));
 
     return res.status(200).json(
       new ApiResponse(
@@ -819,11 +976,8 @@ export const getFinancialStats = async (req, res) => {
           totalRevenue,
           platformRevenue,
           commissionCollected: platformRevenue,
-          pendingPayouts: totalRevenue * 0.95 * 0.2, // 20% of seller share pending
-          transactions: [
-            { id: "TX-10924", amount: 14200, method: "UPI", status: "Success", timestamp: new Date() },
-            { id: "TX-10923", amount: 8500, method: "UPI", status: "Success", timestamp: new Date() },
-          ],
+          pendingPayouts: Math.round(totalRevenue * 0.95 * 0.2),
+          transactions,
         },
         "Financial metrics fetched"
       )
@@ -1049,9 +1203,17 @@ export const updateSystemSettings = async (req, res) => {
 
     const before = settings.toObject();
     
-    // Apply changes
-    const keys = ["brandName", "logoUrl", "faviconUrl", "contactDetails", "payments", "email", "security", "commissions"];
-    for (const key of keys) {
+    // Apply changes: scalar strings vs nested dictionaries (Fix #BG-01)
+    const scalarKeys = ["brandName", "logoUrl", "faviconUrl"];
+    const objectKeys = ["contactDetails", "payments", "email", "security", "commissions"];
+
+    for (const key of scalarKeys) {
+      if (req.body[key] !== undefined) {
+        settings[key] = String(req.body[key]).trim();
+      }
+    }
+
+    for (const key of objectKeys) {
       if (req.body[key] !== undefined) {
         settings[key] = { ...settings[key], ...req.body[key] };
       }
@@ -1079,8 +1241,136 @@ export const getAuditLogs = async (req, res) => {
 // --- ADMINISTRATIVE ROLE SCHEMES ---
 export const getRoles = async (req, res) => {
   try {
-    const roles = await AdminRole.find({});
+    let roles = await AdminRole.find({});
+    if (!roles || roles.length === 0) {
+      const initialRoles = Object.entries(fallbackRolePermissions).map(([roleName, permissions]) => ({
+        roleName,
+        permissions,
+        description: `Default system role policy for ${roleName.replace(/_/g, " ")}`
+      }));
+      roles = await AdminRole.insertMany(initialRoles);
+    }
     return res.status(200).json(new ApiResponse(200, roles, "Access roles loaded"));
+  } catch (err) {
+    return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
+// --- COUPON MANAGEMENT (CRUD) ---
+export const getCoupons = async (req, res) => {
+  try {
+    let coupons = await Coupon.find({}).sort({ createdAt: -1 });
+    if (!coupons || coupons.length === 0) {
+      const defaultCoupons = [
+        {
+          code: "LUXE2024",
+          discountType: "percentage",
+          discountValue: 20,
+          minOrderAmount: 1000,
+          maxDiscountAmount: 500,
+          validFrom: new Date(),
+          validUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+          usageLimit: 1000,
+          usedCount: 450,
+          isActive: true
+        },
+        {
+          code: "WELCOME10",
+          discountType: "fixed",
+          discountValue: 100,
+          minOrderAmount: 500,
+          validFrom: new Date(),
+          validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          usageLimit: 500,
+          usedCount: 120,
+          isActive: false
+        },
+        {
+          code: "FESTIVE30",
+          discountType: "percentage",
+          discountValue: 30,
+          minOrderAmount: 1500,
+          maxDiscountAmount: 1000,
+          validFrom: new Date(),
+          validUntil: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          usageLimit: 1000,
+          usedCount: 1000,
+          isActive: true
+        }
+      ];
+      coupons = await Coupon.insertMany(defaultCoupons);
+    }
+    return res.status(200).json(new ApiResponse(200, coupons, "Coupons retrieved successfully"));
+  } catch (err) {
+    return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
+export const createCoupon = async (req, res) => {
+  try {
+    const { code, discountType, discountValue, minOrderAmount, maxDiscountAmount, validFrom, validUntil, usageLimit, isActive } = req.body;
+    if (!code || !discountType || discountValue === undefined) {
+      return res.status(400).json(new ApiError(400, "Code, discount type, and discount value are required"));
+    }
+
+    const existing = await Coupon.findOne({ code: code.trim().toUpperCase() });
+    if (existing) {
+      return res.status(409).json(new ApiError(409, "Coupon code already exists"));
+    }
+
+    const coupon = new Coupon({
+      code: code.trim().toUpperCase(),
+      discountType,
+      discountValue: Number(discountValue),
+      minOrderAmount: Number(minOrderAmount || 0),
+      maxDiscountAmount: maxDiscountAmount ? Number(maxDiscountAmount) : undefined,
+      validFrom: validFrom ? new Date(validFrom) : new Date(),
+      validUntil: validUntil ? new Date(validUntil) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      usageLimit: usageLimit ? Number(usageLimit) : null,
+      isActive: isActive !== undefined ? Boolean(isActive) : true
+    });
+
+    await coupon.save();
+    await logAdminAction(req, "CREATE_COUPON", `coupon:${coupon._id}`, null, coupon);
+
+    return res.status(201).json(new ApiResponse(201, coupon, "Coupon created successfully"));
+  } catch (err) {
+    return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
+export const updateCouponStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    const coupon = await Coupon.findById(id);
+    if (!coupon) {
+      return res.status(404).json(new ApiError(404, "Coupon not found"));
+    }
+
+    const before = { isActive: coupon.isActive };
+    coupon.isActive = isActive !== undefined ? Boolean(isActive) : !coupon.isActive;
+    await coupon.save();
+
+    await logAdminAction(req, "UPDATE_COUPON_STATUS", `coupon:${id}`, before, { isActive: coupon.isActive });
+
+    return res.status(200).json(new ApiResponse(200, coupon, "Coupon status updated"));
+  } catch (err) {
+    return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
+export const deleteCoupon = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const coupon = await Coupon.findByIdAndDelete(id);
+    if (!coupon) {
+      return res.status(404).json(new ApiError(404, "Coupon not found"));
+    }
+
+    await logAdminAction(req, "DELETE_COUPON", `coupon:${id}`, coupon, null);
+    return res.status(200).json(new ApiResponse(200, null, "Coupon deleted successfully"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
   }

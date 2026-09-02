@@ -11,7 +11,7 @@ import CartModel from "../models/customers/cart.model.js";
 
 describe("Indiafy Inventory Management & Stock Badges Integration Tests", () => {
     let customer, seller, node, product, token, sellerToken;
-    const securityKey = process.env.SecurityKey || "indiafy_default_development_secret_key_987654321";
+    const securityKey = process.env.SecurityKey || "kishan@3322";
 
     beforeAll(async () => {
         const { databaseConfig } = await import("../config/db.config.js");

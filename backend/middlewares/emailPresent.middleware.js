@@ -5,7 +5,8 @@ import ApiError from "../utils/apiError.js";
 
 const signupEmailPresent = async (req, res, next ) => {
     try{
-        const {email} = req.body;
+        const email = req.body.email ? String(req.body.email).trim().toLowerCase() : "";
+        req.body.email = email;
 
         const admin = await adminAuthModel.findOne({email: email});
         const customer = await customerAuthModel.findOne({email: email});
@@ -24,7 +25,8 @@ const signupEmailPresent = async (req, res, next ) => {
 
 const admin = async (req, res, next) => {
     try{
-        const {email} = req.body
+        const email = req.body.email ? String(req.body.email).trim().toLowerCase() : "";
+        req.body.email = email;
 
         const isEmail = await adminAuthModel.findOne({email: email});
 
@@ -41,7 +43,8 @@ const admin = async (req, res, next) => {
 
 const customer = async (req, res, next) => {
     try {
-        const { email } = req.body;
+        const email = req.body.email ? String(req.body.email).trim().toLowerCase() : "";
+        req.body.email = email;
 
         const isCustomer = await customerAuthModel.findOne({ email });
         if (isCustomer) {
@@ -63,7 +66,8 @@ const customer = async (req, res, next) => {
 
 const seller = async (req, res, next) => {
     try {
-        const { email } = req.body;
+        const email = req.body.email ? String(req.body.email).trim().toLowerCase() : "";
+        req.body.email = email;
 
         const isSeller = await sellerAuthModel.findOne({ email });
         if (isSeller) {

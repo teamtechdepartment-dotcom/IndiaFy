@@ -5,7 +5,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import {
   ArrowLeft, ShieldAlert, ShieldCheck, Lock, Mail, Eye, EyeOff,
   TrendingUp, Store, Activity, CheckCircle2, Zap, Users, MapPin,
-  Sparkles, Sun, Moon, Database
+  Sparkles, Sun, Moon, Database, KeyRound
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthLogo } from "../../components/branding/BrandLogo";
@@ -99,9 +99,11 @@ export default function AdminLogin() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [securityKey, setSecurityKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showSecurityKey, setShowSecurityKey] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   
   // Theme state synchronized with DOM
@@ -131,9 +133,17 @@ export default function AdminLogin() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    if (!securityKey.trim()) {
+      setError("Admin Security Key is required.");
+      return;
+    }
     setLoading(true);
     try {
-      const res = await axiosInstance.post("/admin/auth/login", { email, password });
+      const res = await axiosInstance.post("/admin/auth/login", { 
+        email: email.trim().toLowerCase(), 
+        password, 
+        securityKey: securityKey.trim() 
+      });
       const data = res.data || res;
       if (data) {
         const userData = { ...data, role: "admin" };
@@ -448,6 +458,42 @@ export default function AdminLogin() {
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 transition-colors rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400 cursor-pointer"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* ADMIN SECURITY KEY */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label htmlFor="admin-security-key" className="text-[10px] font-black tracking-widest uppercase text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                      <KeyRound size={12} className="text-[#FB641B]" />
+                      Admin Security Key
+                    </label>
+                    <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                      Required
+                    </span>
+                  </div>
+                  <div className="relative group">
+                    <KeyRound 
+                      className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 text-slate-400 dark:text-slate-600 group-focus-within:text-[#FB641B]" 
+                      size={16} 
+                    />
+                    <input
+                      id="admin-security-key"
+                      type={showSecurityKey ? "text" : "password"}
+                      placeholder="Enter security key (e.g. kishan@3322)"
+                      value={securityKey}
+                      onChange={(e) => setSecurityKey(e.target.value)}
+                      required
+                      autoComplete="off"
+                      className="w-full rounded-2xl py-3.5 pl-11 pr-12 text-xs font-medium placeholder-slate-400 dark:placeholder-slate-600 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:border-[#FB641B] focus:ring-4 focus:ring-[#FB641B]/10 dark:focus:ring-[#FB641B]/5"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSecurityKey((p) => !p)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 transition-colors rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400 cursor-pointer"
+                    >
+                      {showSecurityKey ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
                 </div>

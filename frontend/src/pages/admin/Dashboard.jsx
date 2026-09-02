@@ -118,11 +118,11 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState("Today");
 
-  const fetchStats = async () => {
+  const fetchStats = async (timeframe = activeFilter) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axiosInstance.get("/admin/management/dashboard/stats");
+      const res = await axiosInstance.get(`/admin/management/dashboard/stats?timeframe=${timeframe.toLowerCase()}`);
       setStats(res?.data ?? res ?? null);
     } catch (_err) {
       setError("Failed to load dashboard metrics.");
@@ -131,7 +131,9 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => { fetchStats(); }, []);
+  useEffect(() => { 
+    fetchStats(activeFilter); 
+  }, [activeFilter]);
 
   const trendData = stats?.trendData || [];
 

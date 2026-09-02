@@ -79,18 +79,18 @@ axiosInstance.interceptors.request.use(
                 return null;
             };
 
-            if (isAdminRoute) {
+            const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+            const isAdminContext = currentPath.startsWith('/admin') || url.includes('/admin');
+
+            if (isAdminContext && getAdminToken()) {
                 token = getAdminToken();
+            } else if (isSellerRoute || currentPath.startsWith('/seller')) {
+                token = getSellerToken() || getCustomerToken();
             } else if (isCustomerRoute) {
                 token = getCustomerToken();
             } else {
-                // Shared endpoint or seller endpoint: use seller token if present, otherwise fallback to customer
-                const sellerToken = getSellerToken();
-                if (sellerToken) {
-                    token = sellerToken;
-                } else {
-                    token = getCustomerToken();
-                }
+                // Shared endpoint or fallback: use available session in precedence: admin (if in admin view) or seller or customer
+                token = (isAdminContext ? getAdminToken() : null) || getSellerToken() || getCustomerToken() || getAdminToken();
             }
 
             if (token) {

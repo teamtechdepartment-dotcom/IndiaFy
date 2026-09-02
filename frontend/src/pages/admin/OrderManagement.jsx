@@ -5,7 +5,7 @@ import StatsCard from "../../components/admin/StatsCard";
 import AdminErrorBoundary from "../../components/admin/AdminErrorBoundary";
 import { exportToCSV } from "../../utils/exportCSV";
 import { useNavigate } from "react-router-dom";
-import { Download, Package, Clock, Truck, CheckCircle, Search, RefreshCw, AlertTriangle, Ban } from "lucide-react";
+import { Download, Package, Clock, Truck, CheckCircle, Search, RefreshCw, AlertTriangle, Ban, Plus, Eye } from "lucide-react";
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
 
@@ -125,13 +125,23 @@ export default function OrderManagement() {
                   <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                   Refresh
                 </button>
-                <button
-                  onClick={handleExport}
-                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-5 py-3 rounded-xl font-bold text-xs hover:shadow-xs transition active:scale-95 text-slate-800"
-                >
-                  <Download size={16} className="text-[#D4AF37]" />
-                  Export CSV
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate("/admin/orders/create")}
+                    className="flex items-center justify-center gap-2 bg-[#2874F0] hover:bg-blue-600 text-white px-5 py-3 rounded-xl font-bold text-xs shadow-xs transition active:scale-95 cursor-pointer"
+                  >
+                    <Plus size={16} />
+                    Create Order
+                  </button>
+                  <button
+                    onClick={handleExport}
+                    disabled={orders.length === 0}
+                    className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-5 py-3 rounded-xl font-bold text-xs hover:shadow-xs transition active:scale-95 text-slate-800 cursor-pointer"
+                  >
+                    <Download size={16} className="text-[#D4AF37]" />
+                    Export CSV
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -265,8 +275,14 @@ export default function OrderManagement() {
                           const priceVal = Number(o?.totalPrice ?? 0);
 
                           return (
-                            <tr key={safeId} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="py-4 px-4 font-extrabold text-[#0B1528]">{safeId}</td>
+                            <tr
+                              key={safeId}
+                              onClick={() => navigate(`/admin/orders/${safeId}`)}
+                              className="hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                            >
+                              <td className="py-4 px-4 font-extrabold text-[#0B1528] dark:text-slate-200 group-hover:text-[#2874F0] underline">
+                                {safeId}
+                              </td>
                               <td className="py-4 px-4">
                                 <p className="font-bold">{cName}</p>
                                 <p className="text-[10px] text-slate-400">{cEmail}</p>
@@ -292,19 +308,37 @@ export default function OrderManagement() {
                                   {statusStr}
                                 </span>
                               </td>
-                              <td className="py-4 px-4 text-right font-black text-slate-800">
+                              <td className="py-4 px-4 text-right font-black text-slate-800 dark:text-slate-200">
                                 ₹{priceVal.toLocaleString()}
                               </td>
-                              <td className="py-4 px-4 text-right space-x-2">
+                              <td className="py-4 px-4 text-right space-x-1.5">
                                 <button
-                                  onClick={() => handleUpdateStatus(o?._id, "Delivered")}
-                                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl font-bold text-[10px] border border-emerald-200 transition"
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/admin/orders/${safeId}`);
+                                  }}
+                                  className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#2874F0] rounded-xl font-bold text-[10px] border border-blue-200 transition cursor-pointer"
+                                >
+                                  View
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateStatus(o?._id, "Delivered");
+                                  }}
+                                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl font-bold text-[10px] border border-emerald-200 transition cursor-pointer"
                                 >
                                   Deliver
                                 </button>
                                 <button
-                                  onClick={() => handleUpdateStatus(o?._id, "Cancelled")}
-                                  className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-bold text-[10px] border border-red-200 transition"
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateStatus(o?._id, "Cancelled");
+                                  }}
+                                  className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-bold text-[10px] border border-red-200 transition cursor-pointer"
                                 >
                                   Cancel
                                 </button>

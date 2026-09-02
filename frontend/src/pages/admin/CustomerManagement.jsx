@@ -4,6 +4,7 @@ import Header from "../../components/admin/Header";
 import StatsCard from "../../components/admin/StatsCard";
 import AdminErrorBoundary from "../../components/admin/AdminErrorBoundary";
 import { exportToCSV } from "../../utils/exportCSV";
+import { useNavigate } from "react-router-dom";
 import {
   Download,
   Users,
@@ -15,11 +16,13 @@ import {
   Clock,
   RefreshCw,
   AlertTriangle,
+  Plus,
 } from "lucide-react";
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
 
 export default function CustomerManagement() {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [search, setSearch] = useState("");
@@ -124,6 +127,13 @@ export default function CustomerManagement() {
 
               <div className="flex gap-3">
                 <button
+                  onClick={() => navigate("/admin/customers/create")}
+                  className="flex items-center justify-center gap-2 bg-[#2874F0] hover:bg-blue-600 text-white px-5 py-3 rounded-xl font-bold text-xs shadow-xs transition active:scale-98 cursor-pointer"
+                >
+                  <Plus size={16} />
+                  Add Customer
+                </button>
+                <button
                   onClick={fetchCustomers}
                   className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-4 py-3 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition shadow-xs"
                 >
@@ -132,7 +142,7 @@ export default function CustomerManagement() {
                 </button>
                 <button
                   onClick={handleExport}
-                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-5 py-3 rounded-xl font-bold text-xs hover:shadow-xs transition active:scale-98 text-slate-800"
+                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-5 py-3 rounded-xl font-bold text-xs hover:shadow-xs transition active:scale-98 text-slate-800 cursor-pointer"
                 >
                   <Download size={16} className="text-[#D4AF37]" />
                   Export CSV

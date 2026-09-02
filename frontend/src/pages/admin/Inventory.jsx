@@ -5,6 +5,7 @@ import Header from "../../components/admin/Header";
 import { exportToCSV } from "../../utils/exportCSV";
 import StatsCard from "../../components/admin/StatsCard";
 import LineChartBox from "../../components/charts/LineChartBox";
+import jacketImg from "../../assets/products/women/Jacket1.webp";
 
 export default function Inventory() {
   const [filter, setFilter] = useState("all");
@@ -78,8 +79,8 @@ export default function Inventory() {
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6 mb-6">
             <div className="flex gap-4 items-start">
               <img loading="lazy" decoding="async"
-                src="../../assets/products/women/Jaket1.webp"
-                alt="Product"
+                src={jacketImg}
+                alt="Silk Oversized Blazer"
                 className="w-16 h-20 sm:w-20 sm:h-24 md:w-28 md:h-32 object-cover rounded-xl border"
               />
 

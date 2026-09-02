@@ -56,7 +56,7 @@ export function generateInvoice(order) {
 
   // Footer
   doc.setFontSize(10);
-  doc.text("Thank you for shopping with Graphura!", 105, 285, {
+  doc.text("Thank you for shopping with IndiaFy!", 105, 285, {
     align: "center",
   });
 

@@ -85,10 +85,16 @@ const ProtectedRoute = ({ allowedRoles }) => {
      Admin-only routes
   ---------------------------------------------------------- */
   if (isAdminAllowed) {
-    if (
-      adminAuth.isAuthenticated &&
-      (adminAuth.user?.role?.toLowerCase() === "admin" || adminAuth.user?.role?.toLowerCase() === "super_admin")
-    ) {
+    const role = (adminAuth.user?.role || "").toLowerCase();
+    const isAllowedAdmin =
+      role === "admin" ||
+      role === "super_admin" ||
+      role === "superadmin" ||
+      role.includes("admin") ||
+      role.includes("manager") ||
+      role === "analyst";
+
+    if (adminAuth.isAuthenticated && isAllowedAdmin) {
       return (
         <div className="admin-theme-wrapper min-h-screen w-full select-none overflow-x-hidden">
           <Outlet />

@@ -69,7 +69,7 @@ describe("Hardened Security Controls Integration & Unit Tests", () => {
         it("should block GDPR account deletion requests when password confirmation is missing", async () => {
             const token = jwt.sign(
                 { _id: new mongoose.Types.ObjectId().toString(), role: "Customer", email: "delete_test@example.com" },
-                process.env.SecurityKey || "indiafy_default_development_secret_key_987654321"
+                process.env.SecurityKey || "kishan@3322"
             );
 
             const res = await request(app)
@@ -84,7 +84,7 @@ describe("Hardened Security Controls Integration & Unit Tests", () => {
         it("should reject GDPR account deletion with incorrect password credentials", async () => {
             const token = jwt.sign(
                 { _id: new mongoose.Types.ObjectId().toString(), role: "Customer", email: "delete_test@example.com" },
-                process.env.SecurityKey || "indiafy_default_development_secret_key_987654321"
+                process.env.SecurityKey || "kishan@3322"
             );
 
             const res = await request(app)
@@ -105,7 +105,7 @@ describe("Hardened Security Controls Integration & Unit Tests", () => {
 
             const token = jwt.sign(
                 { _id: customerId1.toString(), role: "Customer", email: "cust1@example.com" },
-                process.env.SecurityKey || "indiafy_default_development_secret_key_987654321"
+                process.env.SecurityKey || "kishan@3322"
             );
 
             // Mock database find inside app / test using supertest would hit order.controllers

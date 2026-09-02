@@ -153,18 +153,9 @@ export default function SupportInbox() {
                     {loading ? (
                       <div className="py-12 text-center text-slate-400 text-xs font-bold">Loading inbox...</div>
                     ) : safeTicketsList.length === 0 ? (
-                      <>
-                        <TicketItem 
-                          item={{ _id: "1", ticketNumber: "TCK-1029", subject: "Product damaged during transport", userType: "customer", priority: "High", status: "Open" }} 
-                          active={selectedTicket?._id === "1"}
-                          onClick={setSelectedTicket}
-                        />
-                        <TicketItem 
-                          item={{ _id: "2", ticketNumber: "TCK-1028", subject: "Payout delayed for Luxe Attire", userType: "seller", priority: "Medium", status: "In Progress" }} 
-                          active={selectedTicket?._id === "2"}
-                          onClick={setSelectedTicket}
-                        />
-                      </>
+                      <div className="py-16 px-4 text-center text-slate-400 text-xs font-semibold">
+                        No support tickets currently in queue.
+                      </div>
                     ) : (
                       safeTicketsList.map(t => (
                         <TicketItem 

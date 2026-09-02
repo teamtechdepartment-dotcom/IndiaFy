@@ -20,7 +20,7 @@ describe("Seller Activation & Admin Approval E2E Integration Tests", () => {
     let adminToken;
     let securityKeyId;
 
-    const securityKey = process.env.SecurityKey || "indiafy_default_development_secret_key_987654321";
+    const securityKey = process.env.SecurityKey || "kishan@3322";
 
     const base64MockFile = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 

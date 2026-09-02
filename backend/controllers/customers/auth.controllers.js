@@ -95,6 +95,10 @@ const Login = async (req, res) => {
       return res.status(401).json(new ApiError(401, "Incorrect Password"));
     }
 
+    if (customerDetails.isBlocked) {
+      return res.status(403).json(new ApiError(403, "Your account has been blocked by administrator. Please contact support."));
+    }
+
     if (customerDetails.isEmailVerified === false) {
       return res.status(403).json(new ApiError(403, "Please verify your email address before logging in."));
     }

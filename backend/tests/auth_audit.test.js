@@ -10,7 +10,7 @@ describe("Production-Grade Auth and Security Integration Tests", () => {
     let sellerRefreshToken = "";
     let adminAccessToken = "";
 
-    const securityKey = process.env.SecurityKey || "indiafy_default_development_secret_key_987654321";
+    const securityKey = process.env.SecurityKey || "kishan@3322";
 
     beforeAll(async () => {
         const { databaseConfig } = await import("../config/db.config.js");

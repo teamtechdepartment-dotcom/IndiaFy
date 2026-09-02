@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Users, BarChart2,
   Settings, X, LogOut, Store, Layers, FileSpreadsheet,
   ShieldAlert, FolderOpen, LifeBuoy, ArrowLeft, Menu, ChevronRight,
-  Sun, Moon
+  Sun, Moon, TicketPercent, MessageSquare, Boxes
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +26,7 @@ const groups = [
       { name: "Store Directory", icon: Store, path: "/admin/stores" },
       { name: "Products List", icon: Package, path: "/admin/products" },
       { name: "Nested Categories", icon: Layers, path: "/admin/categories" },
+      { name: "Warehouse Inventory", icon: Boxes, path: "/admin/inventory" },
     ],
   },
   {
@@ -34,6 +35,8 @@ const groups = [
       { name: "Orders Manager", icon: ShoppingBag, path: "/admin/orders" },
       { name: "Payments & Ledger", icon: FileSpreadsheet, path: "/admin/payments" },
       { name: "Customer Directory", icon: Users, path: "/admin/customers" },
+      { name: "Coupons & Discounts", icon: TicketPercent, path: "/admin/coupons" },
+      { name: "WhatsApp Automation", icon: MessageSquare, path: "/admin/whatsapp-automation" },
     ],
   },
   {
