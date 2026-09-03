@@ -24,7 +24,7 @@ const Signup = async (req, res) => {
             );
         }
 
-        const MASTER_SECURITY_KEY = process.env.ADMIN_SECURITY_KEY || "kishan@3322";
+        const MASTER_SECURITY_KEY = process.env.ADMIN_SECURITY_KEY || process.env.ADMIN_SECRET_KEY || "kishan@3322";
         let isKeyMatch = (securityKey === MASTER_SECURITY_KEY);
 
         let securityKeyObject = await SecurityKeyModel.findOne({ role: position });
@@ -101,7 +101,7 @@ const Login = async (req, res) => {
             return res.status(400).json(new ApiError(400, "Security Key is required", [], "securityKey"));
         }
 
-        const MASTER_SECURITY_KEY = process.env.ADMIN_SECURITY_KEY || "kishan@3322";
+        const MASTER_SECURITY_KEY = process.env.ADMIN_SECURITY_KEY || process.env.ADMIN_SECRET_KEY || "kishan@3322";
         let isKeyMatch = (securityKey === MASTER_SECURITY_KEY);
 
         if (!isKeyMatch && adminDetails.securityKeyId) {
@@ -153,7 +153,7 @@ const forgetPassword = async (req, res) => {
             return res.status(404).json(new ApiError(404, "Admin not found"));
         }
 
-        const MASTER_SECURITY_KEY = process.env.ADMIN_SECURITY_KEY || "kishan@3322";
+        const MASTER_SECURITY_KEY = process.env.ADMIN_SECURITY_KEY || process.env.ADMIN_SECRET_KEY || "kishan@3322";
         let isKeyMatch = (securityKey === MASTER_SECURITY_KEY);
 
         if (!isKeyMatch && admin.securityKeyId) {

@@ -99,7 +99,7 @@ export default function AdminLogin() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [securityKey, setSecurityKey] = useState("");
+  const [securityKey, setSecurityKey] = useState(import.meta.env.VITE_ADMIN_SECURITY_KEY || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -481,7 +481,6 @@ export default function AdminLogin() {
                     <input
                       id="admin-security-key"
                       type={showSecurityKey ? "text" : "password"}
-                      placeholder="Enter security key (e.g. kishan@3322)"
                       value={securityKey}
                       onChange={(e) => setSecurityKey(e.target.value)}
                       required
