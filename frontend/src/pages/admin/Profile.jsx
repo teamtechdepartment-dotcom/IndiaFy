@@ -1,21 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/admin/Sidebar";
 import Header from "../../components/admin/Header";
-import { User, Mail, Shield, Clock, Edit, Lock, LogOut, Check, Phone } from "lucide-react";
+import { User, Mail, Shield, Clock, Edit, Lock, LogOut, Check, Phone, RefreshCw } from "lucide-react";
 import { useAdminAuthStore } from "../../store/adminAuthStore";
 import { toast } from "react-toastify";
+import axiosInstance from "../../utils/axiosInstance";
 
 export default function AdminProfile() {
   const navigate = useNavigate();
-  const { user: adminUser, logout: logoutAdmin } = useAdminAuthStore();
+  const { user: adminUser, logout: logoutAdmin, updateUser } = useAdminAuthStore();
   const [edit, setEdit] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState(
     adminUser ? `${adminUser.firstName || "Admin"} ${adminUser.lastName || ""}`.trim() : "Platform Administrator"
   );
-  const [phone, setPhone] = useState("+91 98765 43210");
+  const [phone, setPhone] = useState(adminUser?.phone || "");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  useEffect(() => {
+    if (adminUser) {
+      setName(`${adminUser.firstName || "Admin"} ${adminUser.lastName || ""}`.trim());
+      setPhone(adminUser.phone || "");
+    }
+  }, [adminUser]);
 
   const email = adminUser?.email || "admin@indiafy.com";
   const role = adminUser?.role || "SUPER_ADMIN";
@@ -29,10 +38,33 @@ export default function AdminProfile() {
     }
   };
 
-  const handleSaveChanges = (e) => {
+  const handleSaveChanges = async (e) => {
     e.preventDefault();
-    setEdit(false);
-    toast.success("Profile preferences updated successfully");
+    try {
+      setSaving(true);
+      const parts = name.trim().split(" ");
+      const firstName = parts[0] || "Admin";
+      const lastName = parts.slice(1).join(" ") || "";
+
+      const res = await axiosInstance.put("/admin/auth/profile", {
+        firstName,
+        lastName,
+        phone
+      });
+
+      if (res?.data?.user) {
+        updateUser(res.data.user);
+      } else {
+        updateUser({ firstName, lastName, phone });
+      }
+
+      setEdit(false);
+      toast.success("Profile preferences updated successfully");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update administrative profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -159,9 +191,11 @@ export default function AdminProfile() {
                   <div className="mt-5 flex justify-end">
                     <button
                       onClick={handleSaveChanges}
-                      className="px-6 py-3 bg-gradient-to-r from-[#2874F0] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer"
+                      disabled={saving}
+                      className="px-6 py-3 bg-gradient-to-r from-[#2874F0] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer flex items-center gap-2"
                     >
-                      Save Changes
+                      {saving && <RefreshCw size={13} className="animate-spin" />}
+                      {saving ? "Saving..." : "Save Changes"}
                     </button>
                   </div>
                 )}

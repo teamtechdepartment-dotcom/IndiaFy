@@ -31,5 +31,21 @@ const upload = multer({
   },
 });
 
-// Upload multiple product images
-export const uploadProductImages = upload.array("images", 10);
+// Upload multiple product images (supports both 'images' and 'productImage' field names)
+const multerFields = upload.fields([
+  { name: "images", maxCount: 10 },
+  { name: "productImage", maxCount: 10 },
+]);
+
+export const uploadProductImages = (req, res, next) => {
+  multerFields(req, res, (err) => {
+    if (err) return next(err);
+    if (req.files && !Array.isArray(req.files)) {
+      const allFiles = [];
+      if (Array.isArray(req.files.images)) allFiles.push(...req.files.images);
+      if (Array.isArray(req.files.productImage)) allFiles.push(...req.files.productImage);
+      req.files = allFiles;
+    }
+    next();
+  });
+};

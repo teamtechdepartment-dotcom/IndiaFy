@@ -13,7 +13,10 @@ const roleGuard = (allowedRoles) => {
         const userRole = req.user.role?.toLowerCase();
         const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
 
-        if (!normalizedAllowedRoles.includes(userRole)) {
+        const isAdminRole = ["admin", "super_admin", "manager", "support"].includes(userRole);
+        const allowsAdmin = normalizedAllowedRoles.includes("admin") || normalizedAllowedRoles.includes("super_admin");
+
+        if (!normalizedAllowedRoles.includes(userRole) && !(allowsAdmin && isAdminRole)) {
             // Log unauthorized access attempt
             console.warn(`[UNAUTHORIZED ACCESS ATTEMPT] User: ${req.user.email} (${req.user.role}) attempted to access resource requiring [${allowedRoles.join(', ')}] at ${req.originalUrl}`);
             return res.status(403).json(new ApiError(403, `Forbidden: Only ${allowedRoles.join(' or ')} can access this resource.`));
@@ -40,9 +43,9 @@ export const requireSeller = (req, res, next) => {
 
 export const requireAdmin = (req, res, next) => {
     if (!req || typeof req === "function" || res === undefined) {
-        return roleGuard(["Admin"]);
+        return roleGuard(["Admin", "SUPER_ADMIN", "MANAGER", "SUPPORT"]);
     }
-    return roleGuard(["Admin"])(req, res, next);
+    return roleGuard(["Admin", "SUPER_ADMIN", "MANAGER", "SUPPORT"])(req, res, next);
 };
 
 export const requireDeliveryPartner = (req, res, next) => {

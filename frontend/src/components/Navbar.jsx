@@ -1,7 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Bell, Menu, CalendarClock, Package, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useNotificationStore } from "../store/notificationStore";
+import { useSellerAuthStore } from "../store/sellerAuthStore";
 
 export default function Navbar({ setSidebarOpen, storeDetails }) {
   const navigate = useNavigate();
@@ -9,11 +10,20 @@ export default function Navbar({ setSidebarOpen, storeDetails }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef(null);
 
+  const { notifications, unreadCounts, fetchNotifications } = useNotificationStore();
+  const { user: sellerUser } = useSellerAuthStore();
+
   // --- CLOCK LOGIC ---
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (storeDetails?._id) {
+      fetchNotifications(storeDetails._id);
+    }
+  }, [storeDetails?._id]);
 
   const formattedTime = time.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
   const formattedDate = time.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
@@ -29,12 +39,15 @@ export default function Navbar({ setSidebarOpen, storeDetails }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- MOCK RECENT NOTIFICATIONS ---
-  const recentNotifications = [
-    { id: 1, title: "New Order #ORD-203", desc: "Amit Singh placed an order for ₹850.", time: "Just now", type: "order", unread: true },
-    { id: 2, title: "Payout Successful", desc: "₹4,200 has been settled to your bank.", time: "2 hrs ago", type: "success", unread: true },
-    { id: 3, title: "Low Stock Alert", desc: "Royal Basmati Rice is running low (5 left).", time: "1 day ago", type: "alert", unread: false },
-  ];
+  const totalUnread = Object.values(unreadCounts || {}).reduce((a, b) => a + Number(b || 0), 0);
+
+  const storeInitials = storeDetails?.initials || 
+    (storeDetails?.name ? storeDetails.name.slice(0, 2).toUpperCase() : 
+    sellerUser?.businessName ? sellerUser.businessName.slice(0, 2).toUpperCase() : 
+    sellerUser?.firstName ? (sellerUser.firstName[0] + (sellerUser.lastName?.[0] || "")).toUpperCase() : "SL");
+
+  const displayStoreName = storeDetails?.name || sellerUser?.businessName || 
+    (sellerUser?.firstName ? `${sellerUser.firstName}'s Store` : "Seller Hub");
 
   const handleNotificationClick = () => {
     setShowNotifications(false);
@@ -80,7 +93,9 @@ export default function Navbar({ setSidebarOpen, storeDetails }) {
             className={`p-2 rounded-full relative transition-all active:scale-95 ${showNotifications ? 'bg-slate-100 text-slate-900 shadow-[inset_0_2px_5px_rgba(0,0,0,0.08)]' : 'text-slate-500 hover:bg-slate-50 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05)]'}`}
           >
             <Bell size={20} />
-            <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white shadow-sm"></span>
+            {totalUnread > 0 && (
+              <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white shadow-sm"></span>
+            )}
           </button>
 
           {/* Dropdown Panel */}
@@ -88,23 +103,37 @@ export default function Navbar({ setSidebarOpen, storeDetails }) {
             <div className="absolute right-0 mt-4 w-[300px] sm:w-80 bg-white border border-slate-200/80 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50 text-left">
               <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50 shadow-[inset_0_-10px_10px_-10px_rgba(0,0,0,0.04)] relative z-10">
                 <h3 className="font-bold text-slate-900">Notifications</h3>
-                <span className="text-[10px] font-bold bg-slate-900 text-white px-2 py-0.5 rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.3)]">2 New</span>
+                <span className="text-[10px] font-bold bg-slate-900 text-white px-2 py-0.5 rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.3)]">
+                  {totalUnread > 0 ? `${totalUnread} New` : "Updated"}
+                </span>
               </div>
               
               <div className="max-h-[60vh] overflow-y-auto custom-scrollbar flex flex-col relative bg-white">
-                {recentNotifications.map((notif) => (
-                  <button key={notif.id} onClick={handleNotificationClick} className="w-full text-left p-4 hover:bg-slate-50 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.02)] border-b border-slate-100 transition-all flex items-start gap-3 relative">
-                    {notif.unread && <span className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm"></span>}
-                    <div className={`p-2 rounded-2xl shrink-0 mt-0.5 shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] ${notif.type === 'order' ? 'bg-blue-50 text-blue-600' : notif.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                      {notif.type === 'order' ? <Package size={16}/> : notif.type === 'success' ? <CheckCircle2 size={16}/> : <AlertCircle size={16}/>}
-                    </div>
-                    <div>
-                      <p className={`text-sm font-bold ${notif.unread ? 'text-slate-900' : 'text-slate-700'}`}>{notif.title}</p>
-                      <p className="text-xs font-medium text-slate-500 mt-0.5 line-clamp-2">{notif.desc}</p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1.5 uppercase tracking-wider">{notif.time}</p>
-                    </div>
-                  </button>
-                ))}
+                {notifications && notifications.length > 0 ? (
+                  notifications.map((notif, idx) => (
+                    <button key={notif._id || notif.id || idx} onClick={handleNotificationClick} className="w-full text-left p-4 hover:bg-slate-50 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.02)] border-b border-slate-100 transition-all flex items-start gap-3 relative">
+                      {!notif.isRead && <span className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm"></span>}
+                      <div className={`p-2 rounded-2xl shrink-0 mt-0.5 shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] ${notif.type === 'order' || notif.type === 'ORDER_CREATED' ? 'bg-blue-50 text-blue-600' : notif.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                        {notif.type === 'order' || notif.type === 'ORDER_CREATED' ? <Package size={16}/> : notif.type === 'success' ? <CheckCircle2 size={16}/> : <AlertCircle size={16}/>}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-bold ${!notif.isRead ? 'text-slate-900' : 'text-slate-700'}`}>
+                          {notif.title || `Order #${(notif.orderId || notif._id || "").slice(-6)}`}
+                        </p>
+                        <p className="text-xs font-medium text-slate-500 mt-0.5 line-clamp-2">
+                          {notif.message || notif.desc || "New activity recorded on your store node."}
+                        </p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-1.5 uppercase tracking-wider">
+                          {notif.createdAt ? new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently"}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-slate-400 text-xs font-medium">
+                    No new notifications. You are up to date!
+                  </div>
+                )}
               </div>
               
               <div className="p-3 bg-slate-50 border-t border-slate-100 shadow-[inset_0_10px_10px_-10px_rgba(0,0,0,0.04)] relative z-10">
@@ -130,11 +159,11 @@ export default function Navbar({ setSidebarOpen, storeDetails }) {
             </div>
           ) : (
             <div className="w-8 h-8 sm:w-9 sm:h-9 bg-slate-900 shadow-[inset_0_2px_5px_rgba(255,255,255,0.2)] rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-extrabold shrink-0 group-hover:bg-slate-800 transition-colors">
-              {storeDetails?.initials || "JS"}
+              {storeInitials}
             </div>
           )}
           <span className="text-sm font-bold text-slate-700 hidden lg:inline group-hover:text-slate-900 transition-colors drop-shadow-sm">
-            {storeDetails?.name || "Jai Store"}
+            {displayStoreName}
           </span>
         </button>
       </div>

@@ -251,6 +251,7 @@ describe("Indiafy Inventory Management & Stock Badges Integration Tests", () => 
 
     it("should restore stock automatically when order status is updated to Cancelled", async () => {
         // Set up cart
+        await CartModel.deleteMany({ customerId: customer._id });
         await CartModel.create({
             customerId: customer._id,
             items: [{

@@ -23,6 +23,10 @@ const adminSchema = new Schema({
     lastName: {
         type: String
     },
+    phone: {
+        type: String,
+        default: ""
+    },
     role: {
         type: String,
         required: true

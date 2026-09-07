@@ -20,7 +20,7 @@ const getActiveFilterQuery = async (extraQuery = {}) => {
     // Only apply global active seller/node filters if specific seller/node is not requested
     if (!extraQuery.sellerId) {
         filter.isActive = true;
-        const activeSellers = await SellerModel.find({ status: { $ne: "blocked" } }).select("_id");
+        const activeSellers = await SellerModel.find({ status: { $nin: ["blocked", "suspended", "inactive"] } }).select("_id");
         filter.sellerId = { $in: activeSellers.map(s => s._id) };
     }
 

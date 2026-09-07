@@ -24,6 +24,10 @@ export const useAdminAuthStore = create(
         expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days expiration
       }),
 
+      updateUser: (updatedData) => set((state) => ({
+        user: state.user ? { ...state.user, ...updatedData } : updatedData
+      })),
+
       clearSession: () => set({ 
         user: null, 
         token: null, 

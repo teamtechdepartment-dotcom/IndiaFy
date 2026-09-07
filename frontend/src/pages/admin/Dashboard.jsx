@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import axiosInstance from "../../utils/axiosInstance";
 import { exportToCSV } from "../../utils/exportCSV";
+import { useAdminSocket } from "../../hooks/useAdminSocket";
 
 // ─── Custom Chart Tooltip ─────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
@@ -131,6 +132,12 @@ export default function Dashboard() {
     }
   };
 
+  // Real-time synchronization via WebSockets (auto-updates dashboard on live events)
+  const { isConnected: isSocketConnected } = useAdminSocket((event, data) => {
+    console.log(`[Dashboard] Live event ${event} received, triggering real-time refresh...`);
+    fetchStats(activeFilter);
+  });
+
   useEffect(() => { 
     fetchStats(activeFilter); 
   }, [activeFilter]);
@@ -169,11 +176,47 @@ export default function Dashboard() {
   const formattedRevenue = (totalRevVal / 100000).toFixed(2);
 
   const statCards = [
-    { title: "Total Gross Revenue", value: `₹${formattedRevenue}L`, desc: "Cumulative sales volume", trend: "+12.4%", icon: DollarSign, color: "blue" },
-    { title: "Marketplace Orders", value: kpis?.totalOrders ?? 1240, desc: "Total invoices processed", trend: "+8.2%", icon: ShoppingBag, color: "blue" },
-    { title: "Pending Approvals", value: kpis?.pendingApprovals ?? 3, desc: "Sellers requiring audit", trend: "Action required", icon: Clock, color: "amber", isWarning: Number(kpis?.pendingApprovals ?? 0) > 0 },
-    { title: "Pending Tickets", value: kpis?.pendingTickets ?? 12, desc: "Assigned helpdesk tickets", trend: "In Queue", icon: Ticket, color: "blue" },
-    { title: "Platform Sellers", value: kpis?.totalSellers ?? 245, desc: "Registered storefront nodes", trend: "+4.6%", icon: Store, color: "blue" },
+    { 
+      title: "Total Gross Revenue", 
+      value: `₹${formattedRevenue}L`, 
+      desc: "Cumulative sales volume", 
+      trend: kpis?.revenueTrend || "+0.0%", 
+      icon: DollarSign, 
+      color: "blue" 
+    },
+    { 
+      title: "Marketplace Orders", 
+      value: kpis?.totalOrders ?? 0, 
+      desc: "Total invoices processed", 
+      trend: kpis?.orderTrend || "+0.0%", 
+      icon: ShoppingBag, 
+      color: "blue" 
+    },
+    { 
+      title: "Pending Approvals", 
+      value: kpis?.pendingApprovals ?? 0, 
+      desc: "Sellers requiring audit", 
+      trend: Number(kpis?.pendingApprovals ?? 0) > 0 ? "Action required" : "Clear", 
+      icon: Clock, 
+      color: "amber", 
+      isWarning: Number(kpis?.pendingApprovals ?? 0) > 0 
+    },
+    { 
+      title: "Pending Tickets", 
+      value: kpis?.pendingTickets ?? 0, 
+      desc: "Assigned helpdesk tickets", 
+      trend: Number(kpis?.pendingTickets ?? 0) > 0 ? "In Queue" : "Zero Queue", 
+      icon: Ticket, 
+      color: "blue" 
+    },
+    { 
+      title: "Platform Sellers", 
+      value: kpis?.totalSellers ?? 0, 
+      desc: "Registered storefront nodes", 
+      trend: "+Active", 
+      icon: Store, 
+      color: "blue" 
+    },
   ];
 
   return (
@@ -323,8 +366,11 @@ export default function Dashboard() {
                 <div className="mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-800/40">
                   <p className="text-[10px] font-black uppercase tracking-widest mb-2 text-[#2874F0] dark:text-[#FB641B]">Live Agent Actions</p>
                   <div className="flex items-center justify-between text-xs text-slate-555 dark:text-slate-400">
-                    <span>API Response Uptime</span>
-                    <span className="font-bold text-[#2874F0] dark:text-[#FB641B]">99.98%</span>
+                    <span>Real-Time Socket Stream</span>
+                    <span className={`font-bold flex items-center gap-1.5 ${isSocketConnected ? "text-emerald-500" : "text-amber-500"}`}>
+                      <span className={`w-2 h-2 rounded-full ${isSocketConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+                      {isSocketConnected ? "Live Connected" : "Connecting..."}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -351,9 +397,24 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    <TableRow id="#TX-9842" store="Luxe Attire" total="₹14,200" method="UPI" date="Today, 14:20" />
-                    <TableRow id="#TX-9841" store="Gadget Galaxy" total="₹8,500" method="NetBanking" date="Today, 11:45" />
-                    <TableRow id="#TX-9840" store="Daily Organics" total="₹4,300" method="UPI" date="Yesterday" />
+                    {stats?.recentTransactions && stats.recentTransactions.length > 0 ? (
+                      stats.recentTransactions.map((tx, idx) => (
+                        <TableRow
+                          key={tx.id || idx}
+                          id={tx.id}
+                          store={tx.store}
+                          total={tx.total}
+                          method={tx.method}
+                          date={tx.date}
+                        />
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-slate-400">
+                          No recent transactions recorded in this period.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -364,10 +425,15 @@ export default function Dashboard() {
                   Top Demand Sectors
                 </h2>
                 <div className="space-y-5">
-                  <RegionProgress name="Bengaluru North B2B" pct={35} />
-                  <RegionProgress name="Gurugram Cyber City" pct={28} />
-                  <RegionProgress name="Mumbai Bandra Local" pct={21} />
-                  <RegionProgress name="Delhi NCR Wholesale" pct={16} />
+                  {stats?.regionalPerformance && stats.regionalPerformance.length > 0 ? (
+                    stats.regionalPerformance.map((reg, idx) => (
+                      <RegionProgress key={idx} name={reg.name} pct={reg.pct} />
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-400 py-4 text-center">
+                      No regional cluster telemetry recorded yet.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

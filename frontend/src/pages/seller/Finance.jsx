@@ -51,7 +51,7 @@ export default function Finance() {
         amount: `₹${o.totalPrice}`,
         type: "Settlement",
         status: isPaid ? "Paid" : o.status === "Pending" ? "Processing" : "Deducted",
-        bank: activeNode?.bankName ? `${activeNode.bankName} ****${(activeNode.accountNumber || "").slice(-4)}` : "HDFC Bank"
+        bank: activeNode?.bankName ? `${activeNode.bankName} ****${(activeNode.accountNumber || "").slice(-4)}` : "Verified Bank Node"
       };
     });
 
@@ -72,7 +72,11 @@ export default function Finance() {
 
   // 3. Action Handlers
   const handleWithdraw = () => {
-    toast.success("Withdrawal request for ₹12,850 submitted successfully! It will reflect in your account within 24 hours.");
+    if (payoutAmount <= 0) {
+      toast.info("No settled payout balance currently available for withdrawal.");
+      return;
+    }
+    toast.success(`Withdrawal request for ₹${payoutAmount.toLocaleString('en-IN')} submitted successfully! It will reflect in your account within 24 hours.`);
   };
 
   const handleDownloadStatement = () => {

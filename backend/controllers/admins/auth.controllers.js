@@ -356,4 +356,28 @@ const verifyEmail = async (req, res) => {
     }
 };
 
-export { Signup, Login, forgetPassword, authOtp, getMe, Logout, refreshTokenHandler, verifyEmail };
+const updateProfile = async (req, res) => {
+    try {
+        const { firstName, lastName, phone } = req.body;
+        const admin = await AuthModel.findById(req.user._id);
+        if (!admin) {
+            return res.status(404).json(new ApiError(404, "Admin not found"));
+        }
+
+        if (firstName !== undefined) admin.firstName = firstName.trim();
+        if (lastName !== undefined) admin.lastName = lastName.trim();
+        if (phone !== undefined) admin.phone = phone.trim();
+        await admin.save();
+
+        const updatedData = admin.toObject();
+        delete updatedData.password;
+        delete updatedData.refreshToken;
+        updatedData.role = "Admin";
+
+        return res.status(200).json(new ApiResponse(200, updatedData, "Admin profile updated successfully"));
+    } catch (err) {
+        return res.status(500).json(new ApiError(500, err.message));
+    }
+};
+
+export { Signup, Login, forgetPassword, authOtp, getMe, Logout, refreshTokenHandler, verifyEmail, updateProfile };

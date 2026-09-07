@@ -99,6 +99,20 @@ export const emitOrderNotification = async (io, createdOrder, enrichedItems, cus
             );
         }
 
+        // Global administrative command center real-time broadcast
+        io.to("admin_room").emit("ORDER_CREATED", {
+            orderId: createdOrder._id,
+            orderNumber,
+            customerName,
+            totalPrice: createdOrder.totalPrice,
+            paymentMethod: createdOrder.paymentMethod,
+            status: createdOrder.status,
+            shippingAddress: createdOrder.shippingAddress,
+            itemCount: enrichedItems.reduce((sum, i) => sum + (i.quantity || 1), 0),
+            createdAt: createdOrder.createdAt || new Date(),
+        });
+        console.log(`[Socket] ORDER_CREATED emitted → admin_room`);
+
         await Promise.allSettled(promises);
     } catch (err) {
         // Never propagate — caller must not be affected
