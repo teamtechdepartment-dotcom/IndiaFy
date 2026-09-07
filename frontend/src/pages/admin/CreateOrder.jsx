@@ -13,20 +13,12 @@ export default function CreateOrder() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState(searchParams.get("email") || "");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("128 MG Road");
-  const [city, setCity] = useState("Bengaluru");
-  const [zipCode, setZipCode] = useState("560001");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [country, setCountry] = useState("India");
 
-  const [items, setItems] = useState([
-    {
-      _id: "prod-sample-1",
-      name: "Handcrafted Embroidered Kurta",
-      sku: "HEK-2026-M",
-      price: 2499,
-      quantity: 1,
-    }
-  ]);
+  const [items, setItems] = useState([]);
 
   const [paymentStatus, setPaymentStatus] = useState("Paid");
   const [paymentMethod, setPaymentMethod] = useState("UPI");
@@ -43,19 +35,11 @@ export default function CreateOrder() {
     const fetchCatalog = async () => {
       setLoadingProducts(true);
       try {
-        const res = await axiosInstance.get("/admin/management/products?limit=20");
-        const list = res.data?.data?.products || res.data?.data || [];
-        if (Array.isArray(list) && list.length > 0) {
-          setAvailableProducts(list);
-        }
+        const res = await axiosInstance.get("/admin/management/products");
+        const list = Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res) ? res : [];
+        setAvailableProducts(list);
       } catch (_e) {
-        // Fallback default sample products
-        setAvailableProducts([
-          { _id: "p1", name: "Handcrafted Embroidered Kurta", price: 2499, sku: "HEK-2026", stock: 15 },
-          { _id: "p2", name: "Pure Silk Banarasi Dupatta", price: 3499, sku: "SBD-1092", stock: 8 },
-          { _id: "p3", name: "Organic Cotton Casual Shirt", price: 1299, sku: "OCS-4421", stock: 24 },
-          { _id: "p4", name: "Artisanal Leather Jutti", price: 1899, sku: "ALJ-9031", stock: 12 },
-        ]);
+        setAvailableProducts([]);
       } finally {
         setLoadingProducts(false);
       }
@@ -65,6 +49,10 @@ export default function CreateOrder() {
 
   const handleAddItem = (prod) => {
     const existingIndex = items.findIndex((it) => it._id === prod._id);
+    const prName = prod.productName || prod.name || prod.title || "Selected Item";
+    const prSku = prod.productSkuId || prod.sku || `SKU-${(prod._id || "").slice(-4)}`;
+    const prPrice = Number(prod.attribute?.salePrice || prod.price || prod.pricing?.sellingPrice || 0);
+
     if (existingIndex > -1) {
       const updated = [...items];
       updated[existingIndex].quantity += 1;
@@ -74,14 +62,14 @@ export default function CreateOrder() {
         ...items,
         {
           _id: prod._id,
-          name: prod.name || prod.title || "Selected Item",
-          sku: prod.sku || `SKU-${prod._id.slice(-4)}`,
-          price: Number(prod.price || prod.pricing?.sellingPrice || 999),
+          name: prName,
+          sku: prSku,
+          price: prPrice,
           quantity: 1,
         }
       ]);
     }
-    toast.success(`Added ${prod.name || "item"} to order`);
+    toast.success(`Added ${prName} to order`);
     setShowProducts(false);
   };
 
@@ -455,14 +443,17 @@ export default function CreateOrder() {
 
             <div className="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100 dark:divide-slate-800">
               {availableProducts
-                .filter((p) =>
-                  (p.name || p.title || "")
-                    .toLowerCase()
-                    .includes(productSearch.toLowerCase())
-                )
+                .filter((p) => {
+                  const name = p.productName || p.name || p.title || "";
+                  const sku = p.productSkuId || p.sku || "";
+                  return name.toLowerCase().includes(productSearch.toLowerCase()) ||
+                         sku.toLowerCase().includes(productSearch.toLowerCase());
+                })
                 .map((prod) => {
-                  const prName = prod.name || prod.title || "Product";
-                  const price = Number(prod.price || prod.pricing?.sellingPrice || 999);
+                  const prName = prod.productName || prod.name || prod.title || "Product";
+                  const price = Number(prod.attribute?.salePrice || prod.price || prod.pricing?.sellingPrice || 0);
+                  const sku = prod.productSkuId || prod.sku || (prod._id || "").slice(-6);
+                  const stock = prod.stock ?? "Available";
                   return (
                     <div
                       key={prod._id}
@@ -471,7 +462,7 @@ export default function CreateOrder() {
                       <div>
                         <p className="font-bold text-xs text-slate-900 dark:text-white">{prName}</p>
                         <p className="text-[10px] text-slate-400">
-                          SKU: {prod.sku || prod._id.slice(-6)} • Stock: {prod.stockQuantity ?? prod.stock ?? "Available"}
+                          SKU: {sku} • Stock: {stock} units
                         </p>
                       </div>
 

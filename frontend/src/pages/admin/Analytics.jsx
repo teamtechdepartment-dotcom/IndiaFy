@@ -6,6 +6,7 @@ import LineChartBox from "../../components/charts/LineChartBox";
 import BarChartBox from "../../components/charts/BarChartBox";
 import Header from "../../components/admin/Header";
 import axiosInstance from "../../utils/axiosInstance";
+import { useAdminSocket } from "../../hooks/useAdminSocket";
 
 import {
   IndianRupee,
@@ -39,6 +40,11 @@ export default function Analytics() {
       setLoading(false);
     }
   };
+
+  useAdminSocket((event) => {
+    console.log(`[Analytics] Real-time event ${event} received, refreshing metrics...`);
+    fetchStats();
+  });
 
   useEffect(() => {
     fetchStats();
@@ -117,28 +123,28 @@ export default function Analytics() {
                   title="Total Revenue"
                   accent="blue"
                   value={`₹${totalRevenueVal.toLocaleString('en-IN')}`}
-                  badge="+12.4%"
+                  badge={kpis.revenueTrend || "+0.0%"}
                   icon={<IndianRupee size={16} />}
                 />
                 <StatsCard
                   title="Total Orders"
                   accent="orange"
                   value={totalOrdersVal.toLocaleString('en-IN')}
-                  badge="+6.2%"
+                  badge={kpis.orderTrend || "+0.0%"}
                   icon={<ShoppingBag size={16} />}
                 />
                 <StatsCard
                   title="Customers"
                   accent="yellow"
                   value={totalCustomersVal.toLocaleString('en-IN')}
-                  badge="+3.1%"
+                  badge={totalCustomersVal > 0 ? "+Active" : "None"}
                   icon={<Users size={16} />}
                 />
                 <StatsCard
                   title="Conversion Rate"
                   accent="green"
                   value={convRate}
-                  badge="-0.4%"
+                  badge={totalOrdersVal > 0 ? "Live" : "Idle"}
                   icon={<Percent size={16} />}
                 />
               </div>

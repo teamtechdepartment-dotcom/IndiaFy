@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import ApiError from "../../utils/apiError.js";
@@ -173,8 +174,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
             update_time: new Date().toISOString(),
         };
         order.paymentLock = { isLocked: false, lockedUntil: undefined };
-        // We do NOT change order.status here. We leave it as "Pending" (or whatever it was).
-        // The seller's LiveOrders will pick it up as "Pending".
+        if (!order.status || order.status === "Pending") {
+            order.status = "Processing";
+        }
         await order.save({ session: useTransaction ? session : null });
 
         await SellerOrder.updateMany(
@@ -195,20 +197,47 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         }
         session.endSession();
 
-        // 2. Emit Socket.IO Event to Seller Nodes
+        // 2. Emit Socket.IO Event to Admin, Customer, and Seller Nodes
         try {
             const io = await import("../../utils/socket.js").then(m => m.getIO());
+            const orderPayload = {
+                orderId: order._id,
+                orderNumber: order.orderNumber || `IND-${order._id.toString().slice(-6).toUpperCase()}`,
+                totalPrice: order.totalPrice,
+                total: order.totalPrice,
+                status: order.status,
+                paymentMethod: order.paymentMethod,
+                isPaid: true,
+                createdAt: order.createdAt
+            };
+
+            io.to("admin_room").emit("ORDER_CREATED", orderPayload);
+            io.to(`order_${order._id}`).emit("ORDER_STATUS_UPDATED", {
+                orderId: order._id,
+                status: order.status,
+                isPaid: true
+            });
+            if (order.customer) {
+                io.to(`customer_${order.customer}`).emit("ORDER_CREATED", orderPayload);
+            }
+
             order.orderItems.forEach(item => {
-                const sellerId = item.seller.toString();
+                const sellerId = item.seller?._id ? item.seller._id.toString() : item.seller ? item.seller.toString() : null;
+                const nodeId = item.nodeId?._id ? item.nodeId._id.toString() : item.nodeId ? item.nodeId.toString() : null;
                 const nodeType = item.nodeType || "local";
-                const roomName = `seller_${sellerId}_node_${nodeType}`;
                 
-                io.to(roomName).emit("NEW_ORDER", {
-                    orderId: order._id,
-                    totalPrice: order.totalPrice,
-                    status: order.status,
-                    createdAt: order.createdAt
-                });
+                if (sellerId) {
+                    const legacyRoom = `seller_${sellerId}_node_${nodeType}`;
+                    const sellerRoom = `seller:${sellerId}`;
+                    const nodeRoom = nodeId ? `node:${nodeId}` : legacyRoom;
+                    const preciseRoom = nodeId ? `seller_${sellerId}_node_${nodeId}` : legacyRoom;
+
+                    io.to(preciseRoom).to(legacyRoom).to(sellerRoom).to(nodeRoom).emit("ORDER_CREATED", {
+                        ...orderPayload,
+                        sellerId,
+                        nodeId
+                    });
+                }
             });
         } catch (err) {
             console.error("Socket emission failed in payment verify:", err.message);
@@ -376,16 +405,44 @@ export const razorpayWebhook = asyncHandler(async (req, res) => {
                 // Emit Socket.IO Event
                 try {
                     const io = await import("../../utils/socket.js").then(m => m.getIO());
+                    const orderPayload = {
+                        orderId: order._id,
+                        orderNumber: order.orderNumber || `IND-${order._id.toString().slice(-6).toUpperCase()}`,
+                        totalPrice: order.totalPrice,
+                        total: order.totalPrice,
+                        status: order.status,
+                        paymentMethod: order.paymentMethod,
+                        isPaid: true,
+                        createdAt: order.createdAt
+                    };
+
+                    io.to("admin_room").emit("ORDER_CREATED", orderPayload);
+                    io.to(`order_${order._id}`).emit("ORDER_STATUS_UPDATED", {
+                        orderId: order._id,
+                        status: order.status,
+                        isPaid: true
+                    });
+                    if (order.customer) {
+                        io.to(`customer_${order.customer}`).emit("ORDER_CREATED", orderPayload);
+                    }
+
                     order.orderItems.forEach(item => {
-                        const sellerId = item.seller.toString();
+                        const sellerId = item.seller?._id ? item.seller._id.toString() : item.seller ? item.seller.toString() : null;
+                        const nodeId = item.nodeId?._id ? item.nodeId._id.toString() : item.nodeId ? item.nodeId.toString() : null;
                         const nodeType = item.nodeType || "local";
-                        const roomName = `seller_${sellerId}_node_${nodeType}`;
-                        io.to(roomName).emit("NEW_ORDER", {
-                            orderId: order._id,
-                            totalPrice: order.totalPrice,
-                            status: order.status,
-                            createdAt: order.createdAt
-                        });
+                        
+                        if (sellerId) {
+                            const legacyRoom = `seller_${sellerId}_node_${nodeType}`;
+                            const sellerRoom = `seller:${sellerId}`;
+                            const nodeRoom = nodeId ? `node:${nodeId}` : legacyRoom;
+                            const preciseRoom = nodeId ? `seller_${sellerId}_node_${nodeId}` : legacyRoom;
+
+                            io.to(preciseRoom).to(legacyRoom).to(sellerRoom).to(nodeRoom).emit("ORDER_CREATED", {
+                                ...orderPayload,
+                                sellerId,
+                                nodeId
+                            });
+                        }
                     });
                 } catch (err) {
                     console.error("Socket emission failed in payment webhook:", err.message);

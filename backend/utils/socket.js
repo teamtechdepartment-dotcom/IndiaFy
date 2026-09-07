@@ -18,8 +18,9 @@ const getSocketUser = (socket) => {
     const authHeader = socket.handshake.headers?.authorization || "";
     const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
     const sellerCookieToken = getCookieValue(socket.handshake.headers?.cookie, "SellerAccessToken");
+    const adminCookieToken = getCookieValue(socket.handshake.headers?.cookie, "AccessToken");
     const authToken = socket.handshake.auth?.token;
-    const token = authToken || bearerToken || sellerCookieToken;
+    const token = authToken || bearerToken || sellerCookieToken || adminCookieToken;
 
     if (!token) return null;
 
@@ -39,7 +40,7 @@ const canJoinSellerRoom = (socket, sellerId) => {
 export const initSocket = (server) => {
     const allowedOrigins = process.env.CORS_ORIGIN 
         ? process.env.CORS_ORIGIN.split(",").map(o => o.trim()) 
-        : ["http://localhost:5173"];
+        : ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "http://localhost:3001"];
 
     io = new Server(server, {
         cors: {
@@ -51,6 +52,12 @@ export const initSocket = (server) => {
 
     io.on("connection", (socket) => {
         console.log(`Socket connected: ${socket.id}`);
+
+        // Admin joins global administrative command center room
+        socket.on("join_admin_room", () => {
+            socket.join("admin_room");
+            console.log(`Socket ${socket.id} joined admin_room`);
+        });
 
         // Seller joins their specific node room (legacy — by nodeType)
         socket.on("join_seller_room", ({ sellerId, nodeType }) => {

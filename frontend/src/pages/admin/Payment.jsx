@@ -7,6 +7,7 @@ import StatsCard from "../../components/admin/StatsCard";
 import { exportToCSV } from "../../utils/exportCSV";
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
+import { useAdminSocket } from "../../hooks/useAdminSocket";
 
 export default function Payments() {
   const [financials, setFinancials] = useState(null);
@@ -33,6 +34,12 @@ export default function Payments() {
       setLoading(false);
     }
   };
+
+  // Real-time synchronization
+  useAdminSocket((event) => {
+    console.log(`[Payments] Real-time event ${event} received, updating financials...`);
+    fetchFinancials();
+  });
 
   const fetchGlobalSettings = async () => {
     try {
@@ -84,9 +91,9 @@ export default function Payments() {
   };
 
   const txs = Array.isArray(financials?.transactions) ? financials.transactions : [];
-  const gmv = Number(financials?.totalRevenue ?? 1482000);
-  const netCommission = Number(financials?.platformRevenue ?? 74100);
-  const pendingPayouts = Number(financials?.pendingPayouts ?? 281580);
+  const gmv = Number(financials?.totalRevenue ?? 0);
+  const netCommission = Number(financials?.platformRevenue ?? 0);
+  const pendingPayouts = Number(financials?.pendingPayouts ?? 0);
 
   return (
     <div className="flex min-h-screen font-sans">
@@ -257,11 +264,11 @@ export default function Payments() {
                             </tr>
                           ))
                         ) : txs.length === 0 ? (
-                          <>
-                            <LedgerRow id="TX-10924" amount={14200} method="UPI" status="Success" date="Today, 14:20" />
-                            <LedgerRow id="TX-10923" amount={8500} method="NetBanking" status="Success" date="Today, 11:45" />
-                            <LedgerRow id="TX-10922" amount={4300} method="UPI" status="Success" date="Yesterday" />
-                          </>
+                          <tr>
+                            <td colSpan={5} className="py-8 text-center text-slate-400 text-xs font-semibold">
+                              No financial transactions recorded in the ledger yet.
+                            </td>
+                          </tr>
                         ) : (
                           txs.map((tx) => {
                             const tDate = tx?.timestamp ? new Date(tx.timestamp) : null;

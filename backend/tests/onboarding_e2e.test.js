@@ -306,6 +306,9 @@ describe("Seller Activation & Admin Approval E2E Integration Tests", () => {
         const existingApp = await SellerApplication.findOne({ userId: sellerId });
         expect(existingApp).toBeDefined();
 
+        const uniqueAadhaar = "1111" + Math.floor(10000000 + Math.random() * 90000000);
+        const uniquePan = "ABCDE" + Math.floor(1000 + Math.random() * 9000) + "F";
+
         // Resubmit by sending apply payload with updated values
         const res = await request(app)
             .post("/api/v1/indiafy/seller/applications/apply")
@@ -323,8 +326,8 @@ describe("Seller Activation & Admin Approval E2E Integration Tests", () => {
                 ownerFullName: existingApp.ownerName,
                 ownerEmail: existingApp.ownerEmail,
                 ownerPhone: existingApp.ownerPhone,
-                aadhaarNumber: "111122223333", // dummy placeholders to bypass encrypt step
-                panNumber: "ABCDE1234F",
+                aadhaarNumber: uniqueAadhaar,
+                panNumber: uniquePan,
                 gstNumber: existingApp.gstNumber, // same GST is ok since we are overwriting our own pending app
                 foodLicenseNumber: "12345678901234",
                 businessType: "Proprietorship",

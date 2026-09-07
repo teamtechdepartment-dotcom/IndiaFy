@@ -637,17 +637,27 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
 
     const updatedOrder = await order.save();
 
-    // Emit live status update to anyone tracking this order
+    // Emit live status update to anyone tracking this order, customer, and admin
     try {
         const io = getIO();
-        io.to(`order_${order._id}`).emit("ORDER_STATUS_UPDATED", {
+        const statusPayload = {
             orderId: order._id,
             sellerOrderId: sellerOrder?._id,
             status: order.status,
             sellerStatus: sellerOrder?.orderStatus,
             isDelivered: order.isDelivered,
-            deliveredAt: order.deliveredAt
-        });
+            deliveredAt: order.deliveredAt,
+            customer: order.customer
+        };
+
+        io.to(`order_${order._id}`)
+          .to("admin_room")
+          .to(`customer_${order.customer}`)
+          .emit("ORDER_STATUS_UPDATED", statusPayload);
+
+        if (sellerOrder?.sellerId) {
+            io.to(`seller:${sellerOrder.sellerId}`).emit("ORDER_STATUS_UPDATED", statusPayload);
+        }
     } catch (socketErr) {
         console.error("Socket emit failure on order status update:", socketErr.message);
     }
@@ -740,9 +750,9 @@ export const deleteOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
-    const isCustomer = req.user.role === "customer";
+    const isCustomer = req.user.role?.toLowerCase() === "customer";
     const isSeller = req.user.role?.toLowerCase() === "seller";
-    const isAdmin = req.user.role?.toLowerCase() === "admin";
+    const isAdmin = req.user.role?.toLowerCase() === "admin" || req.user.role?.toLowerCase() === "super_admin";
 
     const isCustomerOwner = isCustomer && order.customer.toString() === req.user._id.toString();
     

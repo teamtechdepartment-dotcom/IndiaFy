@@ -334,6 +334,97 @@ export const getDashboardStats = async (req, res) => {
       value: p.value
     }));
 
+    // 1. Real Audited Recent Transactions (No hardcoded fallback)
+    const recentOrders = await OrderModel.find({})
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .populate({
+        path: "orderItems.product",
+        select: "productName"
+      })
+      .populate({
+        path: "orderItems.seller",
+        select: "businessName firstName lastName"
+      })
+      .populate({
+        path: "orderItems.nodeId",
+        select: "storeName"
+      });
+
+    const recentTransactions = recentOrders.map(o => {
+      const storeName = o.orderItems?.[0]?.nodeId?.storeName ||
+                        o.orderItems?.[0]?.seller?.businessName ||
+                        o.orderItems?.[0]?.seller?.firstName ||
+                        "Marketplace Node";
+      const dateObj = new Date(o.createdAt);
+      const isToday = new Date().toDateString() === dateObj.toDateString();
+      const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateStr = isToday ? `Today, ${timeStr}` : dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+      return {
+        id: `#TX-${o._id.toString().slice(-6).toUpperCase()}`,
+        store: storeName,
+        total: `₹${Number(o.totalPrice || 0).toLocaleString('en-IN')}`,
+        method: o.paymentMethod || "UPI",
+        date: dateStr,
+        status: o.status || "Completed",
+        rawAmount: o.totalPrice || 0,
+      };
+    });
+
+    // 2. Real Regional Performance from shipping addresses
+    const regionAgg = await OrderModel.aggregate([
+      { $match: { "shippingAddress.city": { $exists: true, $ne: "" } } },
+      { $group: { _id: "$shippingAddress.city", count: { $sum: 1 }, revenue: { $sum: "$totalPrice" } } },
+      { $sort: { count: -1 } },
+      { $limit: 4 }
+    ]);
+
+    const totalOrdersInRegions = regionAgg.reduce((acc, r) => acc + r.count, 0) || 1;
+    let regionalPerformance = regionAgg.map(r => ({
+      name: `${r._id} Hyperlocal`,
+      pct: Math.min(100, Math.round((r.count / totalOrdersInRegions) * 100)),
+      count: r.count,
+      revenue: r.revenue
+    }));
+
+    if (regionalPerformance.length === 0) {
+      const nodeCities = await SellerNode.aggregate([
+        { $match: { city: { $exists: true, $ne: "" } } },
+        { $group: { _id: "$city", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 4 }
+      ]);
+      const totalNodes = nodeCities.reduce((acc, c) => acc + c.count, 0) || 1;
+      regionalPerformance = nodeCities.map(c => ({
+        name: `${c._id} Node Cluster`,
+        pct: Math.min(100, Math.round((c.count / totalNodes) * 100)),
+        count: c.count,
+        revenue: 0
+      }));
+    }
+
+    // 3. Dynamic Period Growth (30 days vs previous 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const currMonthOrders = await OrderModel.find({ createdAt: { $gte: thirtyDaysAgo } });
+    const prevMonthOrders = await OrderModel.find({ createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
+
+    const currMonthRev = currMonthOrders.filter(o => o.isPaid).reduce((s, o) => s + (o.totalPrice || 0), 0);
+    const prevMonthRev = prevMonthOrders.filter(o => o.isPaid).reduce((s, o) => s + (o.totalPrice || 0), 0);
+
+    const calcGrowth = (curr, prev) => {
+      if (!prev || prev === 0) return curr > 0 ? "+100%" : "0.0%";
+      const pct = (((curr - prev) / prev) * 100).toFixed(1);
+      return Number(pct) >= 0 ? `+${pct}%` : `${pct}%`;
+    };
+
+    const revenueTrend = calcGrowth(currMonthRev, prevMonthRev);
+    const orderTrend = calcGrowth(currMonthOrders.length, prevMonthOrders.length);
+
     return res.status(200).json(
       new ApiResponse(
         200,
@@ -353,6 +444,8 @@ export const getDashboardStats = async (req, res) => {
             pendingTickets: pendingTickets,
             pendingRefunds: pendingRefunds,
             failedTransactions: failedTransactions,
+            revenueTrend,
+            orderTrend,
           },
           insights: (() => {
             const dynamicInsights = [];
@@ -389,6 +482,8 @@ export const getDashboardStats = async (req, res) => {
           trendData: paddedTrendData,
           categoryOrders: categoryOrders,
           paymentData: paymentData,
+          recentTransactions: recentTransactions,
+          regionalPerformance: regionalPerformance,
         },
         "Dashboard metrics compiled successfully"
       )
@@ -871,20 +966,21 @@ export const getProductList = async (req, res) => {
 export const updateProductStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { isPublished, isActive } = req.body;
+    const { isPublished, isActive, stock } = req.body;
 
     const product = await ProductModel.findById(id);
     if (!product) {
       throw new ApiError(404, "Product not found");
     }
 
-    const before = { isPublished: product.isPublished, isActive: product.isActive };
+    const before = { isPublished: product.isPublished, isActive: product.isActive, stock: product.stock };
 
     if (isPublished !== undefined) product.isPublished = isPublished;
     if (isActive !== undefined) product.isActive = isActive;
+    if (stock !== undefined && !isNaN(Number(stock))) product.stock = Math.max(0, Number(stock));
     await product.save();
 
-    await logAdminAction(req, "UPDATE_PRODUCT_STATUS", `product:${id}`, before, { isPublished, isActive });
+    await logAdminAction(req, "UPDATE_PRODUCT_STATUS", `product:${id}`, before, { isPublished, isActive, stock });
 
     return res.status(200).json(new ApiResponse(200, product, "Product status updated"));
   } catch (err) {
@@ -941,6 +1037,30 @@ export const updateOrderState = async (req, res) => {
 
     await logAdminAction(req, "UPDATE_ORDER_STATUS", `order:${id}`, before, { status, isPaid });
 
+    // Emit real-time synchronization event across all channels
+    try {
+      const io = getIO();
+      const statusPayload = {
+        orderId: order._id,
+        status: order.status,
+        isPaid: order.isPaid,
+        updatedAt: order.updatedAt || new Date()
+      };
+      io.to(`order_${order._id}`)
+        .to("admin_room")
+        .to(`customer_${order.customer}`)
+        .emit("ORDER_STATUS_UPDATED", statusPayload);
+
+      (order.orderItems || []).forEach(item => {
+        const sellerId = item.seller?._id || item.seller;
+        if (sellerId) {
+          io.to(`seller:${sellerId.toString()}`).emit("ORDER_STATUS_UPDATED", statusPayload);
+        }
+      });
+    } catch (socketErr) {
+      console.error("Socket emit failure on admin updateOrderState:", socketErr.message);
+    }
+
     return res.status(200).json(new ApiResponse(200, order, "Order status modified successfully"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
@@ -955,7 +1075,19 @@ export const getFinancialStats = async (req, res) => {
       { $group: { _id: null, total: { $sum: "$totalPrice" } } }
     ]);
     const totalRevenue = ordersSum[0]?.total || 0;
-    const platformRevenue = Math.round(totalRevenue * 0.05); // 5% platform commission
+
+    // Fetch live commission rate from SystemSettings
+    const settings = await SystemSettings.findOne({}) || {};
+    const globalRate = Number(settings.commissions?.globalRate ?? 5.0);
+    const platformRevenue = Math.round(totalRevenue * (globalRate / 100));
+
+    // Calculate real pending payouts from delivered orders
+    const pendingDelivered = await OrderModel.aggregate([
+      { $match: { isPaid: true, status: { $in: ["Delivered", "Shipped"] } } },
+      { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+    ]);
+    const pendingDeliveredGross = pendingDelivered[0]?.total || 0;
+    const pendingPayouts = Math.round(pendingDeliveredGross * ((100 - globalRate) / 100));
 
     const recentPaidOrders = await OrderModel.find({ isPaid: true })
       .sort({ createdAt: -1 })
@@ -976,7 +1108,7 @@ export const getFinancialStats = async (req, res) => {
           totalRevenue,
           platformRevenue,
           commissionCollected: platformRevenue,
-          pendingPayouts: Math.round(totalRevenue * 0.95 * 0.2),
+          pendingPayouts,
           transactions,
         },
         "Financial metrics fetched"
