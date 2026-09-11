@@ -2,6 +2,7 @@ import { Router } from "express";
 import requiredLogin from "../../middlewares/requiredLogin.middleware.js";
 import roleGuard from "../../middlewares/roleGuard.middleware.js";
 import permissionGuard from "../../middlewares/permissionGuard.middleware.js";
+import campaignRoutes from "./campaign.route.js";
 import {
   getSystemHealth,
   getDashboardStats,
@@ -71,6 +72,9 @@ router.get("/coupons", permissionGuard("orders:read"), getCoupons);
 router.post("/coupons", permissionGuard("orders:write"), createCoupon);
 router.put("/coupons/:id/status", permissionGuard("orders:write"), updateCouponStatus);
 router.delete("/coupons/:id", permissionGuard("orders:write"), deleteCoupon);
+
+// Campaign Governance
+router.use("/campaigns", campaignRoutes);
 
 // Seller Governance
 router.get("/sellers", permissionGuard("sellers:read"), getSellerList);

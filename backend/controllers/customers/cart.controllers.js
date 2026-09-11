@@ -2,6 +2,7 @@ import Cart from "../../models/customers/cart.model.js";
 import ApiError from "../../utils/apiError.js";
 import ApiResponse from "../../utils/apiResponse.js";
 import Product from "../../models/products/product.model.js";
+import { getActiveCampaigns, resolveProductPricing, roundToTwoDecimals } from "../../services/pricing.service.js";
 
 export const addToCart = async (req, res) => {
     try {
@@ -24,8 +25,10 @@ export const addToCart = async (req, res) => {
             return res.status(400).json(new ApiError(400, `Insufficient stock. Only ${availableStock} units available.`));
         }
 
-        // --- WHOLESALE CALCULATION ---
-        let finalPrice = Number(product.attribute?.salePrice) || 0;
+        // --- PRICING RESOLUTION (CAMPAIGN + WHOLESALE) ---
+        const activeCampaigns = await getActiveCampaigns();
+        const campaignPricing = resolveProductPricing(product, activeCampaigns);
+        let finalPrice = campaignPricing.salePrice;
         let isWholesale = product.isWholesale || false;
         let gstAmount = 0;
 
@@ -40,7 +43,7 @@ export const addToCart = async (req, res) => {
                     finalPrice = tier.pricePerUnit;
                 }
             }
-            gstAmount = (finalPrice * parsedQuantity) * ((product.gstPercentage || 0) / 100);
+            gstAmount = roundToTwoDecimals((finalPrice * parsedQuantity) * ((product.gstPercentage || 0) / 100));
         }
 
         let cart = await Cart.findOne({ customerId });
@@ -58,9 +61,7 @@ export const addToCart = async (req, res) => {
                 }
 
                 // Keep track of the actual change in quantity
-                let actualChange = parsedQuantity;
                 if (productItem.quantity + parsedQuantity <= 0) {
-                    actualChange = -productItem.quantity; // We can only remove up to what we have
                     cart.items.splice(itemIndex, 1);
                     cart.totalPrice -= productItem.price * productItem.quantity; // Revert old price
                 } else {
@@ -77,7 +78,7 @@ export const addToCart = async (req, res) => {
                     productItem.quantity = newQty;
                     productItem.price = finalPrice;
                     if (isWholesale) {
-                        productItem.gstAmount = (finalPrice * newQty) * ((product.gstPercentage || 0) / 100);
+                        productItem.gstAmount = roundToTwoDecimals((finalPrice * newQty) * ((product.gstPercentage || 0) / 100));
                     }
                     cart.totalPrice += finalPrice * newQty;
                     cart.items[itemIndex] = productItem;
@@ -89,10 +90,11 @@ export const addToCart = async (req, res) => {
                     cart.totalPrice += parsedQuantity * finalPrice;
                 }
             }
+            cart.totalPrice = roundToTwoDecimals(cart.totalPrice);
             await cart.save();
         } else {
             // New cart
-            const totalPrice = parsedQuantity * finalPrice;
+            const totalPrice = roundToTwoDecimals(parsedQuantity * finalPrice);
             cart = await Cart.create({
                 customerId,
                 items: [{ productId, quantity: parsedQuantity, price: finalPrice, isWholesale, gstAmount }],
@@ -116,6 +118,51 @@ export const getCart = async (req, res) => {
         
         if (!cart) {
             return res.status(200).json(new ApiResponse(200, { items: [], totalPrice: 0 }, "Cart is empty"));
+        }
+
+        // Dynamically re-evaluate against currently active campaigns
+        const activeCampaigns = await getActiveCampaigns();
+        let cartChanged = false;
+        let runningTotal = 0;
+
+        for (const item of cart.items) {
+            if (!item.productId) continue;
+            const prod = item.productId;
+            const pricing = resolveProductPricing(prod, activeCampaigns);
+            
+            let itemPrice = pricing.salePrice;
+            if (item.isWholesale && prod.bulkPricing && prod.bulkPricing.length > 0) {
+                const sortedTiers = [...prod.bulkPricing].sort((a, b) => b.minQty - a.minQty);
+                const tier = sortedTiers.find(t => item.quantity >= t.minQty);
+                if (tier) itemPrice = tier.pricePerUnit;
+            }
+
+            itemPrice = roundToTwoDecimals(itemPrice);
+
+            if (item.price !== itemPrice) {
+                item.price = itemPrice;
+                if (item.isWholesale) {
+                    item.gstAmount = roundToTwoDecimals((itemPrice * item.quantity) * ((prod.gstPercentage || 0) / 100));
+                }
+                cartChanged = true;
+            }
+
+            // Attach campaign metadata to item for frontend display
+            if (pricing.campaign) {
+                item._doc = item._doc || {};
+                item._doc.campaign = pricing.campaign;
+                item._doc.originalPrice = pricing.originalPrice;
+                item.campaign = pricing.campaign;
+                item.originalPrice = pricing.originalPrice;
+            }
+
+            runningTotal += item.price * item.quantity;
+        }
+
+        runningTotal = roundToTwoDecimals(runningTotal);
+        if (cart.totalPrice !== runningTotal || cartChanged) {
+            cart.totalPrice = runningTotal;
+            await cart.save();
         }
         
         return res.status(200).json(new ApiResponse(200, cart, "Cart fetched successfully"));

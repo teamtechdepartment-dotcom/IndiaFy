@@ -40,6 +40,36 @@ const orderItemSchema = new mongoose.Schema({
     gstAmount: {
         type: Number,
         default: 0
+    },
+    // Immutable Campaign Pricing Snapshot
+    originalPrice: {
+        type: Number,
+        default: null
+    },
+    salePrice: {
+        type: Number,
+        default: null
+    },
+    discountType: {
+        type: String,
+        default: null
+    },
+    discountValue: {
+        type: Number,
+        default: null
+    },
+    discountAmount: {
+        type: Number,
+        default: null
+    },
+    campaignId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Campaign",
+        default: null
+    },
+    campaignName: {
+        type: String,
+        default: null
     }
 });
 

@@ -33,6 +33,10 @@ import storeApprovalRoutes from "./routers/seller/storeApproval.route.js";
 import orderNotificationRoutes from "./routers/seller/orderNotification.route.js";
 import { getDashboardAccess, getLatestNodeStatus } from "./controllers/sellers/node.controllers.js";
 import seoRoutes from "./routers/seo/seo.route.js";
+import { getActiveCampaigns, attachCampaignPricingToProducts } from "./services/pricing.service.js";
+import Campaign from "./models/campaigns/campaign.model.js";
+import ProductModel from "./models/products/product.model.js";
+import mongoose from "mongoose";
 import requiredLogin from "./middlewares/requiredLogin.middleware.js";
 import { requireSeller } from "./middlewares/roleGuard.middleware.js";
 import { dashboardGuard } from "./middlewares/dashboardGuard.middleware.js";
@@ -223,6 +227,46 @@ app.use("/api/v1/indiafy", storeApprovalRoutes);
 app.use("/api/v1/indiafy/seller/notifications", orderNotificationRoutes);
 app.get("/api/v1/indiafy/seller/dashboard-access", requiredLogin, getDashboardAccess);
 app.get("/api/v1/indiafy/seller/node/status", requiredLogin, getLatestNodeStatus);
+app.get("/api/v1/indiafy/campaigns/active", async (req, res) => {
+  try {
+    const campaigns = await getActiveCampaigns();
+    return res.status(200).json({ success: true, data: campaigns });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get("/api/v1/indiafy/campaigns/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid campaign ID" });
+    }
+    const campaign = await Campaign.findById(id).lean();
+    if (!campaign) {
+      return res.status(404).json({ success: false, message: "Campaign not found" });
+    }
+    const productIds = (campaign.products || []).map((p) => p.productId).filter(Boolean);
+    const products = await ProductModel.find({
+      _id: { $in: productIds },
+      isDeleted: { $ne: true },
+      isActive: { $ne: false },
+    })
+      .populate("sellerId", "firstName lastName businessName email")
+      .lean();
+
+    const decorated = await attachCampaignPricingToProducts(products);
+    return res.status(200).json({
+      success: true,
+      data: {
+        campaign,
+        products: decorated,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 
 // Global Error Handling Middleware

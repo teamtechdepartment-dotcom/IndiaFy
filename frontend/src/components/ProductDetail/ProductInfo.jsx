@@ -30,11 +30,38 @@ function ProductInfo({ product }) {
 
       {/* Price Block */}
       <div className="mb-6">
+        {product.campaign && (
+          <div className="mb-3 p-3 bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-orange-500/10 border border-rose-200 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔥</span>
+              <div>
+                <p className="text-sm font-black text-rose-600 uppercase tracking-wide">
+                  {product.campaign.name || product.campaign.badgeText}
+                </p>
+                <p className="text-xs text-gray-600">Exclusive Promotional Sale</p>
+              </div>
+            </div>
+            <span className="bg-rose-600 text-white font-black text-xs px-2.5 py-1 rounded-full shadow-xs">
+              {product.campaign.discountValue}% OFF
+            </span>
+          </div>
+        )}
         <div className="flex items-end gap-3 mb-1">
           <span className="text-3xl font-bold text-[#212121]">₹{product.currentPrice.toLocaleString("en-IN")}</span>
-          <span className="text-sm text-gray-500 line-through mb-1">₹{product.originalPrice.toLocaleString("en-IN")}</span>
-          <span className="text-sm font-bold text-[#10B981] mb-1">{discount}% off</span>
+          {product.originalPrice > product.currentPrice && (
+            <>
+              <span className="text-sm text-gray-500 line-through mb-1">₹{product.originalPrice.toLocaleString("en-IN")}</span>
+              <span className={`text-sm font-bold mb-1 ${product.campaign ? 'text-rose-600' : 'text-[#10B981]'}`}>
+                {product.campaign ? `${product.campaign.discountValue}% OFF` : `${discount}% off`}
+              </span>
+            </>
+          )}
         </div>
+        {product.originalPrice > product.currentPrice && (
+          <p className="text-xs font-bold text-emerald-600 mb-1">
+            You save ₹{(product.originalPrice - product.currentPrice).toLocaleString("en-IN")}
+          </p>
+        )}
         <p className="text-sm font-bold mt-1">Inclusive of all taxes</p>
         <p className="text-sm mt-1">
           <span className="font-bold">EMI</span> starts at ₹{(product.currentPrice / 6).toFixed(0)}. No Cost EMI available <a href="#" className="text-[#007185] hover:text-[#C7511F] hover:underline">EMI options</a>

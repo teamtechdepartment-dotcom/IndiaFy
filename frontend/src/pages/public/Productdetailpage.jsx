@@ -215,7 +215,9 @@ export default function ProductDetailPage() {
     rating: p.ratingAverage || 4.5,
     reviewCount: p.ratingCount || 0,
     currentPrice: attribute?.salePrice || p.price || 0,
-    originalPrice: attribute?.mrpPrice || p.price || 0,
+    originalPrice: p.originalPrice || attribute?.originalSellerPrice || attribute?.mrpPrice || p.price || 0,
+    campaign: p.campaign || null,
+    pricing: p.pricing || null,
     images: pImages,
     seller: {
       id: p.sellerId?._id || "seller",

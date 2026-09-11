@@ -14,6 +14,7 @@ const fallbackRolePermissions = {
     "payments:read", "payments:write",
     "categories:read", "categories:write",
     "tickets:read", "tickets:write",
+    "campaigns:read", "campaigns:write",
     "settings:read", "settings:write",
     "audit:read",
     "roles:read", "roles:write"
@@ -61,18 +62,40 @@ const permissionGuard = (requiredPermission) => {
       }
 
       // Check user role from JWT token
-      const userRole = (req.user.role || "").toUpperCase();
+      const rawRole = (req.user.role || "").trim();
+      const userRole = rawRole.toUpperCase().replace(/\s+/g, "_");
 
-      // Get permissions from DB if role configuration exists, otherwise fallback to defaults
-      let permissions = [];
-      const dbRole = await AdminRole.findOne({ roleName: userRole });
-      if (dbRole) {
-        permissions = dbRole.permissions || [];
-      } else {
-        permissions = fallbackRolePermissions[userRole] || [];
+      // If user has super admin role, grant full access bypass
+      if (
+        userRole === "SUPER_ADMIN" ||
+        userRole === "SUPERADMIN" ||
+        req.user.isSuperAdmin
+      ) {
+        return next();
       }
 
-      // If user has super admin wildcard, grant bypass
+      // Determine fallback permissions for this role
+      const fallback =
+        fallbackRolePermissions[userRole] ||
+        (userRole.includes("ADMIN") ? fallbackRolePermissions.ADMIN : []);
+
+      // Start with fallback defaults to ensure existing admins receive new fallback permissions (e.g. campaigns:read/write)
+      let permissions = [...fallback];
+
+      try {
+        const dbRole = await AdminRole.findOne({
+          roleName: { $regex: new RegExp(`^${userRole}$`, "i") },
+        });
+
+        if (dbRole && Array.isArray(dbRole.permissions)) {
+          // Merge database permissions with fallback permissions
+          permissions = Array.from(new Set([...permissions, ...dbRole.permissions]));
+        }
+      } catch (dbErr) {
+        console.warn("[PermissionGuard] DB role query failed, using fallback:", dbErr.message);
+      }
+
+      // If user has super admin wildcard or the required permission, grant access
       if (permissions.includes("*") || permissions.includes(requiredPermission)) {
         return next();
       }

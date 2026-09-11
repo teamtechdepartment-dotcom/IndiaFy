@@ -9,6 +9,7 @@ import SellerNode from "../../models/sellerNodes/sellerNode.model.js";
 import SellerModel from "../../models/sellers/auth.model.js";
 import { uploadBuffer } from "../../utils/cloudinary.js";
 import LocationService from "../../services/location.service.js";
+import { attachCampaignPricingToProducts } from "../../services/pricing.service.js";
 
 // Helper to get active products from active stores
 const getActiveFilterQuery = async (extraQuery = {}) => {
@@ -64,6 +65,9 @@ const enrichProductsWithInventory = async (products) => {
         p.reserved = reserved;
         p.available = Math.max(0, p.stock - reserved);
     }
+
+    // Attach dynamic campaign pricing (single batched query, non-destructive to seller price)
+    await attachCampaignPricingToProducts(plainProducts);
 
     return isArray ? plainProducts : plainProducts[0];
 };

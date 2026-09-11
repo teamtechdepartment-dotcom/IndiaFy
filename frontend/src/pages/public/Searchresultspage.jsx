@@ -11,7 +11,7 @@ import SEO from "../../components/seo/SEO";
 
 const mapDbProduct = (p) => {
   const price = p.attribute?.salePrice ?? p.price ?? 0;
-  const orig = p.attribute?.mrpPrice ?? p.price ?? price;
+  const orig = p.originalPrice ?? p.attribute?.originalSellerPrice ?? p.attribute?.mrpPrice ?? p.price ?? price;
   const rating = p.ratingAverage ?? 4.5;
   const reviews = p.ratingCount ?? 0;
   const seller = p.sellerId ? `${p.sellerId.firstName} ${p.sellerId.lastName || ""}`.trim() : "Verified Seller";
@@ -29,7 +29,8 @@ const mapDbProduct = (p) => {
     dist: 1.0,
     eta: 20,
     img: img,
-    badge: p.isFeatured ? "Featured" : null,
+    badge: p.campaign ? `🔥 ${p.campaign.badgeText || p.campaign.name}` : (p.isFeatured ? "Featured" : null),
+    campaign: p.campaign || null,
     stock: p.stock > 0
   };
 };
@@ -348,7 +349,7 @@ function ProductCardGrid({ p }) {
 
         {/* Badge */}
         {p.badge && (
-          <span className="absolute top-3 left-3 bg-brand-accent text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider">
+          <span className={`absolute top-3 left-3 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider ${p.campaign ? 'bg-gradient-to-r from-rose-600 to-amber-500 font-black' : 'bg-brand-accent'}`}>
             {p.badge}
           </span>
         )}
@@ -419,6 +420,12 @@ function ProductCardList({ p }) {
           <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center">
             <span className="bg-white text-gray-800 text-xs font-bold px-3 py-1 rounded shadow-sm border border-gray-200">OUT OF STOCK</span>
           </div>
+        )}
+
+        {p.badge && (
+          <span className={`absolute top-2 left-2 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider z-10 ${p.campaign ? 'bg-gradient-to-r from-rose-600 to-amber-500 font-black' : 'bg-brand-accent'}`}>
+            {p.badge}
+          </span>
         )}
       </div>
 

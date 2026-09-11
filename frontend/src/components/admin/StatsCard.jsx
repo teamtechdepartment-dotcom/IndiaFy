@@ -30,7 +30,11 @@ export default function StatsCard({ title, value, icon: Icon, trend, badge, colo
         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{title}</p>
         {Icon && (
           <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${c.bg} ${c.border} ${c.text}`}>
-            {Icon}
+            {React.isValidElement(Icon) ? (
+              Icon
+            ) : typeof Icon === "function" || (typeof Icon === "object" && Icon !== null && Icon.$$typeof) ? (
+              <Icon size={18} />
+            ) : null}
           </div>
         )}
       </div>

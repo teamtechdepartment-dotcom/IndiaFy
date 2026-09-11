@@ -619,13 +619,30 @@ export default function Products() {
                       {/* Price */}
                       <td className="p-4">
                         <div className="flex flex-col">
-                          <span className="font-black text-slate-900 text-sm">
-                            ₹{salePrice.toFixed(2)}
-                          </span>
-                          {mrpPrice > salePrice && (
-                            <span className="text-[10px] text-slate-400 line-through mt-0.5">
-                              ₹{mrpPrice.toFixed(2)}
-                            </span>
+                          {p.campaign ? (
+                            <div className="space-y-1">
+                              <div className="inline-flex items-center gap-1 bg-gradient-to-r from-rose-500 to-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">
+                                <span>🔥</span>
+                                <span>{p.campaign.name || p.campaign.badgeText} ({p.campaign.discountValue}% OFF)</span>
+                              </div>
+                              <div className="text-[11px] text-slate-500">
+                                Original: <span className="font-bold text-slate-800">₹{(Number(p.originalPrice || p.attribute?.originalSellerPrice || salePrice)).toFixed(2)}</span>
+                              </div>
+                              <div className="text-[11px] text-emerald-700">
+                                Customer: <span className="font-black text-slate-900">₹{salePrice.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="font-black text-slate-900 text-sm">
+                                ₹{salePrice.toFixed(2)}
+                              </span>
+                              {mrpPrice > salePrice && (
+                                <span className="text-[10px] text-slate-400 line-through mt-0.5">
+                                  ₹{mrpPrice.toFixed(2)}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </td>
@@ -665,7 +682,18 @@ export default function Products() {
                             <Eye size={16} />
                           </button>
                           <button 
-                            onClick={() => { setEditingProduct({ ...p, stock: numStock }); setIsEditModalOpen(true); }}
+                            onClick={() => { 
+                              const baseSellerPrice = p.attribute?.originalSellerPrice ?? p.originalPrice ?? p.attribute?.salePrice ?? p.price ?? 0;
+                              setEditingProduct({ 
+                                ...p, 
+                                stock: numStock,
+                                attribute: {
+                                  ...p.attribute,
+                                  salePrice: baseSellerPrice
+                                }
+                              }); 
+                              setIsEditModalOpen(true); 
+                            }}
                             className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                             title="Edit Product"
                           >
@@ -983,6 +1011,25 @@ export default function Products() {
                   </div>
                 </div>
 
+                {editingProduct.campaign && (
+                  <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🔥</span>
+                      <div>
+                        <p className="text-xs font-bold text-amber-900">
+                          Active Campaign: <strong>{editingProduct.campaign.name || editingProduct.campaign.badgeText}</strong> ({editingProduct.campaign.discountValue}% OFF)
+                        </p>
+                        <p className="text-[11px] text-amber-700">
+                          The Selling Price below is your base seller price. Admin campaign discount is applied dynamically and is read-only.
+                        </p>
+                      </div>
+                    </div>
+                    <span className="shrink-0 bg-amber-200 text-amber-900 text-[10px] font-black uppercase px-2 py-1 rounded-md">
+                      Read-Only Campaign
+                    </span>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">MRP Price (₹)</label>
@@ -1105,6 +1152,30 @@ export default function Products() {
                       <div className="flex justify-between items-center text-rose-600 font-bold text-xs bg-rose-50 px-2 py-1 rounded">
                         <span>Save Amount (Discount)</span>
                         <span>{selectedProduct.discountPercentage}% OFF</span>
+                      </div>
+                    )}
+                    {selectedProduct.campaign && (
+                      <div className="p-3 bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-200 rounded-xl space-y-1.5 mt-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black text-rose-600 flex items-center gap-1">
+                            🔥 {selectedProduct.campaign.name || selectedProduct.campaign.badgeText}
+                          </span>
+                          <span className="text-[10px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-full">
+                            {selectedProduct.campaign.discountValue}% OFF
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs text-slate-600">
+                          <span>Original Seller Price:</span>
+                          <span className="font-bold text-slate-800">
+                            ₹{(Number(selectedProduct.originalPrice || selectedProduct.attribute?.originalSellerPrice || selectedProduct.attribute?.salePrice || 0)).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs text-emerald-700">
+                          <span>Customer Sale Price:</span>
+                          <span className="font-black text-slate-900">
+                            ₹{(Number(selectedProduct.attribute?.salePrice || selectedProduct.price || 0)).toFixed(2)}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -85,6 +85,7 @@ const TrustSafety = lazy(() => import("./pages/public/TrustSafety"));
 const BecomeSellerInfo = lazy(() => import("./pages/public/BecomeSellerInfo"));
 const HelpCenter = lazy(() => import("./pages/public/HelpCenter"));
 const FAQ = lazy(() => import("./pages/public/FAQ"));
+const CampaignPage = lazy(() => import("./pages/public/CampaignPage"));
 
 // ADDED: Quick Commerce Hero Component
 const Hero = lazy(() => import("./components/QuickCommerce/Hero"));
@@ -182,6 +183,9 @@ const AuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
 const CreateCustomer = lazy(() => import("./pages/admin/CreateCustomer"));
 const CreateOrder = lazy(() => import("./pages/admin/CreateOrder"));
 const WhatsappAutomation = lazy(() => import("./pages/admin/WhatsappAutomation"));
+const Campaigns = lazy(() => import("./pages/admin/Campaigns"));
+const CreateCampaign = lazy(() => import("./pages/admin/CreateCampaign"));
+const CampaignDetail = lazy(() => import("./pages/admin/CampaignDetail"));
 
 /* =========================================================
    APP
@@ -325,6 +329,7 @@ export default function App() {
               <Route path="/order-success" element={<Ordersuccesspage />} />
               <Route path="/orders/success" element={<Ordersuccesspage />} />
               <Route path="/search" element={<Searchresultspage />} />
+              <Route path="/campaign/:id" element={<Suspense fallback={<PageLoader />}><CampaignPage /></Suspense>} />
               <Route path="/local-sellers" element={<LocalSellers />} />
               <Route path="/search" element={<Searchresultspage />} />
               <Route path="/store/:slug" element={<Storepage />} />
@@ -494,6 +499,10 @@ export default function App() {
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/profile" element={<AdminProfile />} />
             <Route path="/admin/profiles" element={<AdminProfile />} />
+            <Route path="/admin/campaigns" element={<Campaigns />} />
+            <Route path="/admin/campaigns/create" element={<CreateCampaign />} />
+            <Route path="/admin/campaigns/:id" element={<CampaignDetail />} />
+            <Route path="/admin/campaigns/:id/edit" element={<CreateCampaign />} />
             <Route path="/admin/coupons" element={<Coupons />} />
             <Route path="/admin/inventory" element={<AdminInventory />} />
             <Route path="/admin/whatsapp-automation" element={<WhatsappAutomation />} />

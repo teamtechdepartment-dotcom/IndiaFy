@@ -20,7 +20,7 @@ import JsonLd from "../../components/seo/JsonLd";
 
 const mapDbProductToCategory = (p) => {
   const price = p.attribute?.salePrice ?? p.price ?? 0;
-  const original = p.attribute?.mrpPrice ?? p.price ?? price;
+  const original = p.originalPrice ?? p.attribute?.originalSellerPrice ?? p.attribute?.mrpPrice ?? p.price ?? price;
   const rating = p.ratingAverage ?? 4.5;
   const reviews = p.ratingCount ?? 12;
   const seller = p.sellerId ? `${p.sellerId.firstName || ""} ${p.sellerId.lastName || ""}`.trim() || p.sellerId.businessName || "Verified Seller" : "Verified Seller";
@@ -38,7 +38,8 @@ const mapDbProductToCategory = (p) => {
     dist: 1.2,
     eta: "Today",
     img: img,
-    badge: p.isFeatured ? "Featured" : (p.nodeType === "QUICK_COMMERCE" ? "Fast Delivery" : null),
+    badge: p.campaign ? p.campaign.name : (p.isFeatured ? "Featured" : (p.nodeType === "QUICK_COMMERCE" ? "Fast Delivery" : null)),
+    campaign: p.campaign || null,
     inStock: p.stock !== undefined ? p.stock > 0 : true,
   };
 };

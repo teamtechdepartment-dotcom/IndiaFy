@@ -101,13 +101,21 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
         </div>
 
         <div className="w-full sm:w-[250px] shrink-0 flex flex-col sm:items-start py-2 sm:pl-4 sm:border-l border-gray-100">
+           {product.campaign && (
+             <div className="mb-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[11px] font-black shadow-sm tracking-wide">
+               <span>🔥</span>
+               <span>{product.campaign.badgeText || product.campaign.name}</span>
+             </div>
+           )}
            <div className="flex items-baseline gap-2 mb-1">
-             <span className="text-2xl font-medium text-[#212121]">₹{product.price.toLocaleString("en-IN")}</span>
+             <span className="text-2xl font-bold text-[#212121]">₹{product.price.toLocaleString("en-IN")}</span>
            </div>
            {product.original > product.price && (
              <div className="flex items-center gap-2 text-sm font-medium mb-2">
                <span className="text-[#878787] line-through">₹{product.original.toLocaleString("en-IN")}</span>
-               <span className="text-[#388e3c]">{Math.round(((product.original - product.price) / product.original) * 100)}% off</span>
+               <span className={`font-bold ${product.campaign ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded text-xs' : 'text-[#388e3c]'}`}>
+                 {product.campaign ? `${product.campaign.discountValue}% OFF` : `${Math.round(((product.original - product.price) / product.original) * 100)}% off`}
+               </span>
              </div>
            )}
            <p className="text-[11px] text-[#212121] mb-1">Free delivery</p>
@@ -150,15 +158,24 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1 z-10">
-          {product.badge === "Best Seller" && (
-            <span className="bg-[#2874F0] text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">
-              Bestseller
+          {product.campaign ? (
+            <span className="bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded shadow-md uppercase tracking-wider flex items-center gap-1">
+              <span>🔥</span>
+              <span>{product.campaign.badgeText || product.campaign.name}</span>
             </span>
-          )}
-          {product.badge === "Hot Deal" && (
-            <span className="bg-[#FB641B] text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">
-              Hot Deal
-            </span>
+          ) : (
+            <>
+              {product.badge === "Best Seller" && (
+                <span className="bg-[#2874F0] text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">
+                  Bestseller
+                </span>
+              )}
+              {product.badge === "Hot Deal" && (
+                <span className="bg-[#FB641B] text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">
+                  Hot Deal
+                </span>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -190,8 +207,8 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
             {product.original > product.price && (
               <>
                 <span className="text-xs font-medium text-gray-400 line-through">₹{product.original.toLocaleString("en-IN")}</span>
-                <span className="text-xs font-bold text-[#10B981] bg-[#10B981]/10 px-1.5 py-0.5 rounded">
-                  {Math.round(((product.original - product.price) / product.original) * 100)}% off
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${product.campaign ? 'text-rose-600 bg-rose-50 border border-rose-200' : 'text-[#10B981] bg-[#10B981]/10'}`}>
+                  {product.campaign ? `${product.campaign.discountValue}% OFF` : `${Math.round(((product.original - product.price) / product.original) * 100)}% off`}
                 </span>
               </>
             )}

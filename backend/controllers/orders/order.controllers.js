@@ -12,6 +12,7 @@ import { emitOrderNotification } from "../../utils/emitOrderNotification.js";
 import SellerOrder from "../../models/orders/sellerOrder.model.js";
 import { createSellerOrderMappings } from "../../utils/createSellerOrderMappings.js";
 import { uploadBuffer, uploadVideoBuffer } from "../../utils/cloudinary.js";
+import { getActiveCampaigns, resolveProductPricing, roundToTwoDecimals } from "../../services/pricing.service.js";
 
 // @desc    Create new order
 // @route   POST /api/v1/indiafy/orders
@@ -69,7 +70,10 @@ export const createOrder = asyncHandler(async (req, res, next) => {
         
         console.log(`[Checkout Trace] Customer Cart ID: ${customerCart?._id || "None"}`);
 
-        // Validation and Stock check, plus attaching node data
+        // Fetch active campaigns once for entire order checkout to resolve server-authoritative effective pricing
+        const activeCampaigns = await getActiveCampaigns();
+
+        // Validation and Stock check, plus attaching node data and immutable pricing snapshot
         const enrichedOrderItems = [];
         for (const item of orderItems) {
             if (!mongoose.Types.ObjectId.isValid(item.product)) {
@@ -133,33 +137,68 @@ export const createOrder = asyncHandler(async (req, res, next) => {
                 });
             }
 
+            // STEP 8: Resolve Server-Authoritative Effective Price (Never trust client-submitted price)
+            const pricing = resolveProductPricing(product, activeCampaigns);
+            let unitPrice = pricing.salePrice;
+            const isItemWholesale = product.isWholesale || false;
+            let itemGst = 0;
+
+            if (isItemWholesale) {
+                if (product.bulkPricing && product.bulkPricing.length > 0) {
+                    const sortedTiers = [...product.bulkPricing].sort((a, b) => b.minQty - a.minQty);
+                    const tier = sortedTiers.find((t) => item.quantity >= t.minQty);
+                    if (tier) unitPrice = tier.pricePerUnit;
+                }
+                itemGst = roundToTwoDecimals((unitPrice * item.quantity) * ((product.gstPercentage || 0) / 100));
+            }
+
+            unitPrice = roundToTwoDecimals(unitPrice);
+
+            // Create immutable historical record of pricing at purchase time
             enrichedOrderItems.push({
                 product: product._id,
                 seller: product.sellerId,
                 quantity: item.quantity,
-                price: item.price,
+                price: unitPrice, // Server-validated effective purchase price
                 nodeId: product.nodeId,
                 nodeType: product.nodeType,
-                isWholesale: product.isWholesale || false,
-                gstAmount: item.gstAmount || 0
+                isWholesale: isItemWholesale,
+                gstAmount: itemGst,
+                originalPrice: pricing.originalPrice,
+                salePrice: unitPrice,
+                discountType: pricing.discountType,
+                discountValue: pricing.discountValue,
+                discountAmount: pricing.discountAmount,
+                campaignId: pricing.campaign?.id || pricing.campaign?._id || null,
+                campaignName: pricing.campaign?.name || null
             });
 
-            console.log(`[Seller Mapping Trace] Product ${product._id} -> seller ${product.sellerId}, node ${product.nodeId}, nodeType ${product.nodeType}`);
+            console.log(`[Seller Mapping Trace] Product ${product._id} -> seller ${product.sellerId}, node ${product.nodeId}, price ₹${unitPrice} (original ₹${pricing.originalPrice}, campaign: ${pricing.campaign?.name || "None"})`);
         }
+
+        // Calculate authoritative order financial totals server-side
+        const calculatedItemsPrice = roundToTwoDecimals(
+            enrichedOrderItems.reduce((acc, it) => acc + (it.price * it.quantity), 0)
+        );
+        const calculatedTaxPrice = roundToTwoDecimals(
+            enrichedOrderItems.reduce((acc, it) => acc + (it.gstAmount || 0), 0)
+        );
+        const resolvedShippingPrice = roundToTwoDecimals(Number(shippingPrice) || 0);
+        const calculatedTotalPrice = roundToTwoDecimals(calculatedItemsPrice + calculatedTaxPrice + resolvedShippingPrice);
 
         // Generate dynamic Order Number
         const orderNumber = `IND-${Date.now()}`;
 
-        // STEP 9: Create order
+        // STEP 9: Create order with server-verified prices and immutable snapshots
         const order = new OrderModel({
             customer: req.user._id,
             orderItems: enrichedOrderItems,
             shippingAddress,
             paymentMethod,
-            itemsPrice: itemsPrice || 0,
-            taxPrice: taxPrice || 0,
-            shippingPrice: shippingPrice || 0,
-            totalPrice: totalPrice || 0,
+            itemsPrice: calculatedItemsPrice,
+            taxPrice: calculatedTaxPrice,
+            shippingPrice: resolvedShippingPrice,
+            totalPrice: calculatedTotalPrice,
             paymentResult,
             isPaid: !!paymentResult,
             paidAt: paymentResult ? Date.now() : undefined,
