@@ -311,4 +311,11 @@ describe("Indiafy Inventory Management & Stock Badges Integration Tests", () => 
         await OrderModel.findByIdAndDelete(orderId);
         await CartModel.findOneAndDelete({ customerId: customer._id });
     });
+
+    afterAll(async () => {
+        await CustomerModel.findByIdAndDelete(customer._id);
+        await SellerModel.findByIdAndDelete(seller._id);
+        await ProductModel.findByIdAndDelete(product._id);
+        await mongoose.connection.close();
+    });
 });

@@ -42,6 +42,7 @@ import wholesaleRoutes from "./routers/wholesale/wholesale.routes.js";
 import deliveryRoutes from "./routers/delivery/delivery.route.js";
 import storeApprovalRoutes from "./routers/seller/storeApproval.route.js";
 import orderNotificationRoutes from "./routers/seller/orderNotification.route.js";
+import supportRoutes from "./routers/support/support.routes.js";
 import { getDashboardAccess, getLatestNodeStatus } from "./controllers/sellers/node.controllers.js";
 import seoRoutes from "./routers/seo/seo.route.js";
 import requiredLogin from "./middlewares/requiredLogin.middleware.js";
@@ -165,8 +166,19 @@ app.use(compression({
     return compression.filter(req, res);
   }
 }));
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ 
+  limit: "10mb",
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: "10mb",
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 app.use(cookieParser());
 
 // Data Sanitization against NoSQL query injection
@@ -232,6 +244,7 @@ app.use("/api/v1/indiafy/delivery", deliveryRoutes);
 
 app.use("/api/v1/indiafy", storeApprovalRoutes);
 app.use("/api/v1/indiafy/seller/notifications", orderNotificationRoutes);
+app.use("/api/v1/indiafy/support", supportRoutes);
 app.get("/api/v1/indiafy/seller/dashboard-access", requiredLogin, getDashboardAccess);
 app.get("/api/v1/indiafy/seller/node/status", requiredLogin, getLatestNodeStatus);
 

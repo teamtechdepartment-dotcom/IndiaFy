@@ -23,7 +23,9 @@ import {
   LogOut,
   ArrowLeft,
   Lock,
+  MessageSquare
 } from "lucide-react";
+import SupportChat from "./support/SupportChat";
 import { useSellerAuthStore } from "../store/sellerAuthStore";
 import { useAuthStore } from "../store/authStore";
 import { useNodeStore } from "../store/nodeStore";
@@ -122,6 +124,7 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
   const { user, logout } = useSellerAuthStore();
   const { logout: logoutCustomer } = useAuthStore();
   const { clearActiveNode, activeNode: fullActiveNode } = useNodeStore();
+  const [showSupport, setShowSupport] = useState(false);
 
   const isVerified = fullActiveNode?.isVerified !== false;
   const pathParts = location.pathname.split("/").filter(Boolean);
@@ -410,6 +413,23 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
           )}
         </main>
       </div>
+      
+      {/* SELLER GLOBAL SUPPORT CHAT WIDGET */}
+      <button
+        onClick={() => setShowSupport(true)}
+        className="fixed bottom-6 right-6 z-[60] bg-[#065F46] hover:bg-[#047857] text-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group"
+        aria-label="Open Support Chat"
+      >
+        <MessageSquare size={24} className="group-hover:scale-110 transition-transform" />
+      </button>
+
+      {showSupport && (
+        <SupportChat
+          storeId={activeNode}
+          role="seller"
+          onClose={() => setShowSupport(false)}
+        />
+      )}
     </div>
   );
 }

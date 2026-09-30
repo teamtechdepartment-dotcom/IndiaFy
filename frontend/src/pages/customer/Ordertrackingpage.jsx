@@ -28,6 +28,8 @@ import {
 import { useOrderStore } from "../../store/orderStore";
 import { useAuthStore } from "../../store/authStore";
 import { useSellerAuthStore } from "../../store/sellerAuthStore";
+import SupportChat from "../../components/support/SupportChat";
+import { MessageSquare } from "lucide-react";
 import { useAdminAuthStore } from "../../store/adminAuthStore";
 import { toast } from "react-toastify";
 import { Skeleton } from "../../components/ui/Skeleton";
@@ -87,6 +89,7 @@ export default function OrderTrackingPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [showSupport, setShowSupport] = useState(false);
   const [etaText, setEtaText] = useState("40 mins");
 
   // Geolocation Coordinates
@@ -911,6 +914,17 @@ export default function OrderTrackingPage() {
                 </span>
                 <ArrowRight size={14} className="text-gray-400 group-hover/btn:trangray-x-1 transition-transform" />
               </button>
+
+              <button 
+                onClick={() => setShowSupport(true)}
+                className="w-full mt-3 flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100/80 border border-gray-100 rounded transition-all group/btn text-xs font-bold text-gray-800"
+              >
+                <span className="flex items-center gap-2">
+                  <MessageSquare size={16} className="text-[#065F46]" />
+                  Need Help? Talk to Support
+                </span>
+                <ArrowRight size={14} className="text-gray-400 group-hover/btn:trangray-x-1 transition-transform" />
+              </button>
             </Card>
 
             {/* TRUST SIGNAL BOX */}
@@ -939,6 +953,14 @@ export default function OrderTrackingPage() {
         </div>
 
       </main>
+
+      {showSupport && (
+        <SupportChat
+          orderId={orderId}
+          role="customer"
+          onClose={() => setShowSupport(false)}
+        />
+      )}
 
       <Footer />
     </div>

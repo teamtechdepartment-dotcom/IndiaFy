@@ -140,6 +140,14 @@ const SellerSignup = lazy(() => import("./pages/auth/SellerSignup"));
 const AdminLogin = lazy(() => import("./pages/auth/AdminLogin"));
 
 /* =========================================================
+   SUPPORT PAGES
+========================================================= */
+
+const SupportGuard = lazy(() => import("./components/SupportGuard"));
+const SupportWorkspaceLayout = lazy(() => import("./pages/support/SupportWorkspaceLayout"));
+const SupportWorkspace = lazy(() => import("./pages/support/SupportWorkspace"));
+
+/* =========================================================
    SELLER PAGES
 ========================================================= */
 
@@ -504,6 +512,15 @@ export default function App() {
             <Route path="/admin/tickets" element={<SupportInbox />} />
             <Route path="/admin/roles" element={<RoleManagement />} />
             <Route path="/admin/audit-logs" element={<AuditLogs />} />
+          </Route>
+
+          {/* =====================================================
+              SUPPORT WORKSPACE (protected by custom guard)
+          ===================================================== */}
+          <Route element={<SupportGuard />}>
+            <Route path="/support-workspace" element={<SupportWorkspaceLayout />}>
+              <Route index element={<SupportWorkspace />} />
+            </Route>
           </Route>
 
           {/* =====================================================
