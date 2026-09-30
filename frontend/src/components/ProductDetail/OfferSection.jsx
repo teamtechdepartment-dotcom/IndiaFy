@@ -24,7 +24,7 @@ function OfferSection() {
   ];
 
   return (
-    <div className="mb-8 border border-gray-100 bg-white rounded-2xl p-4 shadow-sm">
+    <div className="mb-8 border border-gray-100 bg-white rounded p-4 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-8 h-8 rounded-full bg-[#2874F0]/10 flex items-center justify-center">
           <Tag size={16} className="text-[#2874F0]" />
@@ -34,7 +34,7 @@ function OfferSection() {
       
       <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
         {OFFERS.map((offer, idx) => (
-          <div key={idx} className="w-[160px] shrink-0 border border-gray-100 rounded-xl p-3 bg-gray-50 hover:bg-[#2874F0]/5 hover:border-[#2874F0]/30 transition-colors">
+          <div key={idx} className="w-[160px] shrink-0 border border-gray-100 rounded p-3 bg-gray-50 hover:bg-[#2874F0]/5 hover:border-[#2874F0]/30 transition-colors">
             <div className="mb-2 bg-white w-8 h-8 rounded-lg flex items-center justify-center shadow-sm shrink-0">{offer.icon}</div>
             <h4 className="text-[13px] font-bold text-[#212121] mb-1.5">{offer.title}</h4>
             <p className="text-[12px] text-gray-600 line-clamp-3 mb-2">{offer.desc}</p>

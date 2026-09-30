@@ -25,7 +25,7 @@ function ComparisonSection() {
         </div>
 
         <div className="max-w-5xl mx-auto overflow-x-auto -mx-4 sm:mx-0">
-          <div className="bg-brand-background border border-brand-border rounded-[2rem] overflow-hidden shadow-lg min-w-[480px]">
+          <div className="bg-brand-background border border-brand-border rounded overflow-hidden shadow-lg min-w-[480px]">
           {/* Table Header */}
           <div className="grid grid-cols-4 bg-white border-b border-brand-border p-6 text-center items-center">
             <div className="text-left">
@@ -65,7 +65,7 @@ function ComparisonSection() {
           {/* Footer CTA */}
           <div className="bg-brand-primary p-6 text-center">
              <p className="text-sm font-bold text-white uppercase tracking-widest mb-4">Stop guessing. Start sourcing securely.</p>
-             <button className="bg-brand-accent text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-colors">
+             <button className="bg-brand-accent text-white px-8 py-3 rounded font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-colors">
                Create Free Account
              </button>
           </div>

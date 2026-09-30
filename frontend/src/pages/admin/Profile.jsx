@@ -69,7 +69,7 @@ export default function AdminProfile() {
 
   return (
     <div
-      className="flex flex-col lg:flex-row min-h-screen text-slate-900 dark:text-slate-100"
+      className="flex flex-col lg:flex-row min-h-screen text-gray-900 dark:text-slate-100"
       style={{
         background:
           "radial-gradient(ellipse at 20% 50%, rgba(40,116,240,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(251,100,27,0.04) 0%, transparent 60%), linear-gradient(135deg, #050811 0%, #080C1A 50%, #050811 100%)",
@@ -82,19 +82,19 @@ export default function AdminProfile() {
 
         <main className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto w-full">
           {/* Page Title */}
-          <h1 className="text-2xl sm:text-3xl font-extrabold mb-6 sm:mb-8 text-slate-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-extrabold mb-6 sm:mb-8 text-gray-900 dark:text-white">
             Administrative Profile
           </h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* LEFT – Profile Card */}
-            <div className="lg:col-span-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+            <div className="lg:col-span-4 bg-white/70 dark:bg-[#065F46]/60 backdrop-blur-xl border border-gray-200/60 dark:border-slate-800 rounded p-6 shadow-sm">
               <div className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-[#2874F0] to-indigo-600 text-white flex items-center justify-center text-3xl font-black shadow-lg">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded bg-gradient-to-br from-[#2874F0] to-indigo-600 text-white flex items-center justify-center text-3xl font-black shadow-lg">
                   {avatarInitial}
                 </div>
 
-                <h2 className="mt-4 text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                <h2 className="mt-4 text-lg sm:text-xl font-black text-gray-900 dark:text-white">
                   {name}
                 </h2>
                 <p className="text-xs font-bold uppercase tracking-wider text-[#2874F0] dark:text-[#FB641B] mt-1">
@@ -107,23 +107,23 @@ export default function AdminProfile() {
               </div>
 
               <div className="mt-6 space-y-3.5 text-xs">
-                <div className="flex items-center gap-2.5 text-slate-600 dark:text-slate-300 break-all">
-                  <Mail size={15} className="shrink-0 text-slate-400" />
+                <div className="flex items-center gap-2.5 text-gray-600 dark:text-slate-300 break-all">
+                  <Mail size={15} className="shrink-0 text-gray-400" />
                   <span>{email}</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-slate-600 dark:text-slate-300">
-                  <Phone size={15} className="shrink-0 text-slate-400" />
+                <div className="flex items-center gap-2.5 text-gray-600 dark:text-slate-300">
+                  <Phone size={15} className="shrink-0 text-gray-400" />
                   <span>{phone}</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-slate-600 dark:text-slate-300">
-                  <Clock size={15} className="shrink-0 text-slate-400" />
+                <div className="flex items-center gap-2.5 text-gray-600 dark:text-slate-300">
+                  <Clock size={15} className="shrink-0 text-gray-400" />
                   <span>Verified Administrator</span>
                 </div>
               </div>
 
               <button
                 onClick={handleLogout}
-                className="mt-6 w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-xs font-black uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 transition-all cursor-pointer"
+                className="mt-6 w-full flex items-center justify-center gap-2 py-3 rounded text-xs font-black uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 transition-all cursor-pointer"
               >
                 <LogOut size={15} />
                 Terminate Session
@@ -133,9 +133,9 @@ export default function AdminProfile() {
             {/* RIGHT – Details */}
             <div className="lg:col-span-8 space-y-6">
               {/* Personal Info */}
-              <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+              <div className="bg-white/70 dark:bg-[#065F46]/60 backdrop-blur-xl border border-gray-200/60 dark:border-slate-800 rounded p-6 shadow-sm">
                 <div className="flex justify-between items-center mb-5">
-                  <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">
+                  <h3 className="font-black text-base sm:text-lg text-gray-900 dark:text-white">
                     Personal Information
                   </h3>
                   <button
@@ -149,40 +149,40 @@ export default function AdminProfile() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className="text-slate-500 dark:text-slate-400 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Full Name</label>
+                    <label className="text-gray-500 dark:text-gray-400 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Full Name</label>
                     <input
                       disabled={!edit}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 disabled:opacity-75 disabled:bg-slate-50 dark:disabled:bg-slate-900/50 outline-none focus:border-[#2874F0]"
+                      className="w-full border border-gray-200 dark:border-slate-800 rounded px-4 py-3 bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 disabled:opacity-75 disabled:bg-gray-50 dark:disabled:bg-[#065F46]/50 outline-none focus:border-[#2874F0]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-slate-500 dark:text-slate-400 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Email Address</label>
+                    <label className="text-gray-500 dark:text-gray-400 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Email Address</label>
                     <input
                       disabled
                       value={email}
-                      className="w-full border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 disabled:cursor-not-allowed outline-none"
+                      className="w-full border border-gray-200 dark:border-slate-800 rounded px-4 py-3 bg-gray-50 dark:bg-[#065F46]/50 text-gray-500 dark:text-gray-400 disabled:cursor-not-allowed outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-slate-500 dark:text-slate-400 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Phone Number</label>
+                    <label className="text-gray-500 dark:text-gray-400 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Phone Number</label>
                     <input
                       disabled={!edit}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 disabled:opacity-75 disabled:bg-slate-50 dark:disabled:bg-slate-900/50 outline-none focus:border-[#2874F0]"
+                      className="w-full border border-gray-200 dark:border-slate-800 rounded px-4 py-3 bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 disabled:opacity-75 disabled:bg-gray-50 dark:disabled:bg-[#065F46]/50 outline-none focus:border-[#2874F0]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-slate-500 dark:text-slate-400 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Administrative Role</label>
+                    <label className="text-gray-500 dark:text-gray-400 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Administrative Role</label>
                     <input
                       disabled
                       value={role}
-                      className="w-full border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 disabled:cursor-not-allowed outline-none font-bold"
+                      className="w-full border border-gray-200 dark:border-slate-800 rounded px-4 py-3 bg-gray-50 dark:bg-[#065F46]/50 text-gray-500 dark:text-gray-400 disabled:cursor-not-allowed outline-none font-bold"
                     />
                   </div>
                 </div>
@@ -192,7 +192,7 @@ export default function AdminProfile() {
                     <button
                       onClick={handleSaveChanges}
                       disabled={saving}
-                      className="px-6 py-3 bg-gradient-to-r from-[#2874F0] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer flex items-center gap-2"
+                      className="px-6 py-3 bg-gradient-to-r from-[#2874F0] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer flex items-center gap-2"
                     >
                       {saving && <RefreshCw size={13} className="animate-spin" />}
                       {saving ? "Saving..." : "Save Changes"}
@@ -202,20 +202,20 @@ export default function AdminProfile() {
               </div>
 
               {/* Security */}
-              <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-                <h3 className="font-black text-base sm:text-lg mb-4 text-slate-900 dark:text-white">
+              <div className="bg-white/70 dark:bg-[#065F46]/60 backdrop-blur-xl border border-gray-200/60 dark:border-slate-800 rounded p-6 shadow-sm">
+                <h3 className="font-black text-base sm:text-lg mb-4 text-gray-900 dark:text-white">
                   Security & Access Controls
                 </h3>
 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300 font-medium">
+                  <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-slate-300 font-medium">
                     <Shield size={18} className="text-[#FB641B]" />
                     <span>Multi-factor Security & Master Passkey Protected</span>
                   </div>
 
                   <button
                     onClick={() => toast.info("To reset password, contact Super Admin or use the OTP reset flow.")}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-slate-800 rounded text-xs font-bold hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 cursor-pointer"
                   >
                     <Lock size={14} />
                     Change Password
@@ -224,11 +224,11 @@ export default function AdminProfile() {
               </div>
 
               {/* Activity */}
-              <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-                <h3 className="font-black text-base sm:text-lg mb-2 text-slate-900 dark:text-white">
+              <div className="bg-white/70 dark:bg-[#065F46]/60 backdrop-blur-xl border border-gray-200/60 dark:border-slate-800 rounded p-6 shadow-sm">
+                <h3 className="font-black text-base sm:text-lg mb-2 text-gray-900 dark:text-white">
                   Platform Session Metadata
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Authentication mode: JWT Bearer • ISO-27001 Certified • Admin privileges granted
                 </p>
               </div>

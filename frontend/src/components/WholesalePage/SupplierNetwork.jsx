@@ -29,7 +29,7 @@ function SupplierNetwork() {
         <div className="grid lg:grid-cols-12 gap-12 items-center">
           
           {/* Left: Map Visualization */}
-          <div className="lg:col-span-7 relative h-[400px] lg:h-[600px] bg-brand-background rounded-[2rem] border border-brand-border overflow-hidden p-8 flex items-center justify-center">
+          <div className="lg:col-span-7 relative h-[400px] lg:h-[600px] bg-brand-background rounded border border-brand-border overflow-hidden p-8 flex items-center justify-center">
             {/* Abstract Map Background */}
             <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#10B981 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
             
@@ -67,24 +67,24 @@ function SupplierNetwork() {
 
           {/* Right: Stats & Features */}
           <div className="lg:col-span-5 flex flex-col gap-6">
-            <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm mb-4">
+            <div className="bg-emerald-50 rounded p-6 border border-emerald-100">
+              <div className="w-12 h-12 bg-white rounded flex items-center justify-center shadow-sm mb-4">
                 <Users size={24} className="text-brand-accent" />
               </div>
               <h3 className="text-3xl font-display font-black text-brand-primary mb-2">2,500+</h3>
               <p className="text-sm font-bold text-brand-text-secondary uppercase tracking-widest">Active Verified Suppliers</p>
             </div>
 
-            <div className="bg-brand-background rounded-2xl p-6 border border-brand-border">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm mb-4">
+            <div className="bg-brand-background rounded p-6 border border-brand-border">
+              <div className="w-12 h-12 bg-white rounded flex items-center justify-center shadow-sm mb-4">
                 <MapPin size={24} className="text-brand-primary" />
               </div>
               <h3 className="text-3xl font-display font-black text-brand-primary mb-2">18 States</h3>
               <p className="text-sm font-bold text-brand-text-secondary uppercase tracking-widest">Pan-India Coverage</p>
             </div>
 
-            <div className="bg-brand-background rounded-2xl p-6 border border-brand-border">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm mb-4">
+            <div className="bg-brand-background rounded p-6 border border-brand-border">
+              <div className="w-12 h-12 bg-white rounded flex items-center justify-center shadow-sm mb-4">
                 <Truck size={24} className="text-brand-primary" />
               </div>
               <h3 className="text-3xl font-display font-black text-brand-primary mb-2">50+ Hubs</h3>

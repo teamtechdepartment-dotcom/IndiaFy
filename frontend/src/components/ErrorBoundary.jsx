@@ -30,8 +30,8 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 font-sans selection:bg-blue-500 selection:text-white">
-          <div className="w-full max-w-lg bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col items-center text-center relative overflow-hidden">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 font-sans selection:bg-blue-500 selection:text-white">
+          <div className="w-full max-w-lg bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-2xl border border-gray-100 flex flex-col items-center text-center relative overflow-hidden">
             {/* Decorative background glow */}
             <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-red-500/10 rounded-full blur-[80px] pointer-events-none" />
             <div className="absolute bottom-[-20%] left-[-10%] w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] pointer-events-none" />
@@ -40,18 +40,18 @@ class ErrorBoundary extends React.Component {
               <AlertTriangle size={36} strokeWidth={2.5} />
             </div>
             
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-4 relative z-10">
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-4 relative z-10">
               Something went wrong
             </h1>
             
-            <p className="text-slate-500 font-medium mb-8 leading-relaxed max-w-sm relative z-10">
+            <p className="text-gray-500 font-medium mb-8 leading-relaxed max-w-sm relative z-10">
               We encountered an unexpected rendering error. Our engineering team has been automatically notified.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full relative z-10">
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] hover:bg-slate-800 transition-all shadow-xl hover:shadow-2xl active:scale-[0.98]"
+                className="flex-1 flex items-center justify-center gap-2 py-4 bg-gray-900 text-white rounded font-bold uppercase tracking-widest text-[11px] hover:bg-gray-800 transition-all shadow-xl hover:shadow-2xl active:scale-[0.98]"
               >
                 <RefreshCw size={16} />
                 Reload Page
@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component {
               
               <button
                 onClick={() => window.location.href = "/"}
-                className="flex-1 flex items-center justify-center gap-2 py-4 bg-white text-slate-700 border-2 border-slate-200 rounded-2xl font-bold uppercase tracking-widest text-[11px] hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-[0.98]"
+                className="flex-1 flex items-center justify-center gap-2 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded font-bold uppercase tracking-widest text-[11px] hover:border-gray-300 hover:bg-gray-50 transition-all active:scale-[0.98]"
               >
                 <Home size={16} />
                 Go Home
@@ -67,9 +67,9 @@ class ErrorBoundary extends React.Component {
             </div>
 
             {process.env.NODE_ENV === "development" && this.state.error && (
-              <div className="mt-8 p-4 bg-slate-100 rounded-xl text-left w-full overflow-x-auto relative z-10 border border-slate-200">
+              <div className="mt-8 p-4 bg-gray-100 rounded text-left w-full overflow-x-auto relative z-10 border border-gray-200">
                 <p className="text-red-600 font-mono text-xs font-bold mb-2">Development Stack Trace:</p>
-                <pre className="text-slate-600 font-mono text-[10px] leading-relaxed">
+                <pre className="text-gray-600 font-mono text-[10px] leading-relaxed">
                   {this.state.error.toString()}
                   <br />
                   {this.state.errorInfo.componentStack}

@@ -10,7 +10,7 @@ describe("Production-Grade Auth and Security Integration Tests", () => {
     let sellerRefreshToken = "";
     let adminAccessToken = "";
 
-    const securityKey = process.env.SecurityKey || "kishan@3322";
+    const securityKey = process.env.SecurityKey || "test_dummy_key_2026";
 
     beforeAll(async () => {
         const { databaseConfig } = await import("../config/db.config.js");

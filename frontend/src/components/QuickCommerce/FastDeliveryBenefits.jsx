@@ -13,7 +13,7 @@ function FastDeliveryBenefits() {
     <div className="bg-white py-6 border-t border-gray-100">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
         {benefits.map((b, i) => (
-          <div key={i} className="flex flex-col items-center justify-center text-center p-3 bg-gray-50 rounded-xl">
+          <div key={i} className="flex flex-col items-center justify-center text-center p-3 bg-gray-50 rounded">
             <div className="w-10 h-10 bg-[#00B55D]/10 rounded-full flex items-center justify-center text-[#00B55D] mb-2">
               {b.icon}
             </div>

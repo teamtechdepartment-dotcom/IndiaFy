@@ -7,7 +7,7 @@ export default function AccessDenied() {
 
   return (
     <div className="min-h-screen bg-[#0B1528] flex items-center justify-center p-4 font-sans selection:bg-[#D4AF37] selection:text-black">
-      <div className="w-full max-w-lg bg-[#0F1C36]/50 backdrop-blur-2xl p-10 sm:p-14 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#D4AF37]/20 flex flex-col items-center text-center relative overflow-hidden">
+      <div className="w-full max-w-lg bg-[#0F1C36]/50 backdrop-blur-2xl p-10 sm:p-14 rounded shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#D4AF37]/20 flex flex-col items-center text-center relative overflow-hidden">
         
         {/* Gold Glow */}
         <div className="absolute top-[-20%] left-[-20%] w-64 h-64 bg-[#D4AF37]/10 rounded-full blur-[80px] pointer-events-none" />
@@ -28,7 +28,7 @@ export default function AccessDenied() {
         <div className="flex flex-col gap-3 w-full relative z-10">
           <button
             onClick={() => navigate(-1)}
-            className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-[#AA7C11] to-[#D4AF37] text-black rounded-2xl font-bold uppercase tracking-widest text-[11px] hover:opacity-90 transition-all shadow-lg shadow-[#D4AF37]/10 active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-[#AA7C11] to-[#D4AF37] text-black rounded font-bold uppercase tracking-widest text-[11px] hover:opacity-90 transition-all shadow-lg shadow-[#D4AF37]/10 active:scale-[0.98]"
           >
             <ArrowLeft size={16} />
             Go Back
@@ -36,7 +36,7 @@ export default function AccessDenied() {
           
           <button
             onClick={() => navigate("/admin/login")}
-            className="w-full flex items-center justify-center gap-2 py-4 bg-transparent text-[#D4AF37] border-2 border-[#D4AF37]/30 rounded-2xl font-bold uppercase tracking-widest text-[11px] hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 py-4 bg-transparent text-[#D4AF37] border-2 border-[#D4AF37]/30 rounded font-bold uppercase tracking-widest text-[11px] hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all active:scale-[0.98]"
           >
             <KeySquare size={16} />
             Admin Command Login

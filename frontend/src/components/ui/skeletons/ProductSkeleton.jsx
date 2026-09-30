@@ -8,8 +8,8 @@ export function ProductSkeleton({ count = 8, variant = "grid" }) {
     return (
       <div className="flex flex-col gap-4 w-full">
         {Skeletons.map((_, i) => (
-          <div key={i} className="flex gap-4 p-4 border border-slate-100 rounded-2xl bg-white">
-            <Skeleton className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-xl" />
+          <div key={i} className="flex gap-4 p-4 border border-gray-100 rounded bg-white">
+            <Skeleton className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded" />
             <div className="flex-1 flex flex-col justify-between py-1">
               <div>
                 <Skeleton className="h-5 w-3/4 mb-2" />
@@ -31,8 +31,8 @@ export function ProductSkeleton({ count = 8, variant = "grid" }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 w-full">
       {Skeletons.map((_, i) => (
-        <div key={i} className="bg-white rounded-2xl p-3 border border-slate-100">
-          <Skeleton className="w-full aspect-square rounded-xl mb-3" />
+        <div key={i} className="bg-white rounded p-3 border border-gray-100">
+          <Skeleton className="w-full aspect-square rounded mb-3" />
           <Skeleton className="w-4/5 h-4 mb-2" />
           <Skeleton className="w-1/2 h-3 mb-4" />
           <div className="flex justify-between items-center">

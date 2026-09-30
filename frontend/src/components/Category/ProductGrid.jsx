@@ -16,7 +16,7 @@ function ProductGrid({ products, viewMode }) {
   }
 
   const gridClass = viewMode === "grid" 
-    ? "grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4" 
+    ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3" 
     : "flex flex-col gap-2";
 
   return (

@@ -116,12 +116,12 @@ export default function SupportInbox() {
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#10B981]/10 border border-[#10B981]/25 text-[#2874F0] text-xs font-bold uppercase tracking-widest mb-1">
                   <LifeBuoy size={14} /> Platform ticketing
                 </div>
-                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Customer Care Support</h1>
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Customer Care Support</h1>
               </div>
 
               <button
                 onClick={fetchTickets}
-                className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition shadow-xs self-start sm:self-auto"
+                className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-xs self-start sm:self-auto"
               >
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                 Refresh Tickets
@@ -130,7 +130,7 @@ export default function SupportInbox() {
 
             {/* Error Banner */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl flex items-center justify-between text-xs font-semibold">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-2">
                   <AlertTriangle size={18} className="text-red-500 shrink-0" />
                   <span>{error}</span>
@@ -141,19 +141,19 @@ export default function SupportInbox() {
 
             {/* Content wrapped in Error Boundary */}
             <AdminErrorBoundary title="Unable to load support inbox desk">
-              <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 bg-white border border-slate-200/80 rounded-[2rem] overflow-hidden shadow-xs">
+              <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 bg-white border border-gray-200/80 rounded-[2rem] overflow-hidden shadow-xs">
                 
                 {/* Left Tickets mailbox list */}
-                <div className="lg:col-span-1 border-r border-slate-200 flex flex-col min-h-0 bg-slate-50/50">
-                  <div className="p-4 border-b border-slate-200">
-                    <h3 className="font-extrabold text-slate-800 text-sm">Help Desk Tickets</h3>
+                <div className="lg:col-span-1 border-r border-gray-200 flex flex-col min-h-0 bg-gray-50/50">
+                  <div className="p-4 border-b border-gray-200">
+                    <h3 className="font-extrabold text-gray-800 text-sm">Help Desk Tickets</h3>
                   </div>
 
                   <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
                     {loading ? (
-                      <div className="py-12 text-center text-slate-400 text-xs font-bold">Loading inbox...</div>
+                      <div className="py-12 text-center text-gray-400 text-xs font-bold">Loading inbox...</div>
                     ) : safeTicketsList.length === 0 ? (
-                      <div className="py-16 px-4 text-center text-slate-400 text-xs font-semibold">
+                      <div className="py-16 px-4 text-center text-gray-400 text-xs font-semibold">
                         No support tickets currently in queue.
                       </div>
                     ) : (
@@ -175,7 +175,7 @@ export default function SupportInbox() {
                     <div className="flex-1 flex flex-col min-h-0">
                       
                       {/* Header */}
-                      <div className="p-5 border-b border-slate-150 flex flex-wrap justify-between items-center gap-4 bg-slate-50/30">
+                      <div className="p-5 border-b border-slate-150 flex flex-wrap justify-between items-center gap-4 bg-gray-50/30">
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-black text-[#2874F0] text-sm">{selectedTicket.ticketNumber ?? "TCK-0000"}</span>
@@ -185,14 +185,14 @@ export default function SupportInbox() {
                               {selectedTicket.priority ?? "Normal"} Priority
                             </span>
                           </div>
-                          <h3 className="font-extrabold text-slate-800 text-base mt-1">{selectedTicket.subject ?? "Untitled Ticket"}</h3>
+                          <h3 className="font-extrabold text-gray-800 text-base mt-1">{selectedTicket.subject ?? "Untitled Ticket"}</h3>
                         </div>
 
                         <div className="flex gap-2">
                           <select 
                             value={selectedTicket.status ?? "Open"} 
                             onChange={(e) => handleUpdateProperties(e.target.value, selectedTicket.priority)}
-                            className="h-9 px-2 text-xs border border-slate-200 rounded-xl bg-white text-slate-800 outline-none font-bold shadow-xs"
+                            className="h-9 px-2 text-xs border border-gray-200 rounded bg-white text-gray-800 outline-none font-bold shadow-xs"
                           >
                             <option value="Open">Open</option>
                             <option value="In Progress">In Progress</option>
@@ -203,7 +203,7 @@ export default function SupportInbox() {
                       </div>
 
                       {/* Tabs */}
-                      <div className="flex border-b border-slate-200 text-xs font-bold text-slate-400 bg-slate-50/50">
+                      <div className="flex border-b border-gray-200 text-xs font-bold text-gray-400 bg-gray-50/50">
                         <button 
                           onClick={() => setActiveTab("chat")}
                           className={`flex-1 py-3 border-b-2 text-center transition ${activeTab === "chat" ? "border-[#10B981] text-[#2874F0] bg-white/50" : "border-transparent"}`}
@@ -222,7 +222,7 @@ export default function SupportInbox() {
                       <div className="flex-1 overflow-y-auto p-5 space-y-4">
                         {activeTab === "chat" ? (
                           <>
-                            <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 text-xs font-medium">
+                            <div className="bg-gray-50 border border-slate-150 rounded p-4 text-xs font-medium">
                               <p className="font-bold text-[#2874F0]">Initial Description:</p>
                               <p className="text-slate-650 mt-1">{selectedTicket.description || "No description provided."}</p>
                             </div>
@@ -230,10 +230,10 @@ export default function SupportInbox() {
                             {Array.isArray(selectedTicket.messages) && selectedTicket.messages.map((msg, i) => (
                               <div 
                                 key={i} 
-                                className={`flex flex-col max-w-[80%] rounded-2xl p-3.5 text-xs ${
+                                className={`flex flex-col max-w-[80%] rounded p-3.5 text-xs ${
                                   msg?.senderType === "admin" 
-                                    ? "ml-auto bg-slate-900 text-white" 
-                                    : "bg-slate-100 text-slate-800 border border-slate-200"
+                                    ? "ml-auto bg-[#065F46] text-white" 
+                                    : "bg-gray-100 text-gray-800 border border-gray-200"
                                 }`}
                               >
                                 <span className={`font-black text-[9px] uppercase tracking-wider ${msg?.senderType === "admin" ? "text-slate-300" : "text-[#2874F0]"}`}>
@@ -246,12 +246,12 @@ export default function SupportInbox() {
                         ) : (
                           <>
                             {Array.isArray(selectedTicket.internalNotes) && selectedTicket.internalNotes.map((n, i) => (
-                              <div key={i} className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800">
+                              <div key={i} className="bg-amber-50 border border-amber-200 rounded p-4 text-xs text-amber-800">
                                 <p className="font-bold flex justify-between">
                                   <span>Note by: {n?.adminName ?? "Admin"}</span>
                                   <span>{n?.createdAt ? new Date(n.createdAt).toLocaleDateString() : "Today"}</span>
                                 </p>
-                                <p className="mt-1 font-medium text-slate-700">{n?.note ?? ""}</p>
+                                <p className="mt-1 font-medium text-gray-700">{n?.note ?? ""}</p>
                               </div>
                             ))}
                           </>
@@ -259,7 +259,7 @@ export default function SupportInbox() {
                       </div>
 
                       {/* Text Area Form */}
-                      <div className="p-4 border-t border-slate-200 bg-slate-50/50">
+                      <div className="p-4 border-t border-gray-200 bg-gray-50/50">
                         {activeTab === "chat" ? (
                           <form onSubmit={handleSendReply} className="flex gap-3">
                             <input 
@@ -267,9 +267,9 @@ export default function SupportInbox() {
                               value={replyBody}
                               onChange={(e) => setReplyBody(e.target.value)}
                               placeholder="Type secure reply to merchant/customer..."
-                              className="flex-1 bg-white border border-slate-250 rounded-2xl px-4 py-3 outline-none text-xs text-slate-800 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/5"
+                              className="flex-1 bg-white border border-slate-250 rounded px-4 py-3 outline-none text-xs text-gray-800 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/5"
                             />
-                            <button type="submit" className="px-5 py-3 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 active:scale-95 border border-[#10B981]/20">
+                            <button type="submit" className="px-5 py-3 bg-[#065F46] hover:bg-black text-white font-bold text-xs rounded flex items-center justify-center gap-1.5 active:scale-95 border border-[#10B981]/20">
                               <Send size={14} className="text-[#2874F0]" /> Send
                             </button>
                           </form>
@@ -280,9 +280,9 @@ export default function SupportInbox() {
                               value={internalNoteBody}
                               onChange={(e) => setInternalNoteBody(e.target.value)}
                               placeholder="Type internal note memo..."
-                              className="flex-1 bg-white border border-slate-250 rounded-2xl px-4 py-3 outline-none text-xs text-slate-800 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/5"
+                              className="flex-1 bg-white border border-slate-250 rounded px-4 py-3 outline-none text-xs text-gray-800 focus:border-[#10B981] focus:ring-4 focus:ring-[#10B981]/5"
                             />
-                            <button type="submit" className="px-5 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 active:scale-95 border border-amber-600/30">
+                            <button type="submit" className="px-5 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded flex items-center justify-center gap-1.5 active:scale-95 border border-amber-600/30">
                               <Clipboard size={14} /> Log Memo
                             </button>
                           </form>
@@ -291,7 +291,7 @@ export default function SupportInbox() {
 
                     </div>
                   ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-xs text-slate-400">
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-xs text-gray-400">
                       <LifeBuoy size={36} className="text-slate-350 mb-3 animate-pulse" />
                       Select an open ticket entry from the mailbox queue to examine live description details, reply chat, or add private staff memos.
                     </div>
@@ -318,22 +318,22 @@ function TicketItem({ item, active, onClick }) {
   return (
     <div 
       onClick={() => onClick(item)}
-      className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors border-l-4 ${
+      className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors border-l-4 ${
         active ? "bg-[#10B981]/10 border-[#10B981]" : "border-transparent"
       }`}
     >
       <div className="flex justify-between items-center">
         <span className="font-extrabold text-[#2874F0] text-xs">{item.ticketNumber ?? "TCK-000"}</span>
-        <span className="text-[9px] font-bold text-slate-400 uppercase">{item.userType ?? "user"}</span>
+        <span className="text-[9px] font-bold text-gray-400 uppercase">{item.userType ?? "user"}</span>
       </div>
       
-      <p className="font-extrabold text-slate-800 text-xs mt-1 truncate">{item.subject ?? "Support Inquiry"}</p>
+      <p className="font-extrabold text-gray-800 text-xs mt-1 truncate">{item.subject ?? "Support Inquiry"}</p>
       
       <div className="flex items-center gap-2 mt-3">
         <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${priorityStyle}`}>
           {item.priority ?? "Normal"}
         </span>
-        <span className="px-2 py-0.5 bg-slate-100 text-slate-650 rounded text-[8px] font-black uppercase tracking-wider border border-slate-200">
+        <span className="px-2 py-0.5 bg-gray-100 text-slate-650 rounded text-[8px] font-black uppercase tracking-wider border border-gray-200">
           {item.status ?? "Open"}
         </span>
       </div>

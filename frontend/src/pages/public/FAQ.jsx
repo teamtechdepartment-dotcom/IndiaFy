@@ -110,7 +110,7 @@ export default function FAQ() {
   };
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
+    <div className="bg-[#F8FAFC] min-h-screen font-sans text-gray-900">
       <SEOHead 
         title="Frequently Asked Questions | Indiafy Marketplace"
         description="Find answers about Indiafy Quick Commerce, delivery, Indiafy Wholesale sourcing, seller onboarding, payments, refunds, and verified commerce on the Indiafy Commerce network."
@@ -119,28 +119,28 @@ export default function FAQ() {
       <WebsiteNavbar scrolledByDefault={true} />
 
       {/* HERO SECTION */}
-      <header className="bg-slate-900 pt-32 pb-24 px-6 relative overflow-hidden">
+      <header className="bg-gray-900 pt-32 pb-24 px-6 relative overflow-hidden">
         <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6">
             <HelpCircle size={16} /> Knowledge Base
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tight mb-6">
             How Can We Help You?
           </h1>
-          <p className="text-slate-400 text-sm md:text-base font-medium max-w-2xl mx-auto mb-10">
+          <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl mx-auto mb-10">
             Answers to the most common questions from buyers, sellers, and wholesale partners.
           </p>
 
           <div className="relative max-w-2xl mx-auto group">
             <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-              <Search className="text-slate-400 group-focus-within:text-brand-primary transition-colors" size={24} />
+              <Search className="text-gray-400 group-focus-within:text-brand-primary transition-colors" size={24} />
             </div>
             <input 
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for answers..." 
-              className="w-full bg-white text-slate-900 text-lg font-medium rounded-full py-5 pl-16 pr-8 shadow-2xl focus:outline-none focus:ring-4 focus:ring-brand-primary/30 transition-all border-none"
+              className="w-full bg-white text-gray-900 text-lg font-medium rounded-full py-5 pl-16 pr-8 shadow-2xl focus:outline-none focus:ring-4 focus:ring-brand-primary/30 transition-all border-none"
             />
           </div>
         </div>
@@ -151,16 +151,16 @@ export default function FAQ() {
         {/* SIDEBAR - CATEGORIES */}
         <aside className="w-full lg:w-1/4 shrink-0">
           <div className="sticky top-32">
-            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Categories</h3>
+            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Categories</h3>
             <ul className="space-y-2">
               {categories.map((cat, i) => (
                 <li key={i}>
                   <button 
                     onClick={() => { setActiveCategory(cat); setOpenIndex(null); }}
-                    className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm transition-all ${
+                    className={`w-full text-left px-4 py-3 rounded font-bold text-sm transition-all ${
                       activeCategory === cat 
                         ? "bg-brand-primary text-white shadow-md" 
-                        : "text-slate-600 hover:bg-slate-200"
+                        : "text-gray-600 hover:bg-gray-200"
                     }`}
                   >
                     {cat}
@@ -174,19 +174,19 @@ export default function FAQ() {
         {/* ACCORDION CONTENT */}
         <section className="w-full lg:w-3/4">
           <div className="mb-8">
-            <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            <h2 className="text-3xl font-black tracking-tight text-gray-900">
               {activeCategory === "All" ? "All Questions" : activeCategory}
             </h2>
             {searchQuery && (
-              <p className="text-slate-500 font-medium text-sm mt-2">
+              <p className="text-gray-500 font-medium text-sm mt-2">
                 Showing results for "{searchQuery}"
               </p>
             )}
           </div>
 
           {filteredFaqs.length === 0 ? (
-            <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center">
-              <p className="text-slate-500 font-medium">No results found for your search.</p>
+            <div className="bg-white p-12 rounded border border-gray-200 text-center">
+              <p className="text-gray-500 font-medium">No results found for your search.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -195,18 +195,18 @@ export default function FAQ() {
                 return (
                   <div 
                     key={index} 
-                    className={`bg-white border rounded-2xl overflow-hidden transition-all duration-300 ${
-                      isOpen ? 'border-brand-primary shadow-md' : 'border-slate-200'
+                    className={`bg-white border rounded overflow-hidden transition-all duration-300 ${
+                      isOpen ? 'border-brand-primary shadow-md' : 'border-gray-200'
                     }`}
                   >
                     <button 
                       onClick={() => setOpenIndex(isOpen ? null : index)}
                       className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none group"
                     >
-                      <span className={`font-bold transition-colors ${isOpen ? 'text-brand-primary' : 'text-slate-900 group-hover:text-brand-primary'}`}>
+                      <span className={`font-bold transition-colors ${isOpen ? 'text-brand-primary' : 'text-gray-900 group-hover:text-brand-primary'}`}>
                         {faq.q}
                       </span>
-                      <span className={`shrink-0 ml-4 transition-transform duration-300 ${isOpen ? 'rotate-180 text-brand-primary' : 'text-slate-400'}`}>
+                      <span className={`shrink-0 ml-4 transition-transform duration-300 ${isOpen ? 'rotate-180 text-brand-primary' : 'text-gray-400'}`}>
                         <ChevronDown size={20} />
                       </span>
                     </button>
@@ -220,8 +220,8 @@ export default function FAQ() {
                           transition={{ duration: 0.3 }}
                         >
                           <div className="px-6 pb-6 pt-0">
-                            <div className="h-px w-full bg-slate-100 mb-4" />
-                            <p className="text-slate-600 font-medium leading-relaxed text-sm">
+                            <div className="h-px w-full bg-gray-100 mb-4" />
+                            <p className="text-gray-600 font-medium leading-relaxed text-sm">
                               {faq.a}
                             </p>
                           </div>

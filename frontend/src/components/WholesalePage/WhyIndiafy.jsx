@@ -50,7 +50,7 @@ function WhyIndiafy() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {benefits.map((benefit, i) => (
-            <div key={i} className="bg-white border border-brand-border rounded-xl p-6 flex items-start gap-4">
+            <div key={i} className="bg-white border border-brand-border rounded p-6 flex items-start gap-4">
               <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100 text-brand-primary">
                 {benefit.icon}
               </div>

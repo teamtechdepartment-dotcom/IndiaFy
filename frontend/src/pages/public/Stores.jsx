@@ -56,10 +56,10 @@ function StoreCard({ store, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="group bg-white rounded-2xl overflow-hidden border border-zinc-100 hover:shadow-xl hover:shadow-zinc-200/60 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
+      className="group bg-white rounded overflow-hidden border border-zinc-100 hover:shadow-xl hover:shadow-zinc-200/60 transition-all duration-300 cursor-pointer hover:-trangray-y-0.5"
     >
       {/* Banner */}
-      <div className="relative h-40 overflow-hidden bg-slate-100">
+      <div className="relative h-40 overflow-hidden bg-gray-100">
         <img
           src={banner}
           alt={store.storeName}
@@ -69,7 +69,7 @@ function StoreCard({ store, onClick }) {
         {/* Overlays */}
         <div className="absolute top-3 left-3 flex gap-2">
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider
-            ${store.isStoreOpen ? "bg-emerald-500 text-white" : "bg-slate-100 border border-slate-200/80 text-slate-700"}`}>
+            ${store.isStoreOpen ? "bg-emerald-500 text-white" : "bg-gray-100 border border-gray-200/80 text-gray-700"}`}>
             {store.isStoreOpen && (
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
@@ -79,13 +79,13 @@ function StoreCard({ store, onClick }) {
             {store.isStoreOpen ? "Open" : "Closed"}
           </div>
           {store.isVerified && (
-            <div className="flex items-center gap-1 bg-white/90 px-2 py-0.5 rounded-full text-[9px] font-bold text-slate-900">
+            <div className="flex items-center gap-1 bg-white/90 px-2 py-0.5 rounded-full text-[9px] font-bold text-gray-900">
               <BadgeCheck size={9} color="#3B82F6" /> Verified
             </div>
           )}
         </div>
 
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-black text-slate-900 flex items-center gap-1">
+        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-black text-gray-900 flex items-center gap-1">
           <Zap size={10} color={color} />
           {store.dispatchSpeed || "30 mins"}
         </div>
@@ -94,7 +94,7 @@ function StoreCard({ store, onClick }) {
         {store.logo && (
           <div className="absolute -bottom-5 left-4">
             <img loading="lazy" decoding="async" src={store.logo} alt={store.storeName}
-              className="w-10 h-10 rounded-xl border-2 border-white shadow-md object-cover bg-white" />
+              className="w-10 h-10 rounded border-2 border-white shadow-md object-cover bg-white" />
           </div>
         )}
       </div>
@@ -102,46 +102,46 @@ function StoreCard({ store, onClick }) {
       {/* Content */}
       <div className={`p-4 ${store.logo ? "pt-7" : "pt-4"}`}>
         <div className="flex items-start justify-between gap-2 mb-1.5">
-          <h3 className="font-black text-slate-900 text-sm leading-tight line-clamp-1 group-hover:text-blue-600 transition-colors">
+          <h3 className="font-black text-gray-900 text-sm leading-tight line-clamp-1 group-hover:text-[#065F46] transition-colors">
             {store.storeName}
           </h3>
-          <div className="flex items-center gap-0.5 text-[11px] font-bold text-slate-900 shrink-0">
+          <div className="flex items-center gap-0.5 text-[11px] font-bold text-gray-900 shrink-0">
             <Star size={11} fill="currentColor" className="text-amber-400" />
             {(store.rating || 4.5).toFixed(1)}
           </div>
         </div>
 
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full text-slate-900 uppercase tracking-wider"
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full text-gray-900 uppercase tracking-wider"
             style={{ backgroundColor: color }}>
             {nodeMeta?.emoji} {nodeMeta?.label || store.nodeType}
           </span>
         </div>
 
         {store.storeCategory && (
-          <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2">
+          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-2">
             {store.storeCategory}
           </p>
         )}
 
         {store.description && (
-          <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">{store.description}</p>
+          <p className="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">{store.description}</p>
         )}
 
         <div className="flex items-center justify-between pt-2 border-t border-zinc-100">
-          <div className="flex items-center gap-3 text-[10px] text-slate-600 font-bold">
+          <div className="flex items-center gap-3 text-[10px] text-gray-600 font-bold">
             {store.city && (
               <span className="flex items-center gap-1">
-                <MapPin size={10} className="text-slate-700" /> {store.city}
+                <MapPin size={10} className="text-gray-700" /> {store.city}
               </span>
             )}
             {store.deliveryRadius && (
               <span className="flex items-center gap-1">
-                <Clock size={10} className="text-slate-700" /> {store.deliveryRadius}km
+                <Clock size={10} className="text-gray-700" /> {store.deliveryRadius}km
               </span>
             )}
           </div>
-          <button className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-800 transition-colors">
+          <button className="flex items-center gap-1 text-[10px] font-bold text-[#065F46] hover:text-blue-800 transition-colors">
             Visit <ArrowRight size={10} />
           </button>
         </div>
@@ -208,7 +208,7 @@ export default function Stores() {
   return (
     <>
       <WebsiteNavbar />
-      <main className="min-h-screen bg-slate-50">
+      <main className="min-h-screen bg-gray-50">
 
       {/* Background Blobs for Hero Theme */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-0">
@@ -218,33 +218,33 @@ export default function Stores() {
       
 
         {/* HERO */}
-        <section className="bg-white shadow-xs border-b border-slate-200 pt-[140px] sm:pt-[150px] lg:pt-[160px] pb-14 px-4 relative z-10">
+        <section className="bg-white shadow-xs border-b border-gray-200 pt-[140px] sm:pt-[150px] lg:pt-[160px] pb-14 px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center justify-center gap-2 mb-3 bg-emerald-50 text-emerald-700 px-3.5 py-1.5 rounded-full border border-emerald-100">
               <ShoppingBag size={14} className="text-emerald-600" />
               <span className="text-[11px] font-extrabold uppercase tracking-widest">Indiafy Marketplace</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 mb-3 leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 mb-3 leading-tight tracking-tight">
               Discover Local Stores
             </h1>
-            <p className="text-slate-500 text-sm sm:text-base font-medium mb-8 max-w-xl mx-auto leading-relaxed">
+            <p className="text-gray-500 text-sm sm:text-base font-medium mb-8 max-w-xl mx-auto leading-relaxed">
               Browse {total > 0 ? `${total} live` : "hundreds of"} stores across categories — from quick commerce to wholesale.
             </p>
 
             {/* Search */}
             <div className="relative max-w-xl mx-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <Search className="absolute left-4 top-1/2 -trangray-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search stores, categories..."
-                className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-2xl font-semibold text-sm outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 shadow-xs transition-all"
+                className="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded font-semibold text-sm outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 shadow-xs transition-all"
               />
               {search && (
                 <button 
                   onClick={() => setSearch("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 bg-slate-200/80 rounded-full text-slate-500 hover:text-slate-900 transition-colors"
+                  className="absolute right-3.5 top-1/2 -trangray-y-1/2 p-1 bg-gray-200/80 rounded-full text-gray-500 hover:text-gray-900 transition-colors"
                 >
                   <X size={14} />
                 </button>
@@ -254,7 +254,7 @@ export default function Stores() {
         </section>
 
         {/* FILTERS */}
-        <div className="sticky top-16 lg:top-[124px] z-40 bg-white border-b border-slate-200 shadow-sm">
+        <div className="sticky top-16 lg:top-[124px] z-40 bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-3 overflow-x-auto scrollbar-none">
               {/* Type filter chips */}
@@ -264,20 +264,20 @@ export default function Stores() {
                   onClick={() => setSelectedType(type.value)}
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0
                     ${selectedType === type.value
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                 >
                   <span>{type.emoji}</span> {type.label}
                 </button>
               ))}
 
-              <div className="h-6 w-px bg-slate-200 shrink-0 mx-1" />
+              <div className="h-6 w-px bg-gray-200 shrink-0 mx-1" />
 
               {/* City filter */}
               <button
                 onClick={() => setShowFilters((v) => !v)}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0
-                  ${showFilters ? "bg-emerald-50 border border-emerald-200 text-emerald-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                  ${showFilters ? "bg-emerald-50 border border-emerald-200 text-emerald-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
               >
                 <SlidersHorizontal size={13} /> Filters
                 {hasFilters && !showFilters && (
@@ -297,13 +297,13 @@ export default function Stores() {
             {showFilters && (
               <div className="mt-3 pb-1 flex items-center gap-3">
                 <div className="relative">
-                  <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+                  <MapPin size={13} className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-600" />
                   <input
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="Filter by city..."
-                    className="pl-8 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium text-white outline-none focus:border-zinc-400 transition-all w-44"
+                    className="pl-8 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded text-xs font-medium text-white outline-none focus:border-zinc-400 transition-all w-44"
                   />
                 </div>
               </div>
@@ -315,7 +315,7 @@ export default function Stores() {
         <section className="max-w-7xl mx-auto px-4 py-8">
           {/* Results count */}
           <div className="flex items-center justify-between mb-6">
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold text-gray-500">
               {loading ? "Loading..." : `${stores.length} store${stores.length !== 1 ? "s" : ""} found`}
               {selectedType && ` · ${NODE_TYPES.find((n) => n.value === selectedType)?.label}`}
               {city && ` · ${city}`}
@@ -326,19 +326,19 @@ export default function Stores() {
             <div className="py-12"><StoreSkeleton count={8} variant="grid" /></div>
           ) : stores.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
-              <Store size={48} className="text-slate-900 mb-4" />
-              <h3 className="text-xl font-black text-slate-900 mb-2">No stores found</h3>
-              <p className="text-slate-500 text-sm mb-6 max-w-sm">
+              <Store size={48} className="text-gray-900 mb-4" />
+              <h3 className="text-xl font-black text-gray-900 mb-2">No stores found</h3>
+              <p className="text-gray-500 text-sm mb-6 max-w-sm">
                 {hasFilters ? "Try adjusting your filters or search terms." : "Be the first seller to open a store!"}
               </p>
               {hasFilters ? (
                 <button onClick={clearFilters}
-                  className="px-6 py-3 bg-white shadow-sm border border-slate-200 text-slate-900 font-bold rounded-xl hover:bg-slate-100 border border-slate-200 transition-all">
+                  className="px-6 py-3 bg-white shadow-sm border border-gray-200 text-gray-900 font-bold rounded hover:bg-gray-100 border border-gray-200 transition-all">
                   Clear Filters
                 </button>
               ) : (
                 <button onClick={() => navigate("/seller/login")}
-                  className="px-6 py-3 bg-white shadow-sm border border-slate-200 text-slate-900 font-bold rounded-xl hover:bg-slate-100 border border-slate-200 transition-all">
+                  className="px-6 py-3 bg-white shadow-sm border border-gray-200 text-gray-900 font-bold rounded hover:bg-gray-100 border border-gray-200 transition-all">
                   Open Your Store →
                 </button>
               )}
@@ -358,19 +358,19 @@ export default function Stores() {
 
         {/* SELLER CTA */}
         <section className="max-w-7xl mx-auto px-4 pb-16">
-          <div className="relative bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden p-8 md:p-12 text-center"
+          <div className="relative bg-white shadow-sm border border-gray-200 rounded overflow-hidden p-8 md:p-12 text-center"
             style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)" }}>
             <div className="absolute inset-0 opacity-20"
               style={{ backgroundImage: "radial-gradient(circle at 30% 40%, #3B82F6 0%, transparent 50%), radial-gradient(circle at 70% 60%, #8B5CF6 0%, transparent 50%)" }} />
             <div className="relative z-10">
               <div className="text-4xl mb-4">🚀</div>
-              <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">Sell on Indiafy</h2>
-              <p className="text-slate-600 mb-6 max-w-md mx-auto">
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3">Sell on Indiafy</h2>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 Launch your store in minutes. Reach thousands of local customers instantly.
               </p>
               <button
                 onClick={() => navigate("/seller/login")}
-                className="px-8 py-4 bg-white text-slate-900 font-black rounded-2xl hover:bg-blue-50 transition-all shadow-2xl text-sm flex items-center gap-2 mx-auto"
+                className="px-8 py-4 bg-white text-gray-900 font-black rounded hover:bg-blue-50 transition-all shadow-2xl text-sm flex items-center gap-2 mx-auto"
               >
                 Start Selling for Free <ArrowRight size={16} />
               </button>

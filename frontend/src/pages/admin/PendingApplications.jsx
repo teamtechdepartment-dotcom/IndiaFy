@@ -202,12 +202,12 @@ export default function PendingApplications() {
             
             {/* Header Title */}
             <div className="space-y-2">
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Seller Approval Center</h1>
-              <p className="text-slate-500 font-medium">Audit registrations, review documents, and activate hyperlocal seller nodes.</p>
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Seller Approval Center</h1>
+              <p className="text-gray-500 font-medium">Audit registrations, review documents, and activate hyperlocal seller nodes.</p>
             </div>
 
             {/* TAB SELECTOR */}
-            <div className="flex gap-2 border-b border-slate-200">
+            <div className="flex gap-2 border-b border-gray-200">
               {[
                 { id: 'PENDING_REVIEW', label: 'Pending' },
                 { id: 'UNDER_REVIEW', label: 'Under Review' },
@@ -223,7 +223,7 @@ export default function PendingApplications() {
                     setPage(1);
                   }}
                   className={`px-4 py-3 text-sm font-bold border-b-2 transition-all
-                    ${activeTab === tab.id ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-450 hover:text-slate-700'}`}
+                    ${activeTab === tab.id ? 'border-slate-900 text-gray-900' : 'border-transparent text-slate-450 hover:text-gray-700'}`}
                 >
                   {tab.label}
                 </button>
@@ -231,23 +231,23 @@ export default function PendingApplications() {
             </div>
 
             {/* FILTERS & SEARCH */}
-            <div className="bg-white border border-slate-250/60 p-4 rounded-2xl flex flex-wrap gap-4 items-center justify-between shadow-xs">
+            <div className="bg-white border border-slate-250/60 p-4 rounded flex flex-wrap gap-4 items-center justify-between shadow-xs">
               <div className="flex flex-wrap gap-4 items-center flex-1">
                 <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="text"
                     placeholder="Search store or owner..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-slate-200 focus:border-slate-400 rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold outline-none transition-all"
+                    className="w-full bg-gray-50/50 border border-gray-200 focus:border-slate-400 rounded py-2.5 pl-10 pr-4 text-xs font-semibold outline-none transition-all"
                   />
                 </div>
 
                 <select
                   value={selectedNode}
                   onChange={(e) => setSelectedNode(e.target.value)}
-                  className="bg-slate-50/50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-semibold outline-none focus:border-slate-400"
+                  className="bg-gray-50/50 border border-gray-200 rounded py-2.5 px-4 text-xs font-semibold outline-none focus:border-slate-400"
                 >
                   <option value="">All Node Types</option>
                   <option value="LOCAL_RETAIL">Local Retail</option>
@@ -262,7 +262,7 @@ export default function PendingApplications() {
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="bg-slate-50/50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-semibold outline-none focus:border-slate-400 text-slate-650"
+                  className="bg-gray-50/50 border border-gray-200 rounded py-2.5 px-4 text-xs font-semibold outline-none focus:border-slate-400 text-slate-650"
                 />
               </div>
 
@@ -283,35 +283,35 @@ export default function PendingApplications() {
             {/* APPLICATIONS GRID LIST */}
             <div className="space-y-4">
               {loading ? (
-                <div className="py-20 text-center text-slate-400 font-semibold flex items-center justify-center gap-2">
-                  <RefreshCw className="animate-spin text-slate-500" size={20} />
+                <div className="py-20 text-center text-gray-400 font-semibold flex items-center justify-center gap-2">
+                  <RefreshCw className="animate-spin text-gray-500" size={20} />
                   Loading application pipeline...
                 </div>
               ) : error ? (
-                <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white border border-slate-200 border-dashed rounded-[2rem]">
+                <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white border border-gray-200 border-dashed rounded-[2rem]">
                   <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mb-6">
                     <AlertTriangle size={32} className="text-rose-500" />
                   </div>
-                  <h3 className="text-xl font-extrabold text-slate-900 mb-2">Failed to load applications</h3>
-                  <p className="text-slate-500 max-w-sm mb-6">{error}</p>
+                  <h3 className="text-xl font-extrabold text-gray-900 mb-2">Failed to load applications</h3>
+                  <p className="text-gray-500 max-w-sm mb-6">{error}</p>
                   <button
                     onClick={fetchPendingApplications}
-                    className="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow active:scale-95 transition"
+                    className="px-5 py-3 bg-[#065F46] hover:bg-slate-800 text-white font-bold rounded text-xs flex items-center gap-1.5 shadow active:scale-95 transition"
                   >
                     <RefreshCw size={14} className="mr-1" />
                     Reload Pipeline
                   </button>
                 </div>
               ) : applications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white border border-slate-200 border-dashed rounded-[2rem]">
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                    <SearchX size={32} className="text-slate-400" />
+                <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white border border-gray-200 border-dashed rounded-[2rem]">
+                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                    <SearchX size={32} className="text-gray-400" />
                   </div>
-                  <h3 className="text-xl font-extrabold text-slate-900 mb-2">No applications found</h3>
-                  <p className="text-slate-500 max-w-sm mb-6">No seller onboarding records found matching these criteria.</p>
+                  <h3 className="text-xl font-extrabold text-gray-900 mb-2">No applications found</h3>
+                  <p className="text-gray-500 max-w-sm mb-6">No seller onboarding records found matching these criteria.</p>
                   <button
                     onClick={fetchPendingApplications}
-                    className="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-650 font-bold rounded-xl text-xs flex items-center gap-1.5 bg-white shadow-xs transition"
+                    className="px-5 py-3 border border-gray-200 hover:bg-gray-50 text-slate-650 font-bold rounded text-xs flex items-center gap-1.5 bg-white shadow-xs transition"
                   >
                     <RefreshCw size={14} className="mr-1" />
                     Refresh
@@ -319,25 +319,25 @@ export default function PendingApplications() {
                 </div>
               ) : (
                 applications.map((app) => (
-                  <div key={app._id} className="bg-white border border-slate-200 rounded-[2rem] p-6 hover:shadow-md transition duration-200 flex flex-col md:flex-row gap-6 md:items-center justify-between">
+                  <div key={app._id} className="bg-white border border-gray-200 rounded-[2rem] p-6 hover:shadow-md transition duration-200 flex flex-col md:flex-row gap-6 md:items-center justify-between">
                     
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center shrink-0">
+                      <div className="w-14 h-14 bg-gray-50 border border-gray-100 rounded flex items-center justify-center shrink-0">
                         {app.storePhoto ? (
-                          <img src={app.storePhoto} alt={app.storeName} className="w-full h-full object-cover rounded-xl" />
+                          <img src={app.storePhoto} alt={app.storeName} className="w-full h-full object-cover rounded" />
                         ) : (
-                          <Store size={24} className="text-slate-400" />
+                          <Store size={24} className="text-gray-400" />
                         )}
                       </div>
                       <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-lg font-black text-slate-900 truncate">{app.storeName}</h3>
-                          <span className="bg-slate-100 text-slate-650 border border-slate-200 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded">
+                          <h3 className="text-lg font-black text-gray-900 truncate">{app.storeName}</h3>
+                          <span className="bg-gray-100 text-slate-650 border border-gray-200 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded">
                             {app.nodeType.replace(/_/g, " ")}
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-medium">
-                          <span className="flex items-center gap-1 text-slate-700 font-bold"><User size={13} /> {app.ownerName}</span>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 font-medium">
+                          <span className="flex items-center gap-1 text-gray-700 font-bold"><User size={13} /> {app.ownerName}</span>
                           <span>•</span>
                           <span className="flex items-center gap-1"><Mail size={13} /> {app.ownerEmail}</span>
                           <span>•</span>
@@ -346,10 +346,10 @@ export default function PendingApplications() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0 pt-4 md:pt-0 border-t md:border-none border-slate-100">
+                    <div className="flex items-center gap-3 shrink-0 pt-4 md:pt-0 border-t md:border-none border-gray-100">
                       <button
                         onClick={() => loadApplicationDetails(app._id)}
-                        className="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl text-xs flex items-center gap-1.5 bg-white shadow-xs transition"
+                        className="px-5 py-3 border border-gray-200 hover:bg-gray-50 text-gray-600 font-bold rounded text-xs flex items-center gap-1.5 bg-white shadow-xs transition"
                       >
                         <Eye size={14} /> Review Application
                       </button>
@@ -366,15 +366,15 @@ export default function PendingApplications() {
                 <button
                   disabled={page === 1}
                   onClick={() => setPage(p => p - 1)}
-                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 font-bold rounded-lg text-xs disabled:opacity-50"
+                  className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 font-bold rounded-lg text-xs disabled:opacity-50"
                 >
                   Prev
                 </button>
-                <span className="text-xs font-bold text-slate-500">Page {page} of {pages}</span>
+                <span className="text-xs font-bold text-gray-500">Page {page} of {pages}</span>
                 <button
                   disabled={page === pages}
                   onClick={() => setPage(p => p + 1)}
-                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-650 font-bold rounded-lg text-xs disabled:opacity-50"
+                  className="px-3 py-1.5 bg-white border border-gray-200 text-slate-650 font-bold rounded-lg text-xs disabled:opacity-50"
                 >
                   Next
                 </button>
@@ -392,13 +392,13 @@ export default function PendingApplications() {
           
           <div className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col z-10 animate-slide-in overflow-hidden">
             {/* Header */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
               <div>
-                <h2 className="text-xl font-black text-slate-900">Compliance Review Node</h2>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">Application ID: {selectedApp.applicationId}</p>
+                <h2 className="text-xl font-black text-gray-900">Compliance Review Node</h2>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">Application ID: {selectedApp.applicationId}</p>
               </div>
-              <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-slate-200 rounded-full transition">
-                <XCircle size={22} className="text-slate-400" />
+              <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-gray-200 rounded-full transition">
+                <XCircle size={22} className="text-gray-400" />
               </button>
             </div>
 
@@ -406,10 +406,10 @@ export default function PendingApplications() {
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               
               {/* Timeline Stage Indicator */}
-              <div className="bg-slate-50 border p-4 rounded-2xl flex items-center justify-between">
+              <div className="bg-gray-50 border p-4 rounded flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Clock size={16} className="text-amber-500" />
-                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider">Current Stage Status</span>
+                  <span className="text-xs font-black text-gray-800 uppercase tracking-wider">Current Stage Status</span>
                 </div>
                 <span className="bg-amber-100 border border-amber-200 text-amber-700 px-3 py-1 rounded-full text-[10px] font-black uppercase">
                   {normalizeStatus(selectedApp.status).replace(/_/g, " ")}
@@ -418,61 +418,61 @@ export default function PendingApplications() {
 
               {/* Store Information */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b pb-1 flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-gray-800 uppercase tracking-widest border-b pb-1 flex items-center gap-1.5">
                   <Store size={14} className="text-blue-500" /> Store Information
                 </h4>
                 <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-650">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Store Name</span>
-                    <span className="text-slate-800 font-black mt-0.5">{selectedApp.storeName}</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Store Name</span>
+                    <span className="text-gray-800 font-black mt-0.5">{selectedApp.storeName}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Node Type</span>
-                    <span className="text-slate-800 font-bold mt-0.5">{selectedApp.nodeType.replace(/_/g, " ")}</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Node Type</span>
+                    <span className="text-gray-800 font-bold mt-0.5">{selectedApp.nodeType.replace(/_/g, " ")}</span>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Description</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Description</span>
                     <p className="text-slate-650 font-medium mt-0.5 leading-relaxed">{selectedApp.storeDescription || "No description provided."}</p>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Address</span>
-                    <span className="text-slate-800">{selectedApp.address}, {selectedApp.city}, {selectedApp.state} - {selectedApp.pincode}</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Address</span>
+                    <span className="text-gray-800">{selectedApp.address}, {selectedApp.city}, {selectedApp.state} - {selectedApp.pincode}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Latitude</span>
-                    <span className="text-slate-800">{selectedApp.latitude || "N/A"}</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Latitude</span>
+                    <span className="text-gray-800">{selectedApp.latitude || "N/A"}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Longitude</span>
-                    <span className="text-slate-800">{selectedApp.longitude || "N/A"}</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Longitude</span>
+                    <span className="text-gray-800">{selectedApp.longitude || "N/A"}</span>
                   </div>
                 </div>
               </div>
 
               {/* Owner Information */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b pb-1 flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-gray-800 uppercase tracking-widest border-b pb-1 flex items-center gap-1.5">
                   <User size={14} className="text-blue-500" /> Owner Details
                 </h4>
                 <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-650">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Full Name</span>
-                    <span className="text-slate-800 font-black mt-0.5">{selectedApp.ownerName}</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Full Name</span>
+                    <span className="text-gray-800 font-black mt-0.5">{selectedApp.ownerName}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Email</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Email</span>
                     <span className="text-slate-850 mt-0.5">{selectedApp.ownerEmail}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Mobile Phone</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Mobile Phone</span>
                     <span className="text-slate-850 mt-0.5">{selectedApp.ownerPhone}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">PAN Number (Decrypted)</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">PAN Number (Decrypted)</span>
                     <span className="text-slate-850 font-black mt-0.5 uppercase">{selectedApp.panNumber}</span>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Aadhaar (Decrypted)</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Aadhaar (Decrypted)</span>
                     <span className="text-slate-850 font-black mt-0.5">{selectedApp.aadhaarNumber}</span>
                   </div>
                 </div>
@@ -480,32 +480,32 @@ export default function PendingApplications() {
 
               {/* Business & Bank details */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b pb-1 flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-gray-800 uppercase tracking-widest border-b pb-1 flex items-center gap-1.5">
                   <CreditCard size={14} className="text-blue-500" /> Business & Banking Details
                 </h4>
                 <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-650">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Business Type</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Business Type</span>
                     <span className="text-slate-850 mt-0.5">{selectedApp.businessType || "N/A"}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">GST Number</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">GST Number</span>
                     <span className="text-slate-850 font-black mt-0.5 uppercase">{selectedApp.gstNumber}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Food License Number</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Food License Number</span>
                     <span className="text-slate-850 mt-0.5">{selectedApp.foodLicenseNumber || "N/A"}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Bank Name</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Bank Name</span>
                     <span className="text-slate-850 mt-0.5">{selectedApp.bankName}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">IFSC Code</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">IFSC Code</span>
                     <span className="text-slate-850 font-black mt-0.5 uppercase">{selectedApp.ifscCode}</span>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Account Number (Decrypted)</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Account Number (Decrypted)</span>
                     <span className="text-slate-850 font-black mt-0.5">{selectedApp.bankAccountNumber}</span>
                   </div>
                 </div>
@@ -513,7 +513,7 @@ export default function PendingApplications() {
 
               {/* Uploaded Documents List */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b pb-1 flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-gray-800 uppercase tracking-widest border-b pb-1 flex items-center gap-1.5">
                   <FileText size={14} className="text-blue-500" /> Compliance Documents
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -530,10 +530,10 @@ export default function PendingApplications() {
                   ].map(doc => {
                     if (!doc.file) return null;
                     return (
-                      <div key={doc.key} className="border border-slate-200 rounded-xl p-3 bg-slate-50/50 flex items-center justify-between">
+                      <div key={doc.key} className="border border-gray-200 rounded p-3 bg-gray-50/50 flex items-center justify-between">
                         <div className="min-w-0">
-                          <p className="text-[11px] font-bold text-slate-700 truncate">{doc.label}</p>
-                          <span className="text-[9px] text-slate-400 font-bold block uppercase mt-0.5">Scanned File</span>
+                          <p className="text-[11px] font-bold text-gray-700 truncate">{doc.label}</p>
+                          <span className="text-[9px] text-gray-400 font-bold block uppercase mt-0.5">Scanned File</span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
@@ -542,14 +542,14 @@ export default function PendingApplications() {
                               setLightboxScale(1);
                               setLightboxFullscreen(false);
                             }}
-                            className="p-1.5 bg-white border rounded-lg text-slate-600 hover:text-slate-900 transition hover:bg-slate-50"
+                            className="p-1.5 bg-white border rounded-lg text-gray-600 hover:text-gray-900 transition hover:bg-gray-50"
                             title="Preview file"
                           >
                             <Eye size={12} />
                           </button>
                           <button
                             onClick={() => handleDownload(doc.file, `${doc.key}.png`)}
-                            className="p-1.5 bg-white border rounded-lg text-slate-650 hover:text-slate-900 transition hover:bg-slate-50"
+                            className="p-1.5 bg-white border rounded-lg text-slate-650 hover:text-gray-900 transition hover:bg-gray-50"
                             title="Download file"
                           >
                             <Download size={12} />
@@ -565,29 +565,29 @@ export default function PendingApplications() {
 
             {/* Action buttons (only active for pending) */}
             {isActionableStatus(selectedApp.status) && (
-              <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3 shrink-0">
+              <div className="p-6 border-t border-gray-100 bg-gray-50 flex items-center justify-between gap-3 shrink-0">
                 <button
                   onClick={() => setInfoModal(true)}
-                  className="px-4 py-3 bg-slate-100 border border-slate-200 text-slate-650 hover:bg-slate-200 hover:text-slate-900 font-bold rounded-xl text-xs transition"
+                  className="px-4 py-3 bg-gray-100 border border-gray-200 text-slate-650 hover:bg-gray-200 hover:text-gray-900 font-bold rounded text-xs transition"
                 >
                   Request Info
                 </button>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleSuspend(selectedApp._id)}
-                    className="px-4 py-3 bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 rounded-xl font-bold text-xs transition active:scale-95"
+                    className="px-4 py-3 bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 rounded font-bold text-xs transition active:scale-95"
                   >
                     Suspend
                   </button>
                   <button
                     onClick={() => setRejectModal(true)}
-                    className="px-5 py-3 bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 rounded-xl font-bold text-xs transition active:scale-95"
+                    className="px-5 py-3 bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 rounded font-bold text-xs transition active:scale-95"
                   >
                     Reject Application
                   </button>
                   <button
                     onClick={() => handleApprove(selectedApp._id)}
-                    className="px-6 py-3 bg-slate-900 text-white hover:bg-slate-800 rounded-xl font-bold text-xs transition shadow active:scale-95"
+                    className="px-6 py-3 bg-[#065F46] text-white hover:bg-slate-800 rounded font-bold text-xs transition shadow active:scale-95"
                   >
                     Approve Store Node
                   </button>
@@ -601,38 +601,38 @@ export default function PendingApplications() {
       {/* DOCUMENT PREVIEW LIGHTBOX WITH SCALE / FULLSCREEN / INVALID CHECKS */}
       {lightboxUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in">
-          <div className="relative max-w-4xl w-full bg-white rounded-3xl p-4 flex flex-col items-center shadow-2xl h-[85vh]">
+          <div className="relative max-w-4xl w-full bg-white rounded p-4 flex flex-col items-center shadow-2xl h-[85vh]">
             
             {/* Header controls */}
             <div className="w-full flex items-center justify-between border-b pb-3 mb-3 shrink-0">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Verification Lightbox Tool</span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Verification Lightbox Tool</span>
               
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setLightboxScale(s => Math.max(0.5, s - 0.25))}
-                  className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition"
+                  className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition"
                   title="Zoom Out"
                 >
                   <ZoomOut size={14} />
                 </button>
-                <span className="text-xs font-bold text-slate-700 w-12 text-center">{Math.round(lightboxScale * 100)}%</span>
+                <span className="text-xs font-bold text-gray-700 w-12 text-center">{Math.round(lightboxScale * 100)}%</span>
                 <button
                   onClick={() => setLightboxScale(s => Math.min(3, s + 0.25))}
-                  className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition"
+                  className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition"
                   title="Zoom In"
                 >
                   <ZoomIn size={14} />
                 </button>
                 <button
                   onClick={() => setLightboxFullscreen(!lightboxFullscreen)}
-                  className={`p-1.5 rounded-lg transition ${lightboxFullscreen ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                  className={`p-1.5 rounded-lg transition ${lightboxFullscreen ? 'bg-[#065F46] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                   title="Toggle Fullscreen"
                 >
                   <Maximize2 size={14} />
                 </button>
                 <button
                   onClick={() => handleDownload(lightboxUrl, "document.png")}
-                  className="p-1.5 bg-slate-100 text-slate-650 hover:bg-slate-200 rounded-lg transition"
+                  className="p-1.5 bg-gray-100 text-slate-650 hover:bg-gray-200 rounded-lg transition"
                   title="Download File"
                 >
                   <Download size={14} />
@@ -655,7 +655,7 @@ export default function PendingApplications() {
 
                 <button
                   onClick={() => setLightboxUrl(null)}
-                  className="p-1.5 hover:bg-slate-100 text-slate-400 rounded-full transition ml-2"
+                  className="p-1.5 hover:bg-gray-100 text-gray-400 rounded-full transition ml-2"
                 >
                   <XCircle size={20} />
                 </button>
@@ -663,13 +663,13 @@ export default function PendingApplications() {
             </div>
 
             {/* Image viewer */}
-            <div className="flex-1 w-full overflow-auto flex items-center justify-center bg-slate-100 rounded-2xl relative">
+            <div className="flex-1 w-full overflow-auto flex items-center justify-center bg-gray-100 rounded relative">
               <div 
                 className="transition-transform duration-100 origin-center"
                 style={{ transform: `scale(${lightboxScale})` }}
               >
                 {lightboxUrl.startsWith("data:application/pdf") ? (
-                  <div className="p-8 text-center text-slate-500 font-bold">
+                  <div className="p-8 text-center text-gray-500 font-bold">
                     PDF Document preview not supported in lightbox. Use download action to audit files.
                   </div>
                 ) : (
@@ -696,15 +696,15 @@ export default function PendingApplications() {
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="e.g. GST certificate mismatch or PAN details invalid."
-              className="w-full bg-slate-50 border rounded-xl p-3 text-sm font-semibold outline-none resize-none focus:border-slate-400 focus:bg-white"
+              className="w-full bg-gray-50 border rounded p-3 text-sm font-semibold outline-none resize-none focus:border-slate-400 focus:bg-white"
             />
             <div className="flex items-center justify-end gap-3 pt-2">
-              <button onClick={() => setRejectModal(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl text-xs font-bold">
+              <button onClick={() => setRejectModal(false)} className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded text-xs font-bold">
                 Cancel
               </button>
               <button 
                 onClick={() => handleReject(selectedApp._id)} 
-                className="px-5 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition"
+                className="px-5 py-2 bg-rose-600 text-white rounded text-xs font-bold hover:bg-rose-700 transition"
               >
                 Submit Rejection
               </button>
@@ -723,15 +723,15 @@ export default function PendingApplications() {
               value={infoComments}
               onChange={(e) => setInfoComments(e.target.value)}
               placeholder="Describe what corrections or files are required from the merchant..."
-              className="w-full bg-slate-50 border rounded-xl p-3 text-sm font-semibold outline-none resize-none focus:border-slate-400 focus:bg-white"
+              className="w-full bg-gray-50 border rounded p-3 text-sm font-semibold outline-none resize-none focus:border-slate-400 focus:bg-white"
             />
             <div className="flex items-center justify-end gap-3 pt-2">
-              <button onClick={() => setInfoModal(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl text-xs font-bold">
+              <button onClick={() => setInfoModal(false)} className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded text-xs font-bold">
                 Cancel
               </button>
               <button 
                 onClick={() => handleRequestInfo(selectedApp._id)} 
-                className="px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition"
+                className="px-5 py-2 bg-[#065F46] text-white rounded text-xs font-bold hover:bg-slate-800 transition"
               >
                 Submit Request
               </button>

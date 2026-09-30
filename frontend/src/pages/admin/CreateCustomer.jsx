@@ -93,7 +93,7 @@ export default function CreateCustomer() {
 
   return (
     <div
-      className="flex flex-col lg:flex-row min-h-screen text-slate-900 dark:text-slate-100"
+      className="flex flex-col lg:flex-row min-h-screen text-gray-900 dark:text-slate-100"
       style={{
         background:
           "radial-gradient(ellipse at 20% 50%, rgba(40,116,240,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(251,100,27,0.04) 0%, transparent 60%), linear-gradient(135deg, #050811 0%, #080C1A 50%, #050811 100%)",
@@ -113,25 +113,25 @@ export default function CreateCustomer() {
           <div className="max-w-[950px] mx-auto mb-6 flex items-center justify-between">
             <button
               onClick={() => navigate("/admin/customers")}
-              className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition cursor-pointer"
+              className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-800 dark:hover:text-white transition cursor-pointer"
             >
               <ArrowLeft size={16} /> Back to Directory
             </button>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
               Create New Customer Profile
             </h1>
           </div>
 
           {error && (
-            <div className="max-w-[950px] mx-auto mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-300 text-xs font-bold flex items-center gap-2.5">
+            <div className="max-w-[950px] mx-auto mb-6 p-4 rounded bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-300 text-xs font-bold flex items-center gap-2.5">
               <AlertCircle size={16} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          <div className="max-w-[950px] mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="max-w-[950px] mx-auto bg-white/80 dark:bg-[#065F46]/80 backdrop-blur-xl rounded border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
             {/* ================= HEADER ================= */}
-            <section className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row gap-6 items-center">
+            <section className="p-6 border-b border-gray-200 dark:border-slate-800 flex flex-col sm:flex-row gap-6 items-center">
               <div
                 onClick={() => fileRef.current.click()}
                 onDragOver={(e) => {
@@ -167,12 +167,12 @@ export default function CreateCustomer() {
                     className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
-                  <UploadCloud className="text-slate-400" size={24} />
+                  <UploadCloud className="text-gray-400" size={24} />
                 )}
               </div>
 
               <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                <h2 className="text-base sm:text-lg font-black text-gray-900 dark:text-white">
                   Customer Profile Insights
                 </h2>
 
@@ -187,7 +187,7 @@ export default function CreateCustomer() {
                     {segment} Segment
                   </span>
 
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
                     Est. Lifetime Value: ₹{lifetimeValue.toLocaleString()}
                   </span>
                 </div>
@@ -213,7 +213,7 @@ export default function CreateCustomer() {
             <Section title="Customer Credentials & Identity">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">First Name *</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5 block">First Name *</label>
                   <Input
                     placeholder="e.g. Rahul"
                     value={firstName}
@@ -221,7 +221,7 @@ export default function CreateCustomer() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Last Name</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5 block">Last Name</label>
                   <Input
                     placeholder="e.g. Sharma"
                     value={lastName}
@@ -232,7 +232,7 @@ export default function CreateCustomer() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Email Address *</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5 block">Email Address *</label>
                   <Input
                     type="email"
                     placeholder="rahul@example.com"
@@ -241,7 +241,7 @@ export default function CreateCustomer() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Contact Phone</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5 block">Contact Phone</label>
                   <Input
                     placeholder="+91 98765 43210"
                     value={phone}
@@ -251,7 +251,7 @@ export default function CreateCustomer() {
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Initial Temporary Password</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5 block">Initial Temporary Password</label>
                 <Input
                   type="text"
                   placeholder="Password"
@@ -264,7 +264,7 @@ export default function CreateCustomer() {
             {/* ================= ANALYTICS INPUT ================= */}
             <Section title="Historical Context (Optional)">
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5 block">
                   Prior External Purchases Count
                 </label>
                 <input
@@ -272,7 +272,7 @@ export default function CreateCustomer() {
                   min="0"
                   value={orders}
                   onChange={(e) => setOrders(Number(e.target.value))}
-                  className="w-full border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
+                  className="w-full border border-gray-200 dark:border-slate-800 rounded px-4 py-3 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
                 />
               </div>
 
@@ -302,25 +302,25 @@ export default function CreateCustomer() {
             </Section>
 
             {/* ================= ACTIONS ================= */}
-            <div className="p-6 bg-slate-50/50 dark:bg-slate-950/40 space-y-3">
+            <div className="p-6 bg-gray-50/50 dark:bg-slate-950/40 space-y-3">
               <button
                 disabled={loading}
                 onClick={() => handleSaveCustomer(false)}
-                className="w-full bg-[#2874F0] hover:bg-blue-600 disabled:opacity-50 text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider shadow-md transition cursor-pointer"
+                className="w-full bg-[#2874F0] hover:bg-blue-600 disabled:opacity-50 text-white py-3.5 rounded font-black text-xs uppercase tracking-wider shadow-md transition cursor-pointer"
               >
                 {loading ? "Registering Customer..." : "Save Customer"}
               </button>
               <button
                 disabled={loading}
                 onClick={() => handleSaveCustomer(true)}
-                className="w-full border border-slate-300 dark:border-slate-700 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition cursor-pointer"
+                className="w-full border border-slate-300 dark:border-slate-700 py-3.5 rounded font-black text-xs uppercase tracking-wider hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-800 dark:text-slate-200 transition cursor-pointer"
               >
                 Save & Create First Order
               </button>
               <button
                 disabled={loading}
                 onClick={() => navigate("/admin/customers")}
-                className="w-full text-xs font-bold text-slate-400 hover:text-red-500 py-1 cursor-pointer transition"
+                className="w-full text-xs font-bold text-gray-400 hover:text-red-500 py-1 cursor-pointer transition"
               >
                 Cancel and Return
               </button>
@@ -336,8 +336,8 @@ export default function CreateCustomer() {
 
 function Section({ title, children }) {
   return (
-    <section className="p-6 border-b border-slate-200 dark:border-slate-800">
-      <h3 className="text-[11px] font-black tracking-widest text-slate-400 uppercase mb-4">
+    <section className="p-6 border-b border-gray-200 dark:border-slate-800">
+      <h3 className="text-[11px] font-black tracking-widest text-gray-400 uppercase mb-4">
         {title}
       </h3>
       <div className="space-y-4">{children}</div>
@@ -349,16 +349,16 @@ function Input(props) {
   return (
     <input
       {...props}
-      className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-3 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:border-[#2874F0] outline-none transition"
+      className="w-full rounded border border-gray-200 dark:border-slate-800 px-4 py-3 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 focus:border-[#2874F0] outline-none transition"
     />
   );
 }
 
 function Info({ label, value }) {
   return (
-    <div className="border border-slate-200 dark:border-slate-800 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-950/40">
-      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{label}</p>
-      <p className="font-extrabold text-sm text-slate-900 dark:text-white mt-1">{value}</p>
+    <div className="border border-gray-200 dark:border-slate-800 rounded p-4 bg-gray-50/50 dark:bg-slate-950/40">
+      <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{label}</p>
+      <p className="font-extrabold text-sm text-gray-900 dark:text-white mt-1">{value}</p>
     </div>
   );
 }
@@ -367,8 +367,8 @@ function Toggle({ label, desc, enabled, setEnabled }) {
   return (
     <div className="flex justify-between items-center gap-4">
       <div>
-        <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{label}</p>
-        <p className="text-[11px] text-slate-400">{desc}</p>
+        <p className="text-xs font-bold text-gray-800 dark:text-slate-200">{label}</p>
+        <p className="text-[11px] text-gray-400">{desc}</p>
       </div>
       <button
         type="button"

@@ -158,7 +158,7 @@ const AdminSignup = () => {
             aria-invalid={hasError}
             aria-describedby={hasError ? errorId : undefined}
             aria-required="true"
-            className={`w-full px-4 py-3 ${showToggle ? "pr-10" : ""} rounded-2xl text-sm bg-[#ECEFF4] focus:outline-none focus:ring-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed
+            className={`w-full px-4 py-3 ${showToggle ? "pr-10" : ""} rounded text-sm bg-[#ECEFF4] focus:outline-none focus:ring-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed
               ${hasError
                 ? "ring-2 ring-red-400 bg-red-50"
                 : "focus:ring-emerald-400/60"
@@ -173,7 +173,7 @@ const AdminSignup = () => {
               onClick={onToggle}
               disabled={loading}
               aria-label={isVisible ? "Hide" : "Show"}
-              className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 rounded"
+              className="absolute right-3 top-1/2 -trangray-y-1/2 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 rounded"
             >
               {isVisible ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
             </button>
@@ -196,7 +196,7 @@ const AdminSignup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FAFAF7] px-4 sm:px-6 py-10 overflow-y-auto">
       <div
-        className="w-full max-w-sm sm:max-w-md bg-white rounded-2xl px-6 sm:px-8 py-8 sm:py-10 my-auto"
+        className="w-full max-w-sm sm:max-w-md bg-white rounded px-6 sm:px-8 py-8 sm:py-10 my-auto"
         style={{ boxShadow: "0 16px 40px rgb(128, 128, 128)" }}
       >
         <h1 className="text-2xl font-semibold text-black">Create Admin Account</h1>
@@ -251,7 +251,7 @@ const AdminSignup = () => {
             disabled={loading}
             aria-busy={loading}
             aria-label={loading ? "Creating account, please wait" : "Create admin account"}
-            className="w-full mt-2 bg-black text-white py-3 rounded-3xl text-sm font-medium hover:opacity-90 transition active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full mt-2 bg-black text-white py-3 rounded text-sm font-medium hover:opacity-90 transition active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>

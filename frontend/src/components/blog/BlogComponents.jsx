@@ -17,16 +17,16 @@ import toast from 'react-hot-toast';
 export const Breadcrumbs = ({ title, category }) => {
   return (
     <nav className="flex items-center space-x-2 text-sm text-zinc-500 mb-8 overflow-x-auto whitespace-nowrap pb-2">
-      <Link to="/" className="hover:text-indigo-600 flex items-center transition-colors">
+      <Link to="/" className="hover:text-[#065F46] flex items-center transition-colors">
         <Home className="w-4 h-4 mr-1" />
         Home
       </Link>
       <ChevronRight className="w-4 h-4 flex-shrink-0" />
-      <Link to="/blog" className="hover:text-indigo-600 transition-colors">
+      <Link to="/blog" className="hover:text-[#065F46] transition-colors">
         Blog
       </Link>
       <ChevronRight className="w-4 h-4 flex-shrink-0" />
-      <Link to={`/blog?category=${category}`} className="hover:text-indigo-600 transition-colors">
+      <Link to={`/blog?category=${category}`} className="hover:text-[#065F46] transition-colors">
         {category}
       </Link>
       <ChevronRight className="w-4 h-4 flex-shrink-0" />
@@ -41,7 +41,7 @@ export const AuthorBlock = ({ author, date, readTime }) => {
   return (
     <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-600 mb-8 border-y border-zinc-100 py-4">
       <div className="flex items-center font-medium text-zinc-900">
-        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3 font-bold">
+        <div className="w-8 h-8 rounded-full bg-indigo-100 text-[#065F46] flex items-center justify-center mr-3 font-bold">
           {author.charAt(0)}
         </div>
         {author}
@@ -76,7 +76,7 @@ export const TableOfContents = ({ content }) => {
   if (headings.length === 0) return null;
 
   return (
-    <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100 mb-8">
+    <div className="bg-zinc-50 p-6 rounded border border-zinc-100 mb-8">
       <h3 className="font-bold text-lg mb-4 text-zinc-900">Table of Contents</h3>
       <ul className="space-y-3">
         {headings.map((heading) => (
@@ -86,7 +86,7 @@ export const TableOfContents = ({ content }) => {
           >
             <a 
               href={`#${heading.id}`}
-              className="hover:text-indigo-600 transition-colors line-clamp-1"
+              className="hover:text-[#065F46] transition-colors line-clamp-1"
             >
               {heading.text}
             </a>
@@ -120,7 +120,7 @@ export const ShareButtons = ({ title }) => {
         href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors"
+        className="w-10 h-10 rounded-full bg-blue-50 text-[#065F46] flex items-center justify-center hover:bg-[#065F46] hover:text-white transition-colors"
       >
         <Facebook className="w-4 h-4" />
       </a>
@@ -144,10 +144,10 @@ export const ShareButtons = ({ title }) => {
 
 export const CTASection = () => {
   return (
-    <div className="mt-16 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden">
+    <div className="mt-16 bg-white rounded p-8 sm:p-12 text-center text-white relative overflow-hidden">
       {/* Decorative blobs */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-64 h-64 bg-black/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
+      <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -trangray-x-1/2 -trangray-y-1/2 pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-black/10 rounded-full blur-3xl trangray-x-1/2 trangray-y-1/2 pointer-events-none"></div>
       
       <h3 className="text-2xl sm:text-3xl font-bold mb-4 relative z-10">
         Ready to scale your local business?
@@ -158,13 +158,13 @@ export const CTASection = () => {
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
         <Link 
           to="/seller/login" 
-          className="px-8 py-3 bg-white text-indigo-600 font-bold rounded-xl hover:bg-indigo-50 transition-colors w-full sm:w-auto shadow-xl shadow-black/10"
+          className="px-8 py-3 bg-white text-[#065F46] font-bold rounded hover:bg-indigo-50 transition-colors w-full sm:w-auto shadow-xl shadow-black/10"
         >
           Become a Seller
         </Link>
         <Link 
           to="/" 
-          className="px-8 py-3 bg-indigo-800/50 backdrop-blur-sm text-white font-bold rounded-xl hover:bg-indigo-800 transition-colors border border-indigo-400/30 w-full sm:w-auto"
+          className="px-8 py-3 bg-indigo-800/50 backdrop-blur-sm text-white font-bold rounded hover:bg-indigo-800 transition-colors border border-indigo-400/30 w-full sm:w-auto"
         >
           Start Shopping
         </Link>

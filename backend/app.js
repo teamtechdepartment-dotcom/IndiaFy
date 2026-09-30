@@ -13,6 +13,17 @@ import { seedDatabase } from "./services/seeder.service.js";
 // NOTE: Database connection is handled in index.js with retry logic.
 // Seeding is triggered after successful connection there.
 
+if (process.env.NODE_ENV === "production") {
+    if (!process.env.SecurityKey) {
+        throw new Error("SecurityKey is required in production");
+    }
+
+    if (!process.env.KYC_ENCRYPTION_KEY) {
+        throw new Error("KYC_ENCRYPTION_KEY is required in production");
+    }
+}
+
+
 import adminAuthRoutes from "./routers/admin/auth.route.js";
 import adminManagementRoutes from "./routers/admin/management.route.js";
 import customerAuthRoutes from "./routers/customer/auth.route.js";

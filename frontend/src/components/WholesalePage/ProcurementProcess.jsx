@@ -27,7 +27,7 @@ function ProcurementProcess() {
 
         <div className="relative">
           {/* Connecting Line (Desktop) */}
-          <div className="hidden lg:block absolute top-1/2 left-0 w-full h-1 bg-white/10 -translate-y-1/2 rounded-full overflow-hidden">
+          <div className="hidden lg:block absolute top-1/2 left-0 w-full h-1 bg-white/10 -trangray-y-1/2 rounded-full overflow-hidden">
              <motion.div 
                initial={{ x: "-100%" }}
                whileInView={{ x: "100%" }}
@@ -49,7 +49,7 @@ function ProcurementProcess() {
                   transition={{ delay: idx * 0.2, type: "spring" }}
                   className="relative flex flex-col items-center text-center group"
                 >
-                  <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center mb-6 group-hover:bg-brand-accent group-hover:border-brand-accent transition-colors shadow-xl">
+                  <div className="w-16 h-16 lg:w-20 lg:h-20 rounded bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center mb-6 group-hover:bg-brand-accent group-hover:border-brand-accent transition-colors shadow-xl">
                     <Icon size={28} className="text-white group-hover:text-brand-primary transition-colors" />
                   </div>
                   

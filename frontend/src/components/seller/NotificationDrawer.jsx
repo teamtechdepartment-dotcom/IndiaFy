@@ -93,16 +93,16 @@ export default function NotificationDrawer({ onNavigateToOrders }) {
                 transition={{ duration: 0.22, ease: "easeOut" }}
             >
                 {/* ── HEADER ────────────────────────────────────────────── */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white sticky top-0">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gray-900 rounded flex items-center justify-center">
                             <Bell size={15} className="text-white" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-black text-slate-900 leading-tight">
+                            <h2 className="text-sm font-black text-gray-900 leading-tight">
                                 Order Notifications
                             </h2>
-                            <p className="text-[10px] text-slate-400 font-medium">
+                            <p className="text-[10px] text-gray-400 font-medium">
                                 {activeNode?.storeName || "This node"}
                             </p>
                         </div>
@@ -111,7 +111,7 @@ export default function NotificationDrawer({ onNavigateToOrders }) {
                         {notifications.length > 0 && (
                             <button
                                 onClick={handleMarkAllRead}
-                                className="text-[11px] font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                                className="text-[11px] font-bold text-gray-500 hover:text-gray-900 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                             >
                                 <CheckCircle size={12} />
                                 Mark all read
@@ -119,7 +119,7 @@ export default function NotificationDrawer({ onNavigateToOrders }) {
                         )}
                         <button
                             onClick={closeDrawer}
-                            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                            className="p-1.5 rounded text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                             aria-label="Close notifications"
                         >
                             <X size={18} />
@@ -128,17 +128,17 @@ export default function NotificationDrawer({ onNavigateToOrders }) {
                 </div>
 
                 {/* ── NOTIFICATION LIST ──────────────────────────────────── */}
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
+                <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
                     {notifications.length === 0 ? (
                         /* Empty State */
                         <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
-                                <Inbox size={28} className="text-slate-300" />
+                            <div className="w-16 h-16 bg-gray-50 rounded flex items-center justify-center mb-4">
+                                <Inbox size={28} className="text-gray-300" />
                             </div>
-                            <h3 className="text-sm font-bold text-slate-700 mb-1">
+                            <h3 className="text-sm font-bold text-gray-700 mb-1">
                                 You're all caught up!
                             </h3>
-                            <p className="text-xs text-slate-400 font-medium max-w-[200px]">
+                            <p className="text-xs text-gray-400 font-medium max-w-[200px]">
                                 New orders will appear here instantly.
                             </p>
                         </div>
@@ -147,32 +147,32 @@ export default function NotificationDrawer({ onNavigateToOrders }) {
                             <button
                                 key={notif.orderId || notif._id || idx}
                                 onClick={handleViewOrders}
-                                className="w-full text-left px-5 py-4 hover:bg-slate-50 transition-colors group"
+                                className="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors group"
                             >
                                 <div className="flex items-start gap-3">
                                     {/* Icon */}
-                                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-blue-100 transition-colors">
-                                        <Package size={18} className="text-blue-600" />
+                                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-blue-100 transition-colors">
+                                        <Package size={18} className="text-[#065F46]" />
                                     </div>
 
                                     {/* Content */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between gap-2 mb-1">
-                                            <p className="text-sm font-bold text-slate-900 leading-tight">
+                                            <p className="text-sm font-bold text-gray-900 leading-tight">
                                                 New Order #{" "}
-                                                <span className="text-blue-600">
+                                                <span className="text-[#065F46]">
                                                     {notif.orderNumber ||
                                                         (notif.orderId?.toString().slice(-6).toUpperCase()) ||
                                                         "—"}
                                                 </span>
                                             </p>
-                                            <span className="text-[10px] text-slate-400 font-medium shrink-0 flex items-center gap-0.5 mt-0.5">
+                                            <span className="text-[10px] text-gray-400 font-medium shrink-0 flex items-center gap-0.5 mt-0.5">
                                                 <Clock size={10} />
                                                 {timeAgo(notif.createdAt || notif.receivedAt)}
                                             </span>
                                         </div>
 
-                                        <p className="text-xs text-slate-500 font-medium mb-2 truncate">
+                                        <p className="text-xs text-gray-500 font-medium mb-2 truncate">
                                             {notif.customerName || "A customer"} placed an order
                                         </p>
 
@@ -182,12 +182,12 @@ export default function NotificationDrawer({ onNavigateToOrders }) {
                                                 <IndianRupee size={10} />
                                                 {formatCurrency(notif.totalAmount || notif.totalPrice).replace("₹", "")}
                                             </span>
-                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
                                                 <ShoppingBag size={10} />
                                                 {notif.itemCount || 1} item{(notif.itemCount || 1) !== 1 ? "s" : ""}
                                             </span>
                                             {notif.paymentMethod && (
-                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
+                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full">
                                                     {notif.paymentMethod}
                                                 </span>
                                             )}
@@ -200,10 +200,10 @@ export default function NotificationDrawer({ onNavigateToOrders }) {
                 </div>
 
                 {/* ── FOOTER ─────────────────────────────────────────────── */}
-                <div className="border-t border-slate-100 p-4 bg-white">
+                <div className="border-t border-gray-100 p-4 bg-white">
                     <button
                         onClick={handleViewOrders}
-                        className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-2xl transition-all shadow-md flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold text-sm rounded transition-all shadow-md flex items-center justify-center gap-2"
                     >
                         <ShoppingBag size={16} />
                         Go to Orders

@@ -65,7 +65,7 @@ export default function SearchRecommendations({ query, organicIds = new Set() })
     }));
 
     return (
-        <div className="w-full mb-8 border-b border-gray-200 pb-8 bg-blue-50/30 p-4 rounded-xl">
+        <div className="w-full mb-8 border-b border-gray-200 pb-8 bg-blue-50/30 p-4 rounded">
             <h2 className="text-xl font-bold text-[#2874F0] mb-4 flex items-center gap-2">
                 <span className="text-xl">✨</span> Top Personalized Matches
             </h2>

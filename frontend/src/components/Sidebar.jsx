@@ -69,10 +69,10 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
             if (closeMobile) setSidebarOpen(false);
           }}
           className={({ isActive }) => `
-            w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+            w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-medium transition-all
             ${isActive 
-              ? (activeNode === 'wholesale' ? "bg-amber-900 text-amber-50 shadow-lg shadow-amber-900/50 scale-[1.02]" : "bg-slate-900 text-white shadow-lg shadow-slate-300/50 scale-[1.02]") 
-              : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05)]"
+              ? (activeNode === 'wholesale' ? "bg-amber-900 text-amber-50 shadow-lg shadow-amber-900/50 scale-[1.02]" : "bg-gray-900 text-white shadow-lg shadow-gray-300/50 scale-[1.02]") 
+              : "text-gray-600 hover:bg-gray-100/80 hover:text-gray-900 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05)]"
             }
           `}
         >
@@ -87,10 +87,10 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
     <>
       {/* --- DESKTOP SIDEBAR --- */}
       {/* Layered double inner shadow on the right edge for deep shading */}
-      <aside className="w-64 bg-white hidden md:flex flex-col sticky top-0 h-screen relative z-10 border-r border-slate-200 shadow-[inset_-25px_0_30px_-15px_rgba(0,0,0,0.08),inset_-50px_0_50px_-25px_rgba(0,0,0,0.04)]">
+      <aside className="w-64 bg-white hidden md:flex flex-col sticky top-0 h-screen relative z-10 border-r border-gray-200 shadow-[inset_-25px_0_30px_-15px_rgba(0,0,0,0.08),inset_-50px_0_50px_-25px_rgba(0,0,0,0.04)]">
         
         {/* Inner shadow at the bottom of the header */}
-        <div className="p-6 border-b border-slate-100 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.08)] relative z-10">
+        <div className="p-6 border-b border-gray-100 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.08)] relative z-10">
           <div className="flex items-center gap-3">
             <img loading="lazy" decoding="async" 
               src="/Images/logo.png" 
@@ -98,7 +98,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
               className="h-10 w-auto object-contain drop-shadow-sm" 
             />
             <div>
-              <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${activeNode === 'wholesale' ? 'text-amber-600' : 'text-slate-500'}`}>
+              <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${activeNode === 'wholesale' ? 'text-amber-600' : 'text-gray-500'}`}>
                 {activeNode === 'wholesale' ? 'Wholesale Node' : 'Local Node'}
               </p>
             </div>
@@ -110,10 +110,10 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
         </div>
 
         {/* Inner shadow at the top of the footer */}
-        <div className="p-4 border-t border-slate-100 shadow-[inset_0_20px_20px_-20px_rgba(0,0,0,0.08)] relative z-10">
+        <div className="p-4 border-t border-gray-100 shadow-[inset_0_20px_20px_-20px_rgba(0,0,0,0.08)] relative z-10">
           <button 
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05)] transition-all"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-medium text-red-600 hover:bg-red-50 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05)] transition-all"
           >
             <LogOut size={18} />
             Logout
@@ -124,7 +124,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
       {/* --- MOBILE DROPDOWN SIDEBAR --- */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 md:hidden transition-opacity"
+          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 md:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
         >
           {/* Layered double inner shadow on the bottom edge for mobile */}
@@ -134,7 +134,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
           >
             
             {/* Inner shadow at the bottom of the header */}
-            <div className="p-4 flex justify-between items-center border-b border-slate-100 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.08)] relative z-10">
+            <div className="p-4 flex justify-between items-center border-b border-gray-100 shadow-[inset_0_-20px_20px_-20px_rgba(0,0,0,0.08)] relative z-10">
               <div className="flex items-center gap-2">
                 <img loading="lazy" decoding="async" 
                   src="/Images/logo.png" 
@@ -144,7 +144,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
               </div>
               <button 
                 onClick={() => setSidebarOpen(false)} 
-                className="p-2 bg-slate-50 text-slate-500 rounded-full hover:bg-slate-100 hover:text-slate-900 transition shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
+                className="p-2 bg-gray-50 text-gray-500 rounded-full hover:bg-gray-100 hover:text-gray-900 transition shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
               >
                 <X size={20} />
               </button>
@@ -154,10 +154,10 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, activeNode }) {
               <NavItems closeMobile={true} />
               
               {/* Inner shadow at the top of the footer */}
-              <div className="mt-4 pt-4 border-t border-slate-100 shadow-[inset_0_20px_20px_-20px_rgba(0,0,0,0.08)] relative z-10">
+              <div className="mt-4 pt-4 border-t border-gray-100 shadow-[inset_0_20px_20px_-20px_rgba(0,0,0,0.08)] relative z-10">
                 <button 
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05)] transition-all"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-medium text-red-600 hover:bg-red-50 hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05)] transition-all"
                 >
                   <LogOut size={18} />
                   Logout

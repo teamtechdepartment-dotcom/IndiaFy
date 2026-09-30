@@ -81,7 +81,7 @@ export default function WhatsAppAutomation() {
 
   return (
     <div
-      className="flex flex-col lg:flex-row min-h-screen text-slate-900 dark:text-slate-100"
+      className="flex flex-col lg:flex-row min-h-screen text-gray-900 dark:text-slate-100"
       style={{
         background:
           "radial-gradient(ellipse at 20% 50%, rgba(40,116,240,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(251,100,27,0.04) 0%, transparent 60%), linear-gradient(135deg, #050811 0%, #080C1A 50%, #050811 100%)",
@@ -100,27 +100,27 @@ export default function WhatsAppAutomation() {
         >
           {/* Page Header */}
           <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
               WhatsApp Automation Center
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 text-xs sm:text-sm font-medium">
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-xs sm:text-sm font-medium">
               Manage automatic event-triggered transactional messages for Indian marketplace customers.
             </p>
           </div>
 
           {/* Enable / Disable */}
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm">
+          <div className="bg-white/80 dark:bg-[#065F46]/80 backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded p-5 sm:p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm">
             <div>
-              <h2 className="font-black text-base text-slate-900 dark:text-white">
+              <h2 className="font-black text-base text-gray-900 dark:text-white">
                 Live Messaging Gateway
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 Toggle all transactional WhatsApp webhook dispatches across IndiaFy storefront
               </p>
             </div>
 
             <div className="flex items-center gap-3">
-              <span className={`text-xs font-bold ${enabled ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
+              <span className={`text-xs font-bold ${enabled ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400"}`}>
                 {enabled ? "Active" : "Paused"}
               </span>
               <button
@@ -142,8 +142,8 @@ export default function WhatsAppAutomation() {
           {/* Main Grid */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* Templates Selector */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
-              <h2 className="font-black text-sm uppercase tracking-wider text-slate-400 mb-4">
+            <div className="bg-white/80 dark:bg-[#065F46]/80 backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded p-5 shadow-sm">
+              <h2 className="font-black text-sm uppercase tracking-wider text-gray-400 mb-4">
                 Message Templates
               </h2>
 
@@ -155,10 +155,10 @@ export default function WhatsAppAutomation() {
                     <button
                       key={t.name}
                       onClick={() => setActiveTemplateName(t.name)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded text-xs font-bold transition cursor-pointer ${
                         isActive
                           ? "bg-[#2874F0] text-white shadow-md"
-                          : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                          : "hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300"
                       }`}
                     >
                       <Icon size={16} />
@@ -170,12 +170,12 @@ export default function WhatsAppAutomation() {
             </div>
 
             {/* Message Editor */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-5 xl:col-span-2 shadow-sm flex flex-col">
+            <div className="bg-white/80 dark:bg-[#065F46]/80 backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded p-5 xl:col-span-2 shadow-sm flex flex-col">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-black text-sm uppercase tracking-wider text-slate-400">
+                <h2 className="font-black text-sm uppercase tracking-wider text-gray-400">
                   Custom Template Editor: {activeTemplateName}
                 </h2>
-                <span className="text-[10px] font-bold text-slate-400">
+                <span className="text-[10px] font-bold text-gray-400">
                   Variables: &#123;&#123;customer_name&#125;&#125;, &#123;&#123;order_id&#125;&#125;
                 </span>
               </div>
@@ -184,16 +184,16 @@ export default function WhatsAppAutomation() {
                 rows={9}
                 value={currentTemplate.message}
                 onChange={(e) => handleTemplateChange(e.target.value)}
-                className="w-full border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs font-medium resize-none bg-slate-50/50 dark:bg-slate-950/50 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0] leading-relaxed"
+                className="w-full border border-gray-200 dark:border-slate-800 rounded p-4 text-xs font-medium resize-none bg-gray-50/50 dark:bg-slate-950/50 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0] leading-relaxed"
               />
 
               <div className="mt-4 flex items-center justify-between">
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-gray-400">
                   Sender: IndiaFy Official Verified Business Account
                 </p>
                 <button
                   onClick={handleSaveTemplate}
-                  className="flex items-center gap-2 bg-[#2874F0] hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition cursor-pointer"
+                  className="flex items-center gap-2 bg-[#2874F0] hover:bg-blue-600 text-white px-5 py-2.5 rounded text-xs font-black uppercase tracking-wider shadow-sm transition cursor-pointer"
                 >
                   <Save size={14} />
                   Save Template
@@ -203,13 +203,13 @@ export default function WhatsAppAutomation() {
           </div>
 
           {/* Logs */}
-          <div className="mt-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 overflow-x-auto shadow-sm">
-            <h2 className="font-black text-sm uppercase tracking-wider text-slate-400 mb-4">
+          <div className="mt-8 bg-white/80 dark:bg-[#065F46]/80 backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded p-5 sm:p-6 overflow-x-auto shadow-sm">
+            <h2 className="font-black text-sm uppercase tracking-wider text-gray-400 mb-4">
               Recent WhatsApp Delivery Logs
             </h2>
 
             <table className="w-full min-w-[500px] text-xs">
-              <thead className="text-slate-400 uppercase tracking-widest text-[9px] border-b border-slate-100 dark:border-slate-800">
+              <thead className="text-gray-400 uppercase tracking-widest text-[9px] border-b border-gray-100 dark:border-slate-800">
                 <tr>
                   <th className="text-left py-2 px-3 font-bold">Recipient Customer</th>
                   <th className="text-left py-2 px-3 font-bold">Trigger Template</th>
@@ -220,24 +220,24 @@ export default function WhatsAppAutomation() {
 
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                 <tr>
-                  <td className="py-3 px-3 font-bold text-slate-800 dark:text-slate-200">Rahul Sharma</td>
-                  <td className="py-3 px-3 text-slate-600 dark:text-slate-400">Order Confirmation</td>
+                  <td className="py-3 px-3 font-bold text-gray-800 dark:text-slate-200">Rahul Sharma</td>
+                  <td className="py-3 px-3 text-gray-600 dark:text-gray-400">Order Confirmation</td>
                   <td className="py-3 px-3 text-center">
                     <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30">
                       Delivered
                     </span>
                   </td>
-                  <td className="py-3 px-3 text-right text-slate-400">Today 11:32 AM</td>
+                  <td className="py-3 px-3 text-right text-gray-400">Today 11:32 AM</td>
                 </tr>
                 <tr>
-                  <td className="py-3 px-3 font-bold text-slate-800 dark:text-slate-200">Priya Verma</td>
-                  <td className="py-3 px-3 text-slate-600 dark:text-slate-400">Order Shipped</td>
+                  <td className="py-3 px-3 font-bold text-gray-800 dark:text-slate-200">Priya Verma</td>
+                  <td className="py-3 px-3 text-gray-600 dark:text-gray-400">Order Shipped</td>
                   <td className="py-3 px-3 text-center">
                     <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30">
                       Delivered
                     </span>
                   </td>
-                  <td className="py-3 px-3 text-right text-slate-400">Yesterday 04:15 PM</td>
+                  <td className="py-3 px-3 text-right text-gray-400">Yesterday 04:15 PM</td>
                 </tr>
               </tbody>
             </table>

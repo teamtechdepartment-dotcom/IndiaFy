@@ -42,7 +42,7 @@ export default function Contact() {
       desc: "For B2B bulk inquiries and supplier relations.",
       email: "wholesale@indiafy.com",
       time: "Under 1 hour",
-      icon: <Phone size={24} className="text-purple-500" />
+      icon: <Phone size={24} className="text-[#065F46]" />
     }
   ];
 
@@ -62,7 +62,7 @@ export default function Contact() {
   ];
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
+    <div className="bg-[#F8FAFC] min-h-screen font-sans text-gray-900">
       <SEOHead 
         title="Contact Support | Indiafy"
         description="Get in touch with Indiafy's premium support team. General, seller, and wholesale support channels available 24/7."
@@ -70,15 +70,15 @@ export default function Contact() {
       <WebsiteNavbar scrolledByDefault={true} />
 
       {/* HERO SECTION */}
-      <header className="bg-slate-900 pt-32 pb-24 px-6 relative overflow-hidden">
+      <header className="bg-gray-900 pt-32 pb-24 px-6 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6">
             <Mail size={16} /> 24/7 Support
           </div>
           <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight mb-4">
             How can we help?
           </h1>
-          <p className="text-slate-400 text-sm md:text-base font-medium max-w-2xl mx-auto">
+          <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl mx-auto">
             Our specialized support teams are ready to resolve your issues with unmatched speed.
           </p>
         </div>
@@ -90,16 +90,16 @@ export default function Contact() {
         <section className="mb-24">
           <div className="grid md:grid-cols-3 gap-6">
             {supportChannels.map((channel, i) => (
-              <div key={i} className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-6">
+              <div key={i} className="bg-white p-8 rounded border border-gray-200 shadow-sm hover:shadow-md transition-all">
+                <div className="w-14 h-14 rounded bg-gray-50 border border-gray-100 flex items-center justify-center mb-6">
                   {channel.icon}
                 </div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2">{channel.title}</h3>
-                <p className="text-slate-500 text-sm font-medium leading-relaxed mb-6 h-10">{channel.desc}</p>
+                <h3 className="text-xl font-black text-gray-900 tracking-tight mb-2">{channel.title}</h3>
+                <p className="text-gray-500 text-sm font-medium leading-relaxed mb-6 h-10">{channel.desc}</p>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm font-bold text-slate-900">
-                    <Mail size={16} className="text-slate-400" />
+                  <div className="flex items-center gap-3 text-sm font-bold text-gray-900">
+                    <Mail size={16} className="text-gray-400" />
                     {channel.email}
                   </div>
                   <div className="flex items-center gap-3 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg w-fit">
@@ -116,59 +116,59 @@ export default function Contact() {
           {/* BUSINESS INQUIRY FORM */}
           <section>
             <h2 className="text-3xl font-black tracking-tight mb-2">Send a Message</h2>
-            <p className="text-slate-500 text-sm font-medium mb-8">Fill out the form below and we'll get back to you as soon as possible.</p>
+            <p className="text-gray-500 text-sm font-medium mb-8">Fill out the form below and we'll get back to you as soon as possible.</p>
             
-            <form onSubmit={handleSubmit} className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-200 shadow-sm">
+            <form onSubmit={handleSubmit} className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-gray-200 shadow-sm">
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Full Name</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Full Name</label>
                   <input 
                     type="text" 
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all"
                     placeholder="John Doe"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Email Address</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Email Address</label>
                   <input 
                     type="email" 
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all"
                     placeholder="john@example.com"
                   />
                 </div>
               </div>
               
               <div className="mb-6">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Subject</label>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Subject</label>
                 <input 
                   type="text" 
                   required
                   value={formData.subject}
                   onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 rounded px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all"
                   placeholder="How can we help?"
                 />
               </div>
 
               <div className="mb-8">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Message</label>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Message</label>
                 <textarea 
                   required
                   rows="4"
                   value={formData.message}
                   onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all resize-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all resize-none"
                   placeholder="Tell us details..."
                 />
               </div>
 
-              <button type="submit" className="w-full bg-slate-900 text-white rounded-xl py-4 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors">
+              <button type="submit" className="w-full bg-gray-900 text-white rounded py-4 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors">
                 Send Message <Send size={16} />
               </button>
             </form>
@@ -177,20 +177,20 @@ export default function Contact() {
           {/* FAQ */}
           <section>
             <div className="flex items-center gap-3 mb-8">
-              <HelpCircle size={28} className="text-slate-300" />
+              <HelpCircle size={28} className="text-gray-300" />
               <h2 className="text-3xl font-black tracking-tight">Quick Answers</h2>
             </div>
 
             <div className="space-y-4">
               {faqs.map((faq, i) => (
-                <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <h4 className="text-lg font-bold text-slate-900 mb-2">{faq.q}</h4>
-                  <p className="text-sm font-medium text-slate-600 leading-relaxed">{faq.a}</p>
+                <div key={i} className="bg-white p-6 rounded border border-gray-200 shadow-sm">
+                  <h4 className="text-lg font-bold text-gray-900 mb-2">{faq.q}</h4>
+                  <p className="text-sm font-medium text-gray-600 leading-relaxed">{faq.a}</p>
                 </div>
               ))}
             </div>
 
-            <div className="mt-8 p-6 bg-emerald-50 border border-emerald-100 rounded-2xl">
+            <div className="mt-8 p-6 bg-emerald-50 border border-emerald-100 rounded">
               <p className="text-sm font-bold text-emerald-800 mb-1">Need more help?</p>
               <p className="text-xs font-medium text-emerald-600 mb-4">Browse our comprehensive Help Center for detailed guides.</p>
               <a href="/help-center" className="text-xs font-black bg-white text-emerald-700 px-4 py-2 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors">

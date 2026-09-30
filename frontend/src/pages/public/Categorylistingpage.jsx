@@ -123,7 +123,7 @@ export default function CategoryListingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-emerald-200 selection:text-emerald-900">
+    <div className="min-h-screen bg-[#f1f2f4] font-sans">
       <SEO 
         title={seoData?.title || `${formattedTitle} | IndiaFy`} 
         description={seoData?.description || `Shop ${formattedTitle} online at IndiaFy. Best prices from local sellers.`}
@@ -164,19 +164,19 @@ export default function CategoryListingPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-[130px] lg:pt-[140px] pb-16">
         
         {/* Breadcrumb Navigation */}
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-4">
-          <Link to="/" className="hover:text-slate-900 transition-colors">Home</Link>
-          <ChevronRight size={12} className="text-slate-400" />
-          <h1 className="text-slate-900 font-bold">{formattedTitle}</h1>
+        <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-4">
+          <Link to="/" className="hover:text-gray-900 transition-colors">Home</Link>
+          <ChevronRight size={12} className="text-gray-400" />
+          <h1 className="text-gray-900 font-bold">{formattedTitle}</h1>
         </div>
 
         {/* SEO Intro Content */}
         {seoData?.intro && (
           <div className="mb-6 max-w-4xl">
-            <p className="text-sm text-slate-600 leading-relaxed">{seoData.intro}</p>
+            <p className="text-sm text-gray-600 leading-relaxed">{seoData.intro}</p>
             {seoData.popularBrands && seoData.popularBrands.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                <span className="font-semibold text-slate-700">Popular Brands:</span>
+                <span className="font-semibold text-gray-700">Popular Brands:</span>
                 {seoData.popularBrands.map(brand => (
                   <Link 
                     key={brand} 
@@ -213,11 +213,11 @@ export default function CategoryListingPage() {
             />
 
             {/* Mobile Filter Trigger */}
-            <div className="lg:hidden flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3 mb-4 shadow-sm">
-              <span className="text-xs font-bold text-slate-700">{filteredProducts.length} items found</span>
+            <div className="lg:hidden flex items-center justify-between bg-white border border-gray-200 rounded p-3 mb-4 shadow-sm">
+              <span className="text-xs font-bold text-gray-700">{filteredProducts.length} items found</span>
               <button
                 onClick={() => setIsMobileFilterOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold shadow-sm hover:bg-slate-800 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold shadow-sm hover:bg-gray-800 transition-colors"
               >
                 <SlidersHorizontal size={14} /> Filter & Sort
               </button>
@@ -226,22 +226,22 @@ export default function CategoryListingPage() {
             {/* PRODUCTS CONTAINER */}
             <div className="flex-1">
               {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex flex-col items-center justify-center py-24 bg-white rounded border border-gray-200 shadow-sm">
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600 mb-4"></div>
-                  <p className="text-sm font-semibold text-slate-600">Loading catalog items...</p>
+                  <p className="text-sm font-semibold text-gray-600">Loading catalog items...</p>
                 </div>
               ) : filteredProducts.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm px-6">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                <div className="text-center py-20 bg-white rounded border border-gray-200 shadow-sm px-6">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
                     <ShoppingBag size={28} />
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">No products found</h3>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">No products found</h3>
+                  <p className="text-xs text-gray-500 max-w-sm mx-auto mb-6">
                     Try adjusting your filters or price slider to see more products in this category.
                   </p>
                   <button 
                     onClick={() => { setMaxPrice(100000); setSelectedBrands([]); }}
-                    className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all shadow-sm"
+                    className="px-6 py-2.5 bg-gray-900 text-white rounded font-bold text-xs hover:bg-gray-800 transition-all shadow-sm"
                   >
                     Reset All Filters
                   </button>
@@ -264,7 +264,7 @@ export default function CategoryListingPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileFilterOpen(false)}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[110]"
+              className="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-[110]"
             />
             <motion.div
               initial={{ x: "-100%" }}
@@ -273,9 +273,9 @@ export default function CategoryListingPage() {
               transition={{ type: "tween", duration: 0.25 }}
               className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white z-[120] overflow-y-auto shadow-2xl flex flex-col"
             >
-              <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="font-extrabold text-slate-900 text-base">Filter Catalog</h3>
-                <button onClick={() => setIsMobileFilterOpen(false)} className="p-2 text-slate-400 hover:text-slate-700">
+              <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="font-extrabold text-gray-900 text-base">Filter Catalog</h3>
+                <button onClick={() => setIsMobileFilterOpen(false)} className="p-2 text-gray-400 hover:text-gray-700">
                   <X size={18} />
                 </button>
               </div>
@@ -287,10 +287,10 @@ export default function CategoryListingPage() {
                   onClose={() => setIsMobileFilterOpen(false)}
                 />
               </div>
-              <div className="sticky bottom-0 bg-white p-4 border-t border-slate-200 shadow-lg">
+              <div className="sticky bottom-0 bg-white p-4 border-t border-gray-200 shadow-lg">
                 <button 
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className="w-full py-3 bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-emerald-700 transition-colors"
+                  className="w-full py-3 bg-[#065F46] text-white font-bold text-xs uppercase tracking-wider rounded shadow-md hover:bg-emerald-700 transition-colors"
                 >
                   Apply Filters
                 </button>

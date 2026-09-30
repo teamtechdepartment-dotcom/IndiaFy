@@ -88,7 +88,7 @@ export default function CustomerSupport() {
   };
 
   return (
-    <div className="bg-slate-950 min-h-screen text-slate-400">
+    <div className="bg-gray-950 min-h-screen text-gray-400">
       <WebsiteNavbar />
 
       <main className="max-w-6xl mx-auto px-4 pt-32 pb-24">
@@ -97,15 +97,15 @@ export default function CustomerSupport() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-8"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-900 border border-gray-800 text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-8"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Support Systems Operational · Gurugram Node
           </motion.div>
           <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-tight mb-6">
-            Help is <span className="text-slate-700 italic">one tap</span> away.
+            Help is <span className="text-gray-700 italic">one tap</span> away.
           </h1>
-          <p className="text-lg text-slate-500 max-w-xl mx-auto font-medium">
+          <p className="text-lg text-gray-500 max-w-xl mx-auto font-medium">
             Connect with our Gurugram sector-assigned support team or raise a
             priority ticket below.
           </p>
@@ -117,22 +117,22 @@ export default function CustomerSupport() {
             <motion.div
               key={ch.id}
               whileHover={{ y: -5 }}
-              className="p-8 rounded-[2.5rem] bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all group cursor-pointer"
+              className="p-8 rounded-[2.5rem] bg-gray-900 border border-gray-800 hover:border-gray-700 transition-all group cursor-pointer"
             >
               <div className="flex justify-between items-start mb-10">
                 <div
-                  className={`w-14 h-14 rounded-2xl ${ch.bg} ${ch.color} flex items-center justify-center`}
+                  className={`w-14 h-14 rounded ${ch.bg} ${ch.color} flex items-center justify-center`}
                 >
                   {ch.icon}
                 </div>
                 <span
-                  className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-slate-800 ${ch.color}`}
+                  className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-gray-800 ${ch.color}`}
                 >
                   {ch.badge}
                 </span>
               </div>
               <h3 className="text-xl font-bold text-white mb-2">{ch.label}</h3>
-              <p className="text-sm font-medium text-slate-500 mb-6">
+              <p className="text-sm font-medium text-gray-500 mb-6">
                 {ch.desc}
               </p>
               <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white group-hover:gap-4 transition-all">
@@ -145,23 +145,23 @@ export default function CustomerSupport() {
         <div className="grid lg:grid-cols-12 gap-12 items-start">
           {/* CATEGORIES - Left Side */}
           <div className="lg:col-span-4 space-y-4">
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-600 mb-6">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-gray-600 mb-6">
               Issue Categories
             </h4>
             {categories.map((cat) => (
               <div
                 key={cat.id}
-                className="p-6 rounded-3xl bg-slate-900/50 border border-slate-800 hover:bg-slate-900 transition-all cursor-pointer group"
+                className="p-6 rounded bg-gray-900/50 border border-gray-800 hover:bg-gray-900 transition-all cursor-pointer group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="text-slate-600 group-hover:text-white transition-colors">
+                  <div className="text-gray-600 group-hover:text-white transition-colors">
                     {cat.icon}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-white tracking-tight">
                       {cat.label}
                     </p>
-                    <p className="text-[11px] text-slate-600 font-medium mt-0.5">
+                    <p className="text-[11px] text-gray-600 font-medium mt-0.5">
                       {cat.desc}
                     </p>
                   </div>
@@ -183,33 +183,33 @@ export default function CustomerSupport() {
 
           {/* TICKET FORM - Right Side */}
           <div className="lg:col-span-8">
-            <div className="bg-white rounded-[3rem] p-10 md:p-14 text-slate-900 shadow-2xl relative overflow-hidden">
+            <div className="bg-white rounded p-10 md:p-14 text-gray-900 shadow-2xl relative overflow-hidden">
               <div className="relative z-10">
                 <h2 className="text-3xl font-black tracking-tighter mb-2">
                   Submit a Ticket
                 </h2>
-                <p className="text-slate-500 font-medium mb-10">
+                <p className="text-gray-500 font-medium mb-10">
                   Average resolution time: 4 hours.
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                         Order ID
                       </label>
                       <input
                         required
                         type="text"
                         placeholder="#IND-000000"
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-sky-500 transition-all"
+                        className="w-full bg-gray-50 border border-gray-100 rounded px-6 py-4 text-sm font-bold focus:outline-none focus:border-sky-500 transition-all"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                         Urgency
                       </label>
-                      <select className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none appearance-none">
+                      <select className="w-full bg-gray-50 border border-gray-100 rounded px-6 py-4 text-sm font-bold focus:outline-none appearance-none">
                         <option>General Inquiry</option>
                         <option>Order Delayed</option>
                         <option>Payment Dispute</option>
@@ -218,23 +218,23 @@ export default function CustomerSupport() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                       Issue Description
                     </label>
                     <textarea
                       required
                       rows={4}
                       placeholder="Tell us what happened..."
-                      className="w-full bg-slate-50 border border-slate-100 rounded-3xl px-6 py-4 text-sm font-medium focus:outline-none focus:border-sky-500 transition-all resize-none"
+                      className="w-full bg-gray-50 border border-gray-100 rounded px-6 py-4 text-sm font-medium focus:outline-none focus:border-sky-500 transition-all resize-none"
                     />
                   </div>
-                  <button className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest text-xs shadow-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-3">
+                  <button className="w-full py-5 bg-gray-900 text-white rounded font-black uppercase tracking-widest text-xs shadow-xl hover:bg-gray-800 transition-all flex items-center justify-center gap-3">
                     Send Priority Ticket <ChevronRight size={16} />
                   </button>
                 </form>
               </div>
               {/* Background Decoration */}
-              <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-slate-50 rounded-full blur-3xl opacity-50" />
+              <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-gray-50 rounded-full blur-3xl opacity-50" />
             </div>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function CustomerSupport() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] bg-emerald-500 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4"
+            className="fixed bottom-10 left-1/2 -trangray-x-1/2 z-[200] bg-emerald-500 text-white px-8 py-4 rounded shadow-2xl flex items-center gap-4"
           >
             <Clock size={20} className="animate-pulse" />
             <span className="font-bold text-sm uppercase tracking-widest">

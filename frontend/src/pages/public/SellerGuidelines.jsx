@@ -22,7 +22,7 @@ export default function SellerGuidelines() {
   ];
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
+    <div className="bg-[#F8FAFC] min-h-screen font-sans text-gray-900">
       <SEOHead 
         title="Seller Guidelines | Indiafy"
         description="Learn the strict operational standards, video packing rules, and KYC requirements required to become a verified seller on Indiafy."
@@ -30,15 +30,15 @@ export default function SellerGuidelines() {
       <WebsiteNavbar scrolledByDefault={true} />
 
       {/* HERO SECTION */}
-      <header className="bg-slate-900 pt-32 pb-24 px-6 relative overflow-hidden">
+      <header className="bg-gray-900 pt-32 pb-24 px-6 relative overflow-hidden">
         <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6">
             <Award size={16} /> Operational Excellence
           </div>
           <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight mb-4">
             Seller Guidelines
           </h1>
-          <p className="text-slate-400 text-sm md:text-base font-medium max-w-2xl mx-auto">
+          <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl mx-auto">
             We don't accept everyone. Indiafy is an exclusive network of verified, high-quality local merchants.
           </p>
         </div>
@@ -51,12 +51,12 @@ export default function SellerGuidelines() {
           <h2 className="text-3xl font-black tracking-tight mb-8">Node Onboarding Requirements</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {requirements.map((req, i) => (
-              <div key={i} className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
-                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-6">
+              <div key={i} className="bg-white p-8 rounded border border-gray-200 shadow-sm flex flex-col">
+                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded flex items-center justify-center mb-6">
                   {req.icon}
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-3">{req.title}</h3>
-                <p className="text-slate-500 text-sm font-medium leading-relaxed">{req.desc}</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">{req.title}</h3>
+                <p className="text-gray-500 text-sm font-medium leading-relaxed">{req.desc}</p>
               </div>
             ))}
           </div>
@@ -66,7 +66,7 @@ export default function SellerGuidelines() {
         <section className="grid md:grid-cols-2 gap-12 lg:gap-20 mb-24">
           <div>
             <h2 className="text-3xl font-black tracking-tight mb-6">Quality Standards</h2>
-            <div className="prose prose-slate prose-p:font-medium prose-p:text-slate-600">
+            <div className="prose prose-gray prose-p:font-medium prose-p:text-gray-600">
               <p>To maintain our 25-minute delivery SLA, sellers must adhere to strict inventory management rules:</p>
               <ul>
                 <li><strong>No Ghost Inventory:</strong> You must only list items physically present in your store.</li>
@@ -76,7 +76,7 @@ export default function SellerGuidelines() {
             </div>
           </div>
 
-          <div className="bg-slate-900 text-white p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+          <div className="bg-gray-900 text-white p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10">
               <Video size={120} />
             </div>
@@ -85,7 +85,7 @@ export default function SellerGuidelines() {
                 <div className="w-2 h-2 rounded-full bg-white animate-pulse" /> Mandatory
               </div>
               <h3 className="text-2xl font-black mb-4">Video Packing Protocol</h3>
-              <p className="text-slate-400 font-medium text-sm leading-relaxed mb-6">
+              <p className="text-gray-400 font-medium text-sm leading-relaxed mb-6">
                 For items exceeding ₹1,500 in value, sellers must record the packing process using the Indiafy Seller App. 
                 This video is encrypted and attached to the Order ID.
               </p>
@@ -98,7 +98,7 @@ export default function SellerGuidelines() {
 
         {/* PROHIBITED PRODUCTS */}
         <section className="mb-24">
-          <div className="bg-red-50 border border-red-100 rounded-3xl p-8 md:p-12">
+          <div className="bg-red-50 border border-red-100 rounded p-8 md:p-12">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
                 <Ban size={24} />
@@ -109,7 +109,7 @@ export default function SellerGuidelines() {
             
             <ul className="grid sm:grid-cols-2 gap-4">
               {prohibited.map((item, i) => (
-                <li key={i} className="flex items-center gap-3 bg-white px-4 py-3 rounded-xl shadow-sm border border-red-100 text-red-900 font-medium text-sm">
+                <li key={i} className="flex items-center gap-3 bg-white px-4 py-3 rounded shadow-sm border border-red-100 text-red-900 font-medium text-sm">
                   <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
                   {item}
                 </li>
@@ -119,10 +119,10 @@ export default function SellerGuidelines() {
         </section>
 
         {/* CTA */}
-        <section className="text-center bg-white p-12 border border-slate-200 rounded-[3rem] shadow-sm">
+        <section className="text-center bg-white p-12 border border-gray-200 rounded shadow-sm">
           <h2 className="text-3xl font-black tracking-tight mb-4">Ready to meet the standard?</h2>
-          <p className="text-slate-500 font-medium mb-8 max-w-lg mx-auto">Join India's most trusted hyperlocal commerce network and scale your local business.</p>
-          <Link to="/become-seller-info" className="inline-flex items-center gap-2 bg-slate-900 text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors">
+          <p className="text-gray-500 font-medium mb-8 max-w-lg mx-auto">Join India's most trusted hyperlocal commerce network and scale your local business.</p>
+          <Link to="/become-seller-info" className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded font-black uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors">
             Start Registration <ArrowRight size={16} />
           </Link>
         </section>

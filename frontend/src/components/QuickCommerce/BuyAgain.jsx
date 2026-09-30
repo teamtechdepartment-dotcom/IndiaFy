@@ -74,9 +74,9 @@ export default function BuyAgain({ cart, onAdd, onInc, onDec, isLoading, items =
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="shrink-0 w-[130px] bg-zinc-50 rounded-2xl p-2.5 border border-zinc-100 hover:border-brand-accent/30 hover:shadow-sm transition-all group"
+                className="shrink-0 w-[130px] bg-zinc-50 rounded p-2.5 border border-zinc-100 hover:border-brand-accent/30 hover:shadow-sm transition-all group"
               >
-                <div className="w-full aspect-square bg-white rounded-xl mb-2 overflow-hidden border border-zinc-100/50">
+                <div className="w-full aspect-square bg-white rounded mb-2 overflow-hidden border border-zinc-100/50">
                   <img
                     src={item.img}
                     alt={item.name}

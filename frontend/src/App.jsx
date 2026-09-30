@@ -53,7 +53,7 @@ const PageLoader = () => (
   <div className="min-h-screen pt-20 px-4 max-w-7xl mx-auto w-full space-y-8">
     <Skeleton className="w-1/3 h-12 mb-8" />
     <div className="space-y-4">
-      <Skeleton className="w-full h-64 rounded-2xl" />
+      <Skeleton className="w-full h-64 rounded" />
       <SkeletonText lines={4} />
     </div>
   </div>

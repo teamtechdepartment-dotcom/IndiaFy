@@ -16,8 +16,8 @@ import { useAdminSocket } from "../../hooks/useAdminSocket";
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="px-4 py-3 rounded-2xl text-xs font-semibold bg-white/95 dark:bg-slate-900/95 border border-slate-200/50 dark:border-slate-800/80 shadow-lg text-slate-800 dark:text-slate-200 backdrop-blur-md">
-        <p className="text-slate-400 dark:text-slate-500 mb-1">{label}</p>
+      <div className="px-4 py-3 rounded text-xs font-semibold bg-white/95 dark:bg-[#065F46]/95 border border-gray-200/50 dark:border-slate-800/80 shadow-lg text-gray-800 dark:text-slate-200 backdrop-blur-md">
+        <p className="text-gray-400 dark:text-gray-500 mb-1">{label}</p>
         <p className="text-[#2874F0] dark:text-[#FB641B] font-extrabold">₹{payload[0]?.value?.toLocaleString()}</p>
       </div>
     );
@@ -48,20 +48,20 @@ function StatCard({ title, value, desc, trend, icon: Icon, color = "blue", isWar
 
       <div className="flex items-start justify-between relative z-10">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">{title}</p>
-          <h3 className="text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{value}</h3>
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">{title}</p>
+          <h3 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white tracking-tight">{value}</h3>
         </div>
         {Icon && (
-          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${c.bg} ${c.border} ${c.text}`}>
+          <div className={`w-10 h-10 rounded flex items-center justify-center shrink-0 border ${c.bg} ${c.border} ${c.text}`}>
             <Icon size={18} />
           </div>
         )}
       </div>
 
       <div className="mt-4 flex items-center justify-between relative z-10">
-        <span className="text-[10px] font-semibold text-slate-550 dark:text-slate-400">{desc}</span>
+        <span className="text-[10px] font-semibold text-slate-550 dark:text-gray-400">{desc}</span>
         {trend && (
-          <span className={`flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-xl border ${
+          <span className={`flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded border ${
             isWarning
               ? "bg-red-500/10 border-red-500/25 text-red-500"
               : `${c.bg} ${c.border} ${c.text}`
@@ -80,14 +80,14 @@ function TableRow({ id, store, total, method, date }) {
   return (
     <tr className="admin-table-row">
       <td className="py-4 px-4 font-bold text-xs text-[#2874F0] dark:text-[#FB641B]">{id}</td>
-      <td className="py-4 px-4 font-medium text-xs text-slate-800 dark:text-slate-300">{store}</td>
+      <td className="py-4 px-4 font-medium text-xs text-gray-800 dark:text-slate-300">{store}</td>
       <td className="py-4 px-4 font-black text-xs text-slate-950 dark:text-slate-100">{total}</td>
       <td className="py-4 px-4 text-center">
-        <span className="px-2.5 py-1 text-[10px] font-black rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400">
+        <span className="px-2.5 py-1 text-[10px] font-black rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-100/50 dark:bg-slate-950/50 text-gray-500 dark:text-gray-400">
           {method}
         </span>
       </td>
-      <td className="py-4 px-4 text-right text-xs font-semibold text-slate-400 dark:text-slate-650">{date}</td>
+      <td className="py-4 px-4 text-right text-xs font-semibold text-gray-400 dark:text-slate-650">{date}</td>
     </tr>
   );
 }
@@ -96,11 +96,11 @@ function TableRow({ id, store, total, method, date }) {
 function RegionProgress({ name, pct }) {
   return (
     <div className="space-y-2 text-xs">
-      <div className="flex justify-between font-bold text-slate-700 dark:text-slate-300">
+      <div className="flex justify-between font-bold text-gray-700 dark:text-slate-300">
         <span>{name}</span>
         <span className="text-[#2874F0] dark:text-[#FB641B]">{pct}%</span>
       </div>
-      <div className="w-full h-2 rounded-full overflow-hidden bg-slate-200/50 dark:bg-slate-800/40">
+      <div className="w-full h-2 rounded-full overflow-hidden bg-gray-200/50 dark:bg-slate-800/40">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(100, pct)}%` }}
@@ -242,10 +242,10 @@ export default function Dashboard() {
                   Enterprise OS
                 </span>
               </div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
                 Command Center
               </h1>
-              <p className="text-sm font-medium mt-1 text-slate-500 dark:text-slate-400">
+              <p className="text-sm font-medium mt-1 text-gray-500 dark:text-gray-400">
                 Real-time governance, transaction processing, and intelligence logs.
               </p>
             </div>
@@ -272,7 +272,7 @@ export default function Dashboard() {
           {loading && !stats ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 animate-pulse">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-32 rounded-3xl bg-slate-200/50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800/60" />
+                <div key={i} className="h-32 rounded bg-gray-200/50 dark:bg-[#065F46]/50 border border-gray-200/60 dark:border-slate-800/60" />
               ))}
             </div>
           ) : (
@@ -301,16 +301,16 @@ export default function Dashboard() {
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                   <div>
                     <h2 className="font-extrabold text-lg text-slate-950 dark:text-white">Enterprise Sales BI</h2>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Monthly GMV growth & commission analytics</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Monthly GMV growth & commission analytics</p>
                   </div>
                   <div className="flex gap-2">
                     {["Today", "Weekly", "Monthly", "Yearly"].map((item) => (
                       <button key={item}
                         onClick={() => setActiveFilter(item)}
-                        className={`px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 rounded text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                           activeFilter === item
                             ? "bg-[#2874F0]/10 dark:bg-orange-500/10 text-[#2874F0] dark:text-[#FB641B] border border-[#2874F0]/25 dark:border-orange-500/25"
-                            : "bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border border-slate-200/50 dark:border-slate-900/50"
+                            : "bg-gray-100 dark:bg-slate-950 text-gray-500 dark:text-gray-400 border border-gray-200/50 dark:border-slate-900/50"
                         }`}
                       >
                         {item}
@@ -348,24 +348,24 @@ export default function Dashboard() {
 
                   <div className="space-y-3.5">
                     {insights.map((ins, i) => (
-                      <div key={i} className="flex gap-3.5 p-4 rounded-2xl bg-white/40 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40">
+                      <div key={i} className="flex gap-3.5 p-4 rounded bg-white/40 dark:bg-[#065F46]/40 border border-gray-200/50 dark:border-slate-800/40">
                         <div className="mt-0.5 shrink-0">
                           {ins.type === "danger" ? <AlertTriangle className="text-red-500" size={15} />
                             : ins.type === "warning" ? <AlertTriangle className="text-amber-500" size={15} />
                             : <CheckCircle className="text-emerald-500" size={15} />}
                         </div>
                         <div>
-                          <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-350">{ins.title ?? "Insight"}</h4>
-                          <p className="text-[11px] mt-1 leading-relaxed text-slate-500 dark:text-slate-450">{ins.message ?? ""}</p>
+                          <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-slate-350">{ins.title ?? "Insight"}</h4>
+                          <p className="text-[11px] mt-1 leading-relaxed text-gray-500 dark:text-slate-450">{ins.message ?? ""}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-800/40">
+                <div className="mt-4 pt-4 border-t border-gray-200/60 dark:border-slate-800/40">
                   <p className="text-[10px] font-black uppercase tracking-widest mb-2 text-[#2874F0] dark:text-[#FB641B]">Live Agent Actions</p>
-                  <div className="flex items-center justify-between text-xs text-slate-555 dark:text-slate-400">
+                  <div className="flex items-center justify-between text-xs text-slate-555 dark:text-gray-400">
                     <span>Real-Time Socket Stream</span>
                     <span className={`font-bold flex items-center gap-1.5 ${isSocketConnected ? "text-emerald-500" : "text-amber-500"}`}>
                       <span className={`w-2 h-2 rounded-full ${isSocketConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
@@ -410,7 +410,7 @@ export default function Dashboard() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-slate-400">
+                        <td colSpan={5} className="py-8 text-center text-gray-400">
                           No recent transactions recorded in this period.
                         </td>
                       </tr>
@@ -430,7 +430,7 @@ export default function Dashboard() {
                       <RegionProgress key={idx} name={reg.name} pct={reg.pct} />
                     ))
                   ) : (
-                    <p className="text-xs text-slate-400 py-4 text-center">
+                    <p className="text-xs text-gray-400 py-4 text-center">
                       No regional cluster telemetry recorded yet.
                     </p>
                   )}

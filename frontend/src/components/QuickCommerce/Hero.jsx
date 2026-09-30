@@ -55,7 +55,7 @@ function Hero() {
     <div className="bg-white pt-2 pb-4 px-3 sm:px-4 w-full max-w-[1600px] mx-auto flex flex-col">
       
       {/* Promotional Carousel */}
-      <div className="relative h-[160px] sm:h-[250px] md:h-[350px] lg:h-[400px] w-full overflow-hidden rounded-xl shadow-sm bg-gray-200 group">
+      <div className="relative h-[160px] sm:h-[250px] md:h-[350px] lg:h-[400px] w-full overflow-hidden rounded shadow-sm bg-gray-200 group">
         <AnimatePresence initial={false} mode="wait">
           <motion.div
             key={currentIndex}
@@ -96,21 +96,21 @@ function Hero() {
         {/* Navigation Arrows (Hidden on mobile for cleaner QC UI) */}
         <button
           onClick={handlePrevious}
-          className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-r-xl"
+          className="hidden md:flex absolute left-0 top-1/2 -trangray-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-r-xl"
           aria-label="Previous banner"
         >
           <ChevronLeft size={28} />
         </button>
         <button
           onClick={handleNext}
-          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-l-xl"
+          className="hidden md:flex absolute right-0 top-1/2 -trangray-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-l-xl"
           aria-label="Next banner"
         >
           <ChevronRight size={28} />
         </button>
 
         {/* Pagination Dots */}
-        <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 z-30">
+        <div className="absolute bottom-2 sm:bottom-4 left-1/2 -trangray-x-1/2 flex items-center gap-1.5 sm:gap-2 z-30">
           {banners.map((_, index) => (
             <button
               key={index}

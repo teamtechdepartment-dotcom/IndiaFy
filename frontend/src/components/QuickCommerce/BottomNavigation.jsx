@@ -23,7 +23,7 @@ export default function BottomNavigation() {
             <button
               key={item.id}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center justify-center gap-0.5 w-16 py-1 rounded-xl transition-all active:scale-90 ${
+              className={`flex flex-col items-center justify-center gap-0.5 w-16 py-1 rounded transition-all active:scale-90 ${
                 isActive
                   ? "text-brand-accent"
                   : "text-zinc-400 hover:text-zinc-600"

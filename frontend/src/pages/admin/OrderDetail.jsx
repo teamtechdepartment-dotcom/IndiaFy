@@ -71,7 +71,7 @@ export default function OrderDetails() {
         <Sidebar />
         <div className="flex-1 flex flex-col">
           <Header />
-          <div className="p-8 text-center text-slate-400 font-semibold">Loading order sheet...</div>
+          <div className="p-8 text-center text-gray-400 font-semibold">Loading order sheet...</div>
         </div>
       </div>
     );
@@ -83,7 +83,7 @@ export default function OrderDetails() {
         <Sidebar />
         <div className="flex-1 flex flex-col">
           <Header />
-          <div className="p-8 text-center text-slate-400 font-semibold">Order not found.</div>
+          <div className="p-8 text-center text-gray-400 font-semibold">Order not found.</div>
         </div>
       </div>
     );
@@ -105,7 +105,7 @@ export default function OrderDetails() {
           {/* Back button */}
           <div
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-500 cursor-pointer hover:text-black w-fit"
+            className="flex items-center gap-2 text-gray-500 cursor-pointer hover:text-black w-fit"
           >
             <ChevronLeft size={18} />
             <span className="text-sm font-medium">Back to Orders</span>
@@ -122,7 +122,7 @@ export default function OrderDetails() {
                   {order.status}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 Placed on {order.createdAt ? new Date(order.createdAt).toLocaleString() : "Unknown"}
               </p>
             </div>
@@ -130,13 +130,13 @@ export default function OrderDetails() {
             <div className="flex flex-wrap gap-2.5">
               <button
                 onClick={() => handleUpdateStatus("Shipped")}
-                className="px-4 py-2 bg-[#0B1528] text-white hover:bg-black text-xs font-bold rounded-xl border border-[#D4AF37]/20 transition"
+                className="px-4 py-2 bg-[#0B1528] text-white hover:bg-black text-xs font-bold rounded border border-[#D4AF37]/20 transition"
               >
                 Mark Shipped
               </button>
               <button
                 onClick={() => handleUpdateStatus("Delivered")}
-                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200 transition"
+                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded border border-emerald-200 transition"
               >
                 Mark Delivered
               </button>
@@ -148,14 +148,14 @@ export default function OrderDetails() {
             
             {/* Purchase sheet */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white border rounded-3xl p-6 shadow-xs">
+              <div className="bg-white border rounded p-6 shadow-xs">
                 <h3 className="font-extrabold text-[#0B1528] text-sm mb-4">Line Items</h3>
                 
                 <div className="divide-y divide-gray-100">
                   {order.orderItems?.map((item, idx) => (
                     <div key={idx} className="flex justify-between items-center py-4 first:pt-0 last:pb-0">
                       <div className="flex gap-4">
-                        <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center font-bold text-slate-400">P</div>
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center font-bold text-gray-400">P</div>
                         <div>
                           <p className="font-extrabold text-[#0B1528] text-sm">Product SKU: {item.product}</p>
                           <p className="text-xs" style={{color:"#475569"}}>Seller: {item.seller}</p>
@@ -172,15 +172,15 @@ export default function OrderDetails() {
                 <div className="mt-6 border-t pt-4 space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span>Items Subtotal</span>
-                    <span className="font-semibold text-slate-800">₹{Number(order?.itemsPrice ?? 0).toLocaleString()}</span>
+                    <span className="font-semibold text-gray-800">₹{Number(order?.itemsPrice ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping Fee</span>
-                    <span className="font-semibold text-slate-800">₹{order.shippingPrice}</span>
+                    <span className="font-semibold text-gray-800">₹{order.shippingPrice}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tax Estimate</span>
-                    <span className="font-semibold text-slate-800">₹{order.taxPrice}</span>
+                    <span className="font-semibold text-gray-800">₹{order.taxPrice}</span>
                   </div>
                   <div className="flex justify-between font-black text-sm text-[#0B1528] pt-2 border-t">
                     <span>Total Amount</span>
@@ -191,7 +191,7 @@ export default function OrderDetails() {
 
               {/* Customer summary */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white border rounded-3xl p-6 shadow-xs">
+                <div className="bg-white border rounded p-6 shadow-xs">
                   <h3 className="font-extrabold text-[#0B1528] text-sm mb-4">Shipping Destination</h3>
                   <div className="text-xs space-y-2 text-gray-600 font-medium">
                     <p className="font-black text-[#0B1528]">Recipient ID: {order.customer}</p>
@@ -201,7 +201,7 @@ export default function OrderDetails() {
                   </div>
                 </div>
 
-                <div className="bg-white border rounded-3xl p-6 shadow-xs">
+                <div className="bg-white border rounded p-6 shadow-xs">
                   <h3 className="font-extrabold text-[#0B1528] text-sm mb-4">Payment Ledger</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs">
@@ -213,7 +213,7 @@ export default function OrderDetails() {
                       </span>
                     </div>
                     {order.paidAt && (
-                      <p className="text-[10px] text-slate-400">Settled: {new Date(order.paidAt).toLocaleString()}</p>
+                      <p className="text-[10px] text-gray-400">Settled: {new Date(order.paidAt).toLocaleString()}</p>
                     )}
                   </div>
                 </div>
@@ -224,13 +224,13 @@ export default function OrderDetails() {
             <div className="space-y-6">
               
               {/* Timeline */}
-              <div className="bg-white border rounded-3xl p-6 shadow-xs">
+              <div className="bg-white border rounded p-6 shadow-xs">
                 <h3 className="font-extrabold text-[#0B1528] text-sm mb-4">Audit Timeline</h3>
-                <div className="space-y-4 text-xs font-semibold text-slate-600">
+                <div className="space-y-4 text-xs font-semibold text-gray-600">
                   <div className="flex gap-2">
                     <CheckCircle size={16} className="text-emerald-500" />
                     <div>
-                      <p className="text-slate-800">Order Placed</p>
+                      <p className="text-gray-800">Order Placed</p>
                       <p className="text-[10px] text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
@@ -238,7 +238,7 @@ export default function OrderDetails() {
                     <div className="flex gap-2">
                       <CheckCircle size={16} className="text-emerald-500" />
                       <div>
-                        <p className="text-slate-800">Payment Verified</p>
+                        <p className="text-gray-800">Payment Verified</p>
                         <p className="text-[10px] text-gray-400">{order.paidAt ? new Date(order.paidAt).toLocaleDateString() : ""}</p>
                       </div>
                     </div>
@@ -247,17 +247,17 @@ export default function OrderDetails() {
               </div>
 
               {/* Notes */}
-              <div className="bg-white border rounded-3xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border rounded p-6 shadow-xs space-y-4">
                 <h3 className="font-extrabold text-[#0B1528] text-sm">Administrative Memo</h3>
                 <textarea
                   value={internalNote}
                   onChange={(e) => setInternalNote(e.target.value)}
-                  className="w-full h-24 border rounded-xl p-3 text-xs outline-none bg-slate-50 focus:bg-white focus:border-[#D4AF37]"
+                  className="w-full h-24 border rounded p-3 text-xs outline-none bg-gray-50 focus:bg-white focus:border-[#D4AF37]"
                   placeholder="Type internal notes..."
                 />
                 <button 
                   onClick={handlePostNote}
-                  className="w-full py-2.5 bg-[#0B1528] text-white hover:bg-black font-bold rounded-xl text-xs transition active:scale-95"
+                  className="w-full py-2.5 bg-[#0B1528] text-white hover:bg-black font-bold rounded text-xs transition active:scale-95"
                 >
                   Save Note
                 </button>

@@ -47,7 +47,7 @@ function Hero() {
   };
 
   return (
-    <div className="relative w-full max-w-[1600px] mx-auto mt-[104px] md:mt-[68px] lg:mt-[116px] bg-brand-background px-2 sm:px-4 py-2 group">
+    <div className="relative w-full max-w-[1600px] mx-auto bg-[#f1f2f4] px-2 sm:px-4 group">
       {/* Carousel Container */}
       <div className="relative h-[200px] sm:h-[300px] md:h-[400px] lg:h-[450px] w-full overflow-hidden rounded-md shadow-sm bg-gray-200">
         <AnimatePresence initial={false} mode="wait">
@@ -68,7 +68,7 @@ function Hero() {
             
             {/* Banner Content */}
             <div className="absolute inset-0 z-20 flex flex-col justify-center items-start px-4 sm:px-8 md:px-16 lg:px-24">
-              <span className="px-3 py-1 bg-brand-accent text-white text-xs font-bold uppercase rounded-sm mb-3 md:mb-4">
+              <span className="px-3 py-1 bg-[#ea580c] text-white text-xs font-bold uppercase rounded-sm mb-3 md:mb-4">
                 Limited Time Offer
               </span>
               <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 max-w-2xl leading-tight">
@@ -79,7 +79,7 @@ function Hero() {
               </p>
               <button 
                 onClick={() => navigate('/search')}
-                className="bg-white text-brand-primary px-6 sm:px-8 py-2.5 sm:py-3 rounded-sm font-bold shadow-md hover:bg-gray-100 transition-colors text-sm sm:text-base"
+                className="bg-white text-[#065F46] px-6 sm:px-8 py-2.5 sm:py-3 rounded-sm font-bold shadow-md hover:bg-gray-100 transition-colors text-sm sm:text-base"
               >
                 Shop Now
               </button>
@@ -90,21 +90,21 @@ function Hero() {
         {/* Navigation Arrows */}
         <button
           onClick={handlePrevious}
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md flex items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-r-md"
+          className="absolute left-0 top-1/2 -trangray-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md flex items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-r-md"
           aria-label="Previous banner"
         >
           <ChevronLeft size={32} />
         </button>
         <button
           onClick={handleNext}
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md flex items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-l-md"
+          className="absolute right-0 top-1/2 -trangray-y-1/2 w-10 h-20 bg-white/80 hover:bg-white backdrop-blur-sm shadow-md flex items-center justify-center text-gray-800 z-30 transition-all opacity-0 group-hover:opacity-100 rounded-l-md"
           aria-label="Next banner"
         >
           <ChevronRight size={32} />
         </button>
 
         {/* Pagination Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden sm:flex items-center gap-2 z-30">
+        <div className="absolute bottom-4 left-1/2 -trangray-x-1/2 hidden sm:flex items-center gap-2 z-30">
           {banners.map((_, index) => (
             <button
               key={index}

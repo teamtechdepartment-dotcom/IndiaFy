@@ -34,7 +34,7 @@ function TopCategories() {
           {CATEGORIES.map((cat) => (
             <div 
               key={cat.id}
-              className="group bg-white border border-brand-border hover:border-brand-primary rounded-xl p-4 cursor-pointer hover:-translate-y-1 hover:shadow-md transition-all duration-200"
+              className="group bg-white border border-brand-border hover:border-brand-primary rounded p-4 cursor-pointer hover:-trangray-y-1 hover:shadow-md transition-all duration-200"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center text-brand-primary group-hover:bg-blue-50 transition-colors">

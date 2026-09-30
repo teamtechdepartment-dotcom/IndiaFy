@@ -54,7 +54,7 @@ export { PRODUCTS_DB };
 
 const BADGE_CONFIG = {
   fast: { icon: Zap, label: "Fast", className: "bg-brand-accent/10 text-brand-accent" },
-  trending: { icon: TrendingUp, label: "Trending", className: "bg-orange-50 text-orange-600" },
+  trending: { icon: TrendingUp, label: "Trending", className: "bg-orange-50 text-[#065F46]" },
   bestseller: { icon: Star, label: "Best Seller", className: "bg-amber-50 text-amber-600" },
 };
 
@@ -68,7 +68,7 @@ function ProductCard({ product, cart, onAdd, onInc, onDec }) {
       layout
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="bg-[#f4f5f7] rounded-2xl p-2.5 sm:p-3 border border-gray-200/60 hover:border-brand-accent/20 hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-200 flex flex-col relative group cursor-pointer"
+      className="bg-[#f4f5f7] rounded p-2.5 sm:p-3 border border-gray-200/60 hover:border-brand-accent/20 hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-200 flex flex-col relative group cursor-pointer"
       onClick={() => navigate(`/product/${product.id}`)}
     >
       {/* Discount badge */}
@@ -86,7 +86,7 @@ function ProductCard({ product, cart, onAdd, onInc, onDec }) {
       )}
 
       {/* Image */}
-      <div className="w-full aspect-square bg-[#eef0f2] rounded-xl mb-2 overflow-hidden relative border border-gray-200/40">
+      <div className="w-full aspect-square bg-[#eef0f2] rounded mb-2 overflow-hidden relative border border-gray-200/40">
         <img
           src={product.img}
           alt={product.name}
@@ -121,7 +121,7 @@ function ProductCard({ product, cart, onAdd, onInc, onDec }) {
             <motion.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              className="flex items-center bg-brand-accent text-white rounded-xl h-8 shadow-md shadow-brand-accent/20"
+              className="flex items-center bg-brand-accent text-white rounded h-8 shadow-md shadow-brand-accent/20"
             >
               <button
                 onClick={(e) => { e.stopPropagation(); onDec(product.id); }}
@@ -142,7 +142,7 @@ function ProductCard({ product, cart, onAdd, onInc, onDec }) {
           ) : (
             <button
               onClick={(e) => { e.stopPropagation(); onAdd(product.id); }}
-              className="border border-brand-accent/20 text-brand-accent bg-brand-accent/5 hover:bg-brand-accent hover:text-white hover:border-brand-accent h-8 px-4 rounded-xl text-[10px] font-extrabold tracking-wide active:scale-90 transition-all"
+              className="border border-brand-accent/20 text-brand-accent bg-brand-accent/5 hover:bg-brand-accent hover:text-white hover:border-brand-accent h-8 px-4 rounded text-[10px] font-extrabold tracking-wide active:scale-90 transition-all"
               aria-label={`Add ${product.name}`}
             >
               ADD
@@ -166,7 +166,7 @@ export default function ProductCatalog({ activeCategory, onCategoryClick, cart, 
         {/* Desktop Sidebar */}
         <aside
           ref={sidebarRef}
-          className="hidden md:flex flex-col w-[200px] lg:w-[220px] sticky top-[60px] h-[calc(100vh-80px)] overflow-y-auto no-scrollbar shrink-0 bg-white rounded-2xl border border-zinc-100 p-3"
+          className="hidden md:flex flex-col w-[200px] lg:w-[220px] sticky top-[60px] h-[calc(100vh-80px)] overflow-y-auto no-scrollbar shrink-0 bg-white rounded border border-zinc-100 p-3"
         >
           <h3 className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-3 px-2">
             Categories
@@ -180,7 +180,7 @@ export default function ProductCatalog({ activeCategory, onCategoryClick, cart, 
                 <button
                   key={cat.id}
                   onClick={() => onCategoryClick(cat.id)}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-left ${
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded transition-all text-left ${
                     isActive
                       ? "bg-brand-accent/10 border border-brand-accent/20"
                       : "hover:bg-zinc-50 border border-transparent"

@@ -88,7 +88,7 @@ export default function LocationLandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-emerald-200 selection:text-emerald-900">
+    <div className="min-h-screen bg-gray-50 font-sans selection:bg-emerald-200 selection:text-emerald-900">
       <SEO 
         title={seoData.title} 
         description={seoData.description}
@@ -127,18 +127,18 @@ export default function LocationLandingPage() {
       <WebsiteNavbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-[130px] lg:pt-[140px] pb-16">
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-4">
-          <Link to="/" className="hover:text-slate-900 transition-colors">Home</Link>
-          <ChevronRight size={12} className="text-slate-400" />
-          <span className="text-slate-900 font-bold">{seoData.city}</span>
+        <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-4">
+          <Link to="/" className="hover:text-gray-900 transition-colors">Home</Link>
+          <ChevronRight size={12} className="text-gray-400" />
+          <span className="text-gray-900 font-bold">{seoData.city}</span>
         </div>
 
         <div className="mb-6 max-w-4xl">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Buy Products Online in {seoData.city}</h1>
-          <p className="text-sm text-slate-600 leading-relaxed">{seoData.intro}</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Buy Products Online in {seoData.city}</h1>
+          <p className="text-sm text-gray-600 leading-relaxed">{seoData.intro}</p>
           {seoData.availableCategories && seoData.availableCategories.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2 text-xs">
-              <span className="font-semibold text-slate-700">Available Categories in {seoData.city}:</span>
+              <span className="font-semibold text-gray-700">Available Categories in {seoData.city}:</span>
               {seoData.availableCategories.map(cat => (
                 <Link 
                   key={cat} 
@@ -152,9 +152,9 @@ export default function LocationLandingPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4">
+        <div className="bg-white rounded shadow-sm border border-gray-200/60 p-4">
           <div className="mb-4">
-             <h2 className="text-lg font-bold text-slate-800">Popular Products in {seoData.city}</h2>
+             <h2 className="text-lg font-bold text-gray-800">Popular Products in {seoData.city}</h2>
           </div>
           <ProductGrid products={products} isLoading={false} viewMode="grid" />
         </div>

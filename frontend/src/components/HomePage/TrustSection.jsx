@@ -13,14 +13,14 @@ const trustFeatures = [
   {
     icon: <Video size={24} />,
     iconBg: "bg-blue-50",
-    iconColor: "text-blue-600",
+    iconColor: "text-[#065F46]",
     title: "Video Packing",
     description: "Sellers record packing videos for every order to prevent disputes.",
   },
   {
     icon: <CreditCard size={24} />,
     iconBg: "bg-purple-50",
-    iconColor: "text-purple-600",
+    iconColor: "text-[#065F46]",
     title: "Secure Payment",
     description: "Platform-managed payments with dynamic QR codes. No personal transfers.",
   },

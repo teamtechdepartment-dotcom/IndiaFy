@@ -12,7 +12,7 @@ import OrderModel from "../models/orders/order.model.js";
 
 describe("Indiafy Checkout & Payment Flow Integration Tests", () => {
     let customer, seller, node, product, token;
-    const securityKey = process.env.SecurityKey || "kishan@3322";
+    const securityKey = process.env.SecurityKey || "test_dummy_key_2026";
 
     beforeAll(async () => {
         const { databaseConfig } = await import("../config/db.config.js");

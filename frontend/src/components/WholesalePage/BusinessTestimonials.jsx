@@ -25,7 +25,7 @@ function BusinessTestimonials() {
           {TESTIMONIALS.map((test) => (
             <div 
               key={test.id} 
-              className="snap-start shrink-0 w-[300px] md:w-auto bg-gray-50 border border-brand-border rounded-xl p-6 flex flex-col relative"
+              className="snap-start shrink-0 w-[300px] md:w-auto bg-gray-50 border border-brand-border rounded p-6 flex flex-col relative"
             >
               <Quote size={24} className="text-gray-300 absolute top-6 right-6" fill="currentColor" />
               

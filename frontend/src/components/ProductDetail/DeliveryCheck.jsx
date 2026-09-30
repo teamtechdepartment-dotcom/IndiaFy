@@ -21,7 +21,7 @@ function DeliveryCheck() {
   };
 
   return (
-    <div className="mb-6 bg-gray-50 rounded-xl p-4 border border-gray-100">
+    <div className="mb-6 bg-gray-50 rounded p-4 border border-gray-100">
       <div className="flex items-center gap-1.5 text-sm font-bold text-[#212121] mb-2">
         <MapPin size={16} className="text-[#2874F0]" />
         Deliver to Gurugram - 122001

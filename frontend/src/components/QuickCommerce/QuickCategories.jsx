@@ -12,14 +12,14 @@ import {
 } from "lucide-react";
 
 const CATEGORIES = [
-  { id: "dairy", name: "Milk", icon: Milk, count: 120, color: "bg-blue-50 text-blue-600" },
+  { id: "dairy", name: "Milk", icon: Milk, count: 120, color: "bg-blue-50 text-[#065F46]" },
   { id: "vegetables", name: "Vegetables", icon: Carrot, count: 85, color: "bg-green-50 text-green-600" },
-  { id: "fruits", name: "Fruits", icon: Apple, count: 64, color: "bg-orange-50 text-orange-600" },
+  { id: "fruits", name: "Fruits", icon: Apple, count: 64, color: "bg-orange-50 text-[#065F46]" },
   { id: "pharma", name: "Medicines", icon: Pill, count: 230, color: "bg-teal-50 text-teal-600" },
   { id: "bakery", name: "Bakery", icon: Croissant, count: 45, color: "bg-amber-50 text-amber-600" },
   { id: "drinks", name: "Beverages", icon: CupSoda, count: 90, color: "bg-red-50 text-red-600" },
-  { id: "snacks", name: "Snacks", icon: Cookie, count: 110, color: "bg-purple-50 text-purple-600" },
-  { id: "daily", name: "Daily Needs", icon: ShoppingBasket, count: 200, color: "bg-indigo-50 text-indigo-600" },
+  { id: "snacks", name: "Snacks", icon: Cookie, count: 110, color: "bg-purple-50 text-[#065F46]" },
+  { id: "daily", name: "Daily Needs", icon: ShoppingBasket, count: 200, color: "bg-indigo-50 text-[#065F46]" },
 ];
 
 export { CATEGORIES };
@@ -59,7 +59,7 @@ export default function QuickCategories({ activeCategory, onCategoryClick, isLoa
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
                 onClick={() => onCategoryClick(cat.id)}
-                className={`shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all active:scale-95 min-w-[72px] ${
+                className={`shrink-0 flex flex-col items-center gap-1.5 p-3 rounded transition-all active:scale-95 min-w-[72px] ${
                   isActive
                     ? "bg-brand-accent/10 border-2 border-brand-accent/30 shadow-sm"
                     : "bg-zinc-50 border-2 border-transparent hover:bg-zinc-100"
@@ -67,7 +67,7 @@ export default function QuickCategories({ activeCategory, onCategoryClick, isLoa
                 aria-label={`${cat.name} category`}
               >
                 <div
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors ${
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded flex items-center justify-center transition-colors ${
                     isActive ? "bg-brand-accent text-white" : cat.color
                   }`}
                 >

@@ -50,25 +50,25 @@ export default function SellerDashboardWrapper() {
   ---------------------------------------------------------- */
   if (error && hasLoaded) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl text-center border border-slate-200">
-          <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white p-8 rounded shadow-xl text-center border border-gray-200">
+          <div className="w-16 h-16 bg-red-50 rounded flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-red-500" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900 mb-2">
+          <h2 className="text-2xl font-black text-gray-900 mb-2">
             Node Access Error
           </h2>
-          <p className="text-slate-500 text-sm mb-6 leading-relaxed">{error}</p>
+          <p className="text-gray-500 text-sm mb-6 leading-relaxed">{error}</p>
           <div className="flex flex-col gap-3">
             <button
               onClick={loadNode}
-              className="w-full py-3.5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all"
+              className="w-full py-3.5 bg-gray-900 text-white font-bold rounded hover:bg-gray-800 transition-all"
             >
               Try Again
             </button>
             <button
               onClick={() => navigate("/seller-hub")}
-              className="w-full py-3.5 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-gray-100 text-gray-700 font-bold rounded hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
             >
               <ArrowLeft size={16} />
               Return to Seller Hub
@@ -99,20 +99,20 @@ export default function SellerDashboardWrapper() {
   const isApproved = activeNode?.status === "ACTIVE" && activeNode?.isActive === true && activeNode?.approval?.status === "APPROVED";
   if (hasLoaded && activeNode && !isApproved) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans">
-        <div className="max-w-md w-full bg-white p-8 rounded-[2rem] shadow-xl text-center border border-slate-200">
-          <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-100">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 font-sans">
+        <div className="max-w-md w-full bg-white p-8 rounded shadow-xl text-center border border-gray-200">
+          <div className="w-16 h-16 bg-amber-50 rounded flex items-center justify-center mx-auto mb-4 border border-amber-100">
             <AlertCircle className="w-8 h-8 text-amber-500 animate-pulse" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900 mb-2">
+          <h2 className="text-2xl font-black text-gray-900 mb-2">
             Access Forbidden (403)
           </h2>
-          <p className="text-slate-550 text-sm mb-6 leading-relaxed font-semibold">
+          <p className="text-gray-550 text-sm mb-6 leading-relaxed font-semibold">
             Your store is awaiting admin approval.
           </p>
           <button
             onClick={() => navigate("/seller-hub")}
-            className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-md active:scale-95"
+            className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded transition-all shadow-md active:scale-95"
           >
             Return to Seller Hub
           </button>

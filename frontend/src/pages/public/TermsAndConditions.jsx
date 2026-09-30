@@ -49,7 +49,7 @@ export default function TermsAndConditions() {
   };
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
+    <div className="bg-[#F8FAFC] min-h-screen font-sans text-gray-900">
       <SEOHead 
         title="Terms & Conditions | Indiafy"
         description="Read the terms and conditions for using Indiafy. Covers platform usage, buyer/seller responsibilities, payments, and fraud prevention."
@@ -57,15 +57,15 @@ export default function TermsAndConditions() {
       <WebsiteNavbar scrolledByDefault={true} />
 
       {/* HEADER SECTION */}
-      <header className="bg-slate-900 pt-32 pb-24 px-6 relative overflow-hidden">
+      <header className="bg-gray-900 pt-32 pb-24 px-6 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6 lg:mx-0 mx-auto">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6 lg:mx-0 mx-auto">
             <ShieldCheck size={16} /> Legal Agreement
           </div>
           <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight mb-4">
             Terms & Conditions
           </h1>
-          <p className="text-slate-400 text-sm md:text-base font-medium max-w-2xl">
+          <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl">
             Last Updated: March 25, 2026 · The rules that govern our trust network.
           </p>
         </div>
@@ -77,8 +77,8 @@ export default function TermsAndConditions() {
           {/* LEFT: STICKY TOC */}
           <div className="hidden lg:block w-1/4 shrink-0">
             <div className="sticky top-32">
-              <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Contents</h4>
-              <ul className="space-y-4 border-l-2 border-slate-200">
+              <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-6">Contents</h4>
+              <ul className="space-y-4 border-l-2 border-gray-200">
                 {sections.map((section) => (
                   <li key={section.id}>
                     <button
@@ -86,7 +86,7 @@ export default function TermsAndConditions() {
                       className={`text-sm font-bold text-left w-full pl-6 py-1 transition-all relative ${
                         activeSection === section.id 
                           ? "text-brand-primary" 
-                          : "text-slate-500 hover:text-slate-900"
+                          : "text-gray-500 hover:text-gray-900"
                       }`}
                     >
                       {activeSection === section.id && (
@@ -98,9 +98,9 @@ export default function TermsAndConditions() {
                 ))}
               </ul>
               
-              <div className="mt-12 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+              <div className="mt-12 p-6 bg-white rounded border border-gray-200 shadow-sm">
                 <p className="text-sm font-bold mb-3">Questions?</p>
-                <p className="text-xs text-slate-500 mb-4">Read our Community Standards for a simplified view of our rules.</p>
+                <p className="text-xs text-gray-500 mb-4">Read our Community Standards for a simplified view of our rules.</p>
                 <Link to="/community-standards" className="text-xs font-bold text-brand-primary flex items-center gap-1 hover:gap-2 transition-all">
                   Community Standards <ChevronRight size={14} />
                 </Link>
@@ -109,10 +109,10 @@ export default function TermsAndConditions() {
           </div>
 
           {/* RIGHT: CONTENT */}
-          <div className="w-full lg:w-3/4 max-w-3xl prose prose-slate prose-headings:font-black prose-headings:tracking-tight prose-a:text-brand-primary">
+          <div className="w-full lg:w-3/4 max-w-3xl prose prose-gray prose-headings:font-black prose-headings:tracking-tight prose-a:text-brand-primary">
             
             <section id="platform-usage" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Platform Usage</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Platform Usage</h2>
               <p>
                 Indiafy provides a localized, node-based marketplace connecting verified sellers with buyers. By registering for an account—either as a buyer or a seller—you agree to be bound by these Terms.
               </p>
@@ -122,7 +122,7 @@ export default function TermsAndConditions() {
             </section>
 
             <section id="seller-responsibilities" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Seller Responsibilities</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Seller Responsibilities</h2>
               <p>
                 Sellers are the backbone of our trust network. To maintain your active status on the Indiafy platform, you must:
               </p>
@@ -136,7 +136,7 @@ export default function TermsAndConditions() {
             </section>
 
             <section id="buyer-responsibilities" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Buyer Responsibilities</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Buyer Responsibilities</h2>
               <p>
                 As a buyer, you agree to provide accurate delivery information and ensure someone is available to receive the package during the designated hyperlocal delivery window.
               </p>
@@ -146,7 +146,7 @@ export default function TermsAndConditions() {
             </section>
 
             <section id="payments" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Payments & Fees</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Payments & Fees</h2>
               <p>
                 Indiafy uses an escrow-style payment system. When you place an order, the funds are held securely by our payment processors. Funds are only released to the seller after the return window has expired or the order is marked successfully delivered without dispute.
               </p>
@@ -156,7 +156,7 @@ export default function TermsAndConditions() {
             </section>
 
             <section id="returns" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Returns & Disputes</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Returns & Disputes</h2>
               <p>
                 If an item is defective, damaged, or not as described, buyers have the right to request a return within the specified return window (usually 3 to 7 days, depending on the category).
               </p>
@@ -167,7 +167,7 @@ export default function TermsAndConditions() {
             </section>
 
             <section id="fraud-prevention" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Fraud Prevention</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Fraud Prevention</h2>
               <p>
                 We employ advanced ML algorithms and manual audits to detect fraud. We reserve the right to temporarily freeze funds, delay payouts, or cancel orders if we suspect fraudulent activity.
               </p>
@@ -177,7 +177,7 @@ export default function TermsAndConditions() {
             </section>
 
             <section id="account-suspension" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Account Suspension</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Account Suspension</h2>
               <p>
                 Indiafy reserves the right to suspend or terminate accounts without prior notice if we determine that you have violated these Terms, engaged in fraudulent activity, or created a hostile environment for other users or staff.
               </p>

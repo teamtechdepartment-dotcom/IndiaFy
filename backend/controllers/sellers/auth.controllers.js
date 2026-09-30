@@ -146,7 +146,7 @@ const Login = async (req, res) => {
       },
       secret,
       {
-        expiresIn: "7d"
+        expiresIn: "15m"
       }
     );
 
@@ -156,7 +156,7 @@ const Login = async (req, res) => {
       httpOnly: true,
       sameSite: isProd ? "None" : "Lax", // Must be None for cross-domain (Vercel <-> Render)
       secure: isProd,                     // Secure required when sameSite=None
-      maxAge: 7 * 24 * 60 * 60 * 1000   // 7 days
+      maxAge: 15 * 60 * 1000   // 15 minutes
     };
     
     res.cookie("SellerAccessToken", token, cookieOpts);

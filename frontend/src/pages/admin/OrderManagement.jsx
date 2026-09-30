@@ -111,8 +111,8 @@ export default function OrderManagement() {
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-widest mb-2">
                   <Package size={14} /> Orders Command
                 </div>
-                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Order Management</h1>
-                <p className="text-slate-500 font-medium">
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Order Management</h1>
+                <p className="text-gray-500 font-medium">
                   Track marketplace shipments, initiate customer refunds, and audit transaction records.
                 </p>
               </div>
@@ -120,7 +120,7 @@ export default function OrderManagement() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={fetchOrders}
-                  className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-4 py-3 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition shadow-xs"
+                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-3 rounded text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-xs"
                 >
                   <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                   Refresh
@@ -128,7 +128,7 @@ export default function OrderManagement() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => navigate("/admin/orders/create")}
-                    className="flex items-center justify-center gap-2 bg-[#2874F0] hover:bg-blue-600 text-white px-5 py-3 rounded-xl font-bold text-xs shadow-xs transition active:scale-95 cursor-pointer"
+                    className="flex items-center justify-center gap-2 bg-[#2874F0] hover:bg-blue-600 text-white px-5 py-3 rounded font-bold text-xs shadow-xs transition active:scale-95 cursor-pointer"
                   >
                     <Plus size={16} />
                     Create Order
@@ -136,7 +136,7 @@ export default function OrderManagement() {
                   <button
                     onClick={handleExport}
                     disabled={orders.length === 0}
-                    className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-5 py-3 rounded-xl font-bold text-xs hover:shadow-xs transition active:scale-95 text-slate-800 cursor-pointer"
+                    className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-5 py-3 rounded font-bold text-xs hover:shadow-xs transition active:scale-95 text-gray-800 cursor-pointer"
                   >
                     <Download size={16} className="text-[#D4AF37]" />
                     Export CSV
@@ -147,7 +147,7 @@ export default function OrderManagement() {
 
             {/* Error Banner */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl flex items-center justify-between text-xs font-semibold">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-2">
                   <AlertTriangle size={18} className="text-red-500 shrink-0" />
                   <span>{error}</span>
@@ -161,7 +161,7 @@ export default function OrderManagement() {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
                 {loading ? (
                   [1, 2, 3, 4].map(i => (
-                    <div key={i} className="h-32 bg-slate-200/60 rounded-2xl animate-pulse" />
+                    <div key={i} className="h-32 bg-gray-200/60 rounded animate-pulse" />
                   ))
                 ) : (
                   <>
@@ -205,13 +205,13 @@ export default function OrderManagement() {
                 {/* Search & filters */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="relative w-full md:w-80 group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#D4AF37] transition-colors" size={18} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#D4AF37] transition-colors" size={18} />
                     <input
                       type="text"
                       placeholder="Search by ID, name or email..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-11 text-xs font-medium text-slate-900 outline-none transition-all focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/5"
+                      className="w-full bg-gray-50 border border-gray-200 rounded py-3 px-11 text-xs font-medium text-gray-900 outline-none transition-all focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/5"
                     />
                   </div>
 
@@ -219,7 +219,7 @@ export default function OrderManagement() {
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="h-11 px-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs outline-none"
+                      className="h-11 px-4 bg-gray-50 border border-gray-200 text-gray-700 rounded font-bold text-xs outline-none"
                     >
                       <option value="All">All Statuses</option>
                       <option value="Pending">Pending</option>
@@ -234,7 +234,7 @@ export default function OrderManagement() {
                 {/* Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[700px] text-xs text-left">
-                    <thead className="bg-slate-50 text-gray-400 uppercase tracking-widest text-[9px] border-b">
+                    <thead className="bg-gray-50 text-gray-400 uppercase tracking-widest text-[9px] border-b">
                       <tr>
                         <th className="py-3 px-4 font-black">Order ID</th>
                         <th className="py-3 px-4 font-black">Customer</th>
@@ -249,13 +249,13 @@ export default function OrderManagement() {
                       {loading ? (
                         [1, 2, 3, 4, 5].map(idx => (
                           <tr key={idx} className="animate-pulse">
-                            <td className="py-4 px-4"><div className="w-24 h-3.5 bg-slate-200 rounded" /></td>
-                            <td className="py-4 px-4"><div className="w-32 h-3.5 bg-slate-200 rounded" /></td>
-                            <td className="py-4 px-4"><div className="w-20 h-3 bg-slate-200 rounded" /></td>
-                            <td className="py-4 px-4 text-center"><div className="w-16 h-5 bg-slate-200 rounded mx-auto" /></td>
-                            <td className="py-4 px-4 text-center"><div className="w-16 h-5 bg-slate-200 rounded mx-auto" /></td>
-                            <td className="py-4 px-4 text-right"><div className="w-20 h-3.5 bg-slate-200 rounded ml-auto" /></td>
-                            <td className="py-4 px-4 text-right"><div className="w-28 h-6 bg-slate-200 rounded-lg ml-auto" /></td>
+                            <td className="py-4 px-4"><div className="w-24 h-3.5 bg-gray-200 rounded" /></td>
+                            <td className="py-4 px-4"><div className="w-32 h-3.5 bg-gray-200 rounded" /></td>
+                            <td className="py-4 px-4"><div className="w-20 h-3 bg-gray-200 rounded" /></td>
+                            <td className="py-4 px-4 text-center"><div className="w-16 h-5 bg-gray-200 rounded mx-auto" /></td>
+                            <td className="py-4 px-4 text-center"><div className="w-16 h-5 bg-gray-200 rounded mx-auto" /></td>
+                            <td className="py-4 px-4 text-right"><div className="w-20 h-3.5 bg-gray-200 rounded ml-auto" /></td>
+                            <td className="py-4 px-4 text-right"><div className="w-28 h-6 bg-gray-200 rounded-lg ml-auto" /></td>
                           </tr>
                         ))
                       ) : filteredOrders.length === 0 ? (
@@ -285,7 +285,7 @@ export default function OrderManagement() {
                               </td>
                               <td className="py-4 px-4">
                                 <p className="font-bold">{cName}</p>
-                                <p className="text-[10px] text-slate-400">{cEmail}</p>
+                                <p className="text-[10px] text-gray-400">{cEmail}</p>
                               </td>
                               <td className="py-4 px-4 text-gray-500">{dateStr}</td>
                               <td className="py-4 px-4 text-center">
@@ -308,7 +308,7 @@ export default function OrderManagement() {
                                   {statusStr}
                                 </span>
                               </td>
-                              <td className="py-4 px-4 text-right font-black text-slate-800 dark:text-slate-200">
+                              <td className="py-4 px-4 text-right font-black text-gray-800 dark:text-slate-200">
                                 ₹{priceVal.toLocaleString()}
                               </td>
                               <td className="py-4 px-4 text-right space-x-1.5">
@@ -318,7 +318,7 @@ export default function OrderManagement() {
                                     e.stopPropagation();
                                     navigate(`/admin/orders/${safeId}`);
                                   }}
-                                  className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#2874F0] rounded-xl font-bold text-[10px] border border-blue-200 transition cursor-pointer"
+                                  className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#2874F0] rounded font-bold text-[10px] border border-blue-200 transition cursor-pointer"
                                 >
                                   View
                                 </button>
@@ -328,7 +328,7 @@ export default function OrderManagement() {
                                     e.stopPropagation();
                                     handleUpdateStatus(o?._id, "Delivered");
                                   }}
-                                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl font-bold text-[10px] border border-emerald-200 transition cursor-pointer"
+                                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded font-bold text-[10px] border border-emerald-200 transition cursor-pointer"
                                 >
                                   Deliver
                                 </button>
@@ -338,7 +338,7 @@ export default function OrderManagement() {
                                     e.stopPropagation();
                                     handleUpdateStatus(o?._id, "Cancelled");
                                   }}
-                                  className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-bold text-[10px] border border-red-200 transition cursor-pointer"
+                                  className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded font-bold text-[10px] border border-red-200 transition cursor-pointer"
                                 >
                                   Cancel
                                 </button>

@@ -70,8 +70,8 @@ const megaMenuCategories = [
   { icon: <Zap size={18} className="text-brand-accent" />, label: "Quick Commerce", sub: "under 30-min Delivery", path: "/quick-commerce" },
   { icon: <Package size={18} className="text-amber-500" />, label: "Wholesale", sub: "Bulk B2B Pricing", path: "/wholesale" },
   { icon: <Truck size={18} className="text-blue-500" />, label: "Local Sellers", sub: "Verified Stores", path: "/local-sellers" },
-  { icon: <Home size={18} className="text-purple-500" />, label: "Home & Living", sub: "Kitchen & Decor", path: "/category/home-decor" },
-  { icon: <Laptop size={18} className="text-slate-600" />, label: "Electronics", sub: "Mobiles & Audio", path: "/category/electronics" },
+  { icon: <Home size={18} className="text-[#065F46]" />, label: "Home & Living", sub: "Kitchen & Decor", path: "/category/home-decor" },
+  { icon: <Laptop size={18} className="text-gray-600" />, label: "Electronics", sub: "Mobiles & Audio", path: "/category/electronics" },
   { icon: <Sparkles size={18} className="text-pink-500" />, label: "Personal Care", sub: "Beauty & Wellness", path: "/category/beauty" },
   { icon: <ShoppingBasket size={18} className="text-brand-accent" />, label: "Groceries", sub: "Fresh & Daily Needs", path: "/category/grocery" },
   { icon: <Pill size={18} className="text-red-500" />, label: "Healthcare", sub: "Medicines & Supplies", path: "/category/pharmacy" },
@@ -333,7 +333,7 @@ export default function QuickHeader() {
                       role="menu"
                       aria-label="All categories"
                     >
-                        <div className="bg-white rounded-2xl shadow-xl border border-brand-border overflow-hidden grid grid-cols-2 p-3 gap-1">
+                        <div className="bg-white rounded shadow-xl border border-brand-border overflow-hidden grid grid-cols-2 p-3 gap-1">
                           {megaMenuCategories.map((cat) => (
                             <button
                               key={cat.label}
@@ -342,9 +342,9 @@ export default function QuickHeader() {
                                 setMegaOpen(false);
                                 navigate(cat.path);
                               }}
-                              className="flex items-center gap-3 p-3 rounded-xl hover:bg-brand-background transition-all text-left w-full group"
+                              className="flex items-center gap-3 p-3 rounded hover:bg-brand-background transition-all text-left w-full group"
                             >
-                              <div className="w-10 h-10 rounded-xl bg-brand-background flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                              <div className="w-10 h-10 rounded bg-brand-background flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
                                 {cat.icon}
                               </div>
                               <div>
@@ -430,7 +430,7 @@ export default function QuickHeader() {
           aria-label="Mobile navigation menu"
         >
           <div
-            className="absolute right-0 top-0 h-[100dvh] w-[85%] max-w-[360px] bg-white shadow-2xl flex flex-col pointer-events-auto transition-transform duration-300 translate-x-0"
+            className="absolute right-0 top-0 h-[100dvh] w-[85%] max-w-[360px] bg-white shadow-2xl flex flex-col pointer-events-auto transition-transform duration-300 trangray-x-0"
             onClick={(e) => e.stopPropagation()}
           >
               {/* Header */}
@@ -461,13 +461,13 @@ export default function QuickHeader() {
                 >
                   <div className="relative">
                     <label htmlFor="mobile-search" className="sr-only">Search products</label>
-                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-text-secondary" aria-hidden="true" />
+                    <Search size={16} className="absolute left-3.5 top-1/2 -trangray-y-1/2 text-brand-text-secondary" aria-hidden="true" />
                     <input
                       id="mobile-search"
                       name="search"
                       type="text"
                       placeholder="Search products..."
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-brand-background border border-brand-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent/30 transition-all"
+                      className="w-full pl-10 pr-4 py-3 rounded bg-brand-background border border-brand-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-accent/30 transition-all"
                     />
                   </div>
                 </form>
@@ -477,17 +477,17 @@ export default function QuickHeader() {
               <div className="flex-1 overflow-y-auto py-4 px-5 flex flex-col gap-1 no-scrollbar">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-brand-text-secondary mb-2 px-1">Quick Links</p>
 
-                <Link to="/" onClick={() => setMenuOpen(false)} className="flex items-center justify-between px-3 py-3 text-sm font-semibold text-brand-primary hover:bg-brand-background rounded-xl transition-colors">
+                <Link to="/" onClick={() => setMenuOpen(false)} className="flex items-center justify-between px-3 py-3 text-sm font-semibold text-brand-primary hover:bg-brand-background rounded transition-colors">
                   Home <ChevronRight size={16} className="text-brand-text-secondary" />
                 </Link>
 
-                <Link to="/quick-commerce" onClick={() => setMenuOpen(false)} className="flex items-center justify-between px-3 py-3 text-sm font-semibold text-brand-accent hover:bg-emerald-50 rounded-xl transition-colors">
+                <Link to="/quick-commerce" onClick={() => setMenuOpen(false)} className="flex items-center justify-between px-3 py-3 text-sm font-semibold text-brand-accent hover:bg-emerald-50 rounded transition-colors">
                   <span className="flex items-center gap-2"><Zap size={16} className="fill-current" /> Under 30-Min Delivery</span>
                   <ChevronRight size={16} />
                 </Link>
 
                 {isCustomerAuthenticated && (
-                  <Link to="/order-history" onClick={() => setMenuOpen(false)} className="flex items-center justify-between px-3 py-3 text-sm font-semibold text-brand-primary hover:bg-brand-background rounded-xl transition-colors">
+                  <Link to="/order-history" onClick={() => setMenuOpen(false)} className="flex items-center justify-between px-3 py-3 text-sm font-semibold text-brand-primary hover:bg-brand-background rounded transition-colors">
                     <span className="flex items-center gap-2"><Package size={16} /> Orders</span>
                     <ChevronRight size={16} className="text-brand-text-secondary" />
                   </Link>
@@ -502,7 +502,7 @@ export default function QuickHeader() {
                     key={cat.label}
                     to={cat.path}
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-brand-primary hover:bg-brand-background rounded-xl transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-brand-primary hover:bg-brand-background rounded transition-colors"
                   >
                     <span className="p-1.5 bg-brand-background rounded-lg">{cat.icon}</span>
                     <span>{cat.label}</span>
@@ -519,7 +519,7 @@ export default function QuickHeader() {
                     <button
                       onClick={() => { navigate(user?.role?.toLowerCase() === 'seller' ? "/seller-hub" : "/profile"); setMenuOpen(false); }}
                       aria-label={`Go to ${user.firstName || 'your'} profile`}
-                      className="w-full py-3 text-sm font-semibold bg-brand-primary text-white rounded-xl hover:bg-brand-secondary transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-3 text-sm font-semibold bg-brand-primary text-white rounded hover:bg-brand-secondary transition-colors flex items-center justify-center gap-2"
                     >
                       {user?.role?.toLowerCase() === 'seller' ? <Store size={16} /> : <User size={16} />}
                       {user.firstName || "Dashboard"}
@@ -527,7 +527,7 @@ export default function QuickHeader() {
                     <button
                       onClick={handleLogout}
                       aria-label="Logout from your account"
-                      className="w-full py-3 text-sm font-semibold bg-white text-brand-error border border-red-200 rounded-xl hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-3 text-sm font-semibold bg-white text-brand-error border border-red-200 rounded hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
                     >
                       <LogOut size={16} /> Logout
                     </button>
@@ -537,14 +537,14 @@ export default function QuickHeader() {
                     <button
                       onClick={() => { navigate("/seller/login"); setMenuOpen(false); }}
                       aria-label="Become a seller on Indiafy"
-                      className="w-full py-3 text-sm font-semibold bg-brand-accent text-white rounded-xl hover:bg-brand-accent-hover transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-3 text-sm font-semibold bg-brand-accent text-white rounded hover:bg-brand-accent-hover transition-colors flex items-center justify-center gap-2"
                     >
                       <Store size={16} /> Sell on Indiafy
                     </button>
                     <button
                       onClick={() => { navigate("/login"); setMenuOpen(false); }}
                       aria-label="Login or signup as customer"
-                      className="w-full py-3 text-sm font-semibold bg-brand-primary text-white rounded-xl hover:bg-brand-secondary transition-colors"
+                      className="w-full py-3 text-sm font-semibold bg-brand-primary text-white rounded hover:bg-brand-secondary transition-colors"
                     >
                       Login / Sign Up
                     </button>
@@ -567,7 +567,7 @@ export default function QuickHeader() {
 
             <motion.div
               initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 15 }} transition={{ duration: 0.2 }}
-              className="fixed bottom-0 left-0 right-0 md:inset-0 md:m-auto w-full md:w-[460px] bg-white z-[101] rounded-t-3xl md:rounded-2xl shadow-2xl md:border md:border-zinc-200 flex flex-col overflow-hidden h-[92dvh] md:h-[650px] md:max-h-[90vh]"
+              className="fixed bottom-0 left-0 right-0 md:inset-0 md:m-auto w-full md:w-[460px] bg-white z-[101] rounded-t-3xl md:rounded shadow-2xl md:border md:border-zinc-200 flex flex-col overflow-hidden h-[92dvh] md:h-[650px] md:max-h-[90vh]"
             >
               <div className="p-4 border-b border-zinc-100 flex items-center justify-between bg-white shrink-0">
                 <div>
@@ -590,13 +590,13 @@ export default function QuickHeader() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={handleManualSearch}
                     placeholder="Search for area, street (Press Enter)" 
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-3 pl-10 pr-10 text-sm font-medium text-zinc-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded py-3 pl-10 pr-10 text-sm font-medium text-zinc-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all"
                   />
                   {isSearching && <Loader2 size={16} className="absolute right-3 text-brand-primary animate-spin" />}
                 </div>
 
                 {/* Auto-Detect GPS Button */}
-                <button onClick={locateUser} className="flex items-center gap-3 p-3 rounded-xl hover:bg-emerald-50 text-left transition-colors group shrink-0">
+                <button onClick={locateUser} className="flex items-center gap-3 p-3 rounded hover:bg-emerald-50 text-left transition-colors group shrink-0">
                   <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                     <Navigation size={18} className="text-emerald-600 group-hover:scale-110 transition-transform" />
                   </div>
@@ -612,7 +612,7 @@ export default function QuickHeader() {
                 <div className="flex flex-col gap-2 flex-1 min-h-[300px]">
                   <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Or Pin Point on Map</h4>
                   
-                  <div className="relative w-full flex-1 min-h-[220px] md:min-h-[280px] bg-[#e5e3df] rounded-2xl overflow-hidden border border-zinc-200 cursor-crosshair">
+                  <div className="relative w-full flex-1 min-h-[220px] md:min-h-[280px] bg-[#e5e3df] rounded overflow-hidden border border-zinc-200 cursor-crosshair">
                     <div className="w-full h-full absolute inset-0 z-0">
                       <MapContainer 
                         center={[mapPosition.lat, mapPosition.lng]} 
@@ -645,7 +645,7 @@ export default function QuickHeader() {
                 <button 
                   onClick={handleConfirmLocation}
                   disabled={isConfirming}
-                  className="w-full bg-brand-primary text-white font-bold py-3.5 rounded-xl shadow-lg hover:bg-brand-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="w-full bg-brand-primary text-white font-bold py-3.5 rounded shadow-lg hover:bg-brand-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                 >
                   {isConfirming ? <Loader2 size={18} className="animate-spin" /> : "Confirm Location"}
                 </button>

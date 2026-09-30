@@ -206,17 +206,17 @@ const VideoVerification = () => {
         <div>
           <button 
             onClick={() => navigate(`/seller/dashboard/${nodeId}/live`)}
-            className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors mb-3 text-sm font-bold"
+            className="flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors mb-3 text-sm font-bold"
           >
             <ArrowLeft size={16} /> Back to Live Orders
           </button>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900">Order Verification</h1>
-            <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-900 text-white tracking-wider">ORD-{id?.substring(id.length - 8).toUpperCase()}</span>
+            <h1 className="text-2xl font-bold text-gray-900">Order Verification</h1>
+            <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-gray-900 text-white tracking-wider">ORD-{id?.substring(id.length - 8).toUpperCase()}</span>
           </div>
         </div>
         
-        <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-100 w-fit">
+        <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded border border-emerald-100 w-fit">
           <ShieldCheck size={20} />
           <span className="text-sm font-bold">High-Value Order Protection</span>
         </div>
@@ -225,18 +225,18 @@ const VideoVerification = () => {
       <div className="flex flex-col lg:flex-row gap-6">
         
         {/* Left Panel: Checklist */}
-        <div className="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-            <h2 className="text-lg font-bold text-slate-900">Packing Checklist</h2>
-            <p className="text-xs text-slate-500 mt-1 font-medium">Verify each item before sealing.</p>
+        <div className="flex-1 flex flex-col bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-5 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-lg font-bold text-gray-900">Packing Checklist</h2>
+            <p className="text-xs text-gray-500 mt-1 font-medium">Verify each item before sealing.</p>
           </div>
 
-          <div className="px-5 py-4 bg-slate-50 border-b border-slate-100">
+          <div className="px-5 py-4 bg-gray-50 border-b border-gray-100">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 shrink-0"><User size={20} /></div>
+              <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 shrink-0"><User size={20} /></div>
               <div>
-                <h3 className="font-bold text-sm text-slate-900">{orderData?.customer?.firstName} {orderData?.customer?.lastName}</h3>
-                <p className="text-xs font-medium text-slate-500 mt-0.5 leading-relaxed">
+                <h3 className="font-bold text-sm text-gray-900">{orderData?.customer?.firstName} {orderData?.customer?.lastName}</h3>
+                <p className="text-xs font-medium text-gray-500 mt-0.5 leading-relaxed">
                   {orderData?.shippingAddress?.address}, {orderData?.shippingAddress?.city}
                 </p>
               </div>
@@ -245,35 +245,35 @@ const VideoVerification = () => {
 
           <div className="p-5 space-y-3">
             {items.map((item) => (
-              <label key={item.id} className={`group flex items-center gap-4 p-3 rounded-xl border transition-all cursor-pointer ${item.checked ? 'border-emerald-500/50 bg-emerald-50/50' : 'border-slate-200 hover:border-slate-400 hover:bg-slate-50'}`}>
+              <label key={item.id} className={`group flex items-center gap-4 p-3 rounded border transition-all cursor-pointer ${item.checked ? 'border-emerald-500/50 bg-emerald-50/50' : 'border-gray-200 hover:border-gray-400 hover:bg-gray-50'}`}>
                 <div className="relative flex items-center justify-center shrink-0">
                   <input type="checkbox" className="hidden" checked={item.checked} onChange={() => toggleItem(item.id)} />
-                  <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${item.checked ? 'bg-emerald-500 border-emerald-500 scale-110' : 'bg-white border-slate-300 group-hover:border-slate-400'}`}>
+                  <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${item.checked ? 'bg-emerald-500 border-emerald-500 scale-110' : 'bg-white border-gray-300 group-hover:border-gray-400'}`}>
                     {item.checked && <Check size={16} className="text-white" strokeWidth={3} />}
                   </div>
                 </div>
                 
                 {item.isDoc ? (
-                  <div className="w-12 h-12 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-400 shrink-0"><FileText size={24} /></div>
+                  <div className="w-12 h-12 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-400 shrink-0"><FileText size={24} /></div>
                 ) : (
-                  <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 border border-slate-200"><ImageIcon size={20} /></div>
+                  <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 border border-gray-200"><ImageIcon size={20} /></div>
                 )}
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start gap-2">
-                    <h4 className={`font-bold text-sm truncate transition-colors ${item.checked ? 'text-emerald-700' : 'text-slate-900'}`}>{item.name}</h4>
-                    <span className="text-sm font-bold text-slate-900 shrink-0 bg-slate-100 px-2 py-0.5 rounded-md">{typeof item.qty === 'number' ? `x${item.qty}` : item.qty}</span>
+                    <h4 className={`font-bold text-sm truncate transition-colors ${item.checked ? 'text-emerald-700' : 'text-gray-900'}`}>{item.name}</h4>
+                    <span className="text-sm font-bold text-gray-900 shrink-0 bg-gray-100 px-2 py-0.5 rounded-md">{typeof item.qty === 'number' ? `x${item.qty}` : item.qty}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                    <span className="text-[10px] text-slate-500 font-bold tracking-wider uppercase bg-slate-100 px-1.5 py-0.5 rounded">{item.sku}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 rounded text-slate-600">{item.variant}</span>
+                    <span className="text-[10px] text-gray-500 font-bold tracking-wider uppercase bg-gray-100 px-1.5 py-0.5 rounded">{item.sku}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 bg-gray-100 rounded text-gray-600">{item.variant}</span>
                   </div>
                 </div>
               </label>
             ))}
           </div>
 
-          <div className="p-4 border-t border-slate-100 bg-slate-50 mt-auto">
+          <div className="p-4 border-t border-gray-100 bg-gray-50 mt-auto">
             <button className="flex items-center text-xs font-bold text-red-500 hover:text-red-700 transition-colors uppercase tracking-wide">
               <AlertTriangle size={14} className="mr-2" /> Report Issue
             </button>
@@ -282,7 +282,7 @@ const VideoVerification = () => {
 
         {/* Right Panel: Video Recorder */}
         <div className="flex-1 flex flex-col gap-6">
-          <div className="bg-slate-900 rounded-2xl shadow-lg overflow-hidden flex flex-col relative border border-slate-800">
+          <div className="bg-gray-900 rounded shadow-lg overflow-hidden flex flex-col relative border border-gray-800">
             
             {/* Status Bar */}
             <div className="absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
@@ -318,31 +318,31 @@ const VideoVerification = () => {
                     <VideoOff size={32} className="text-white/50" />
                   </div>
                   <h3 className="text-white font-bold text-lg">Camera Ready</h3>
-                  <p className="text-slate-400 text-sm mt-2 max-w-xs">Start recording or upload a file.</p>
+                  <p className="text-gray-400 text-sm mt-2 max-w-xs">Start recording or upload a file.</p>
                 </div>
               )}
             </div>
 
             {/* Controls */}
-            <div className="bg-slate-950 p-4 sm:p-6 border-t border-slate-800">
+            <div className="bg-gray-950 p-4 sm:p-6 border-t border-gray-800">
               {videoSrc ? (
-                <button onClick={clearVideo} className="w-full flex items-center justify-center gap-2 p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold transition-all">
+                <button onClick={clearVideo} className="w-full flex items-center justify-center gap-2 p-4 rounded bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white font-bold transition-all">
                   <RefreshCcw size={20} /> Retake or Choose New File
                 </button>
               ) : isRecording ? (
-                <button onClick={stopRecording} className="w-full flex items-center justify-center gap-2 p-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/50 text-red-500 font-bold transition-all animate-pulse">
+                <button onClick={stopRecording} className="w-full flex items-center justify-center gap-2 p-4 rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/50 text-red-500 font-bold transition-all animate-pulse">
                   <Square size={20} fill="currentColor" /> Stop Recording
                 </button>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button onClick={startRecording} className="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all group">
+                  <button onClick={startRecording} className="flex flex-col items-center justify-center p-4 rounded bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all group">
                     <CircleDot size={24} className="text-red-500 mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-white font-bold text-sm">Record Live</span>
                   </button>
                   
                   <input type="file" accept="video/*" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                  <button onClick={() => fileInputRef.current.click()} className="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all group">
-                    <Upload size={24} className="text-blue-400 mb-2 group-hover:-translate-y-1 transition-transform" />
+                  <button onClick={() => fileInputRef.current.click()} className="flex flex-col items-center justify-center p-4 rounded bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all group">
+                    <Upload size={24} className="text-blue-400 mb-2 group-hover:-trangray-y-1 transition-transform" />
                     <span className="text-white font-bold text-sm">Upload Video</span>
                   </button>
                 </div>
@@ -351,12 +351,12 @@ const VideoVerification = () => {
           </div>
 
           <div className="flex flex-col gap-4">
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3 items-start">
-              <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+            <div className="bg-blue-50 border border-blue-100 rounded p-4 flex gap-3 items-start">
+              <Info size={20} className="text-[#065F46] shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Verification Guidelines</h4>
+                <h4 className="text-sm font-bold text-gray-900">Verification Guidelines</h4>
                 <ul className="mt-2 space-y-1.5">
-                  <li className="text-xs font-medium text-slate-600 flex items-center gap-2">
+                  <li className="text-xs font-medium text-gray-600 flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span> Show shipping label clearly.
                   </li>
                 </ul>
@@ -366,10 +366,10 @@ const VideoVerification = () => {
             <button 
               onClick={handleVerifyAndCompleteOrder}
               disabled={!allVerified || !videoSrc || isUploading}
-              className={`w-full py-4 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all ${
+              className={`w-full py-4 rounded text-base font-bold flex items-center justify-center gap-2 transition-all ${
                 allVerified && videoSrc && !isUploading
-                  ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-md transform hover:-translate-y-0.5' 
-                  : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                  ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-md transform hover:-trangray-y-0.5' 
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
               }`}
             >
               {isUploading ? (

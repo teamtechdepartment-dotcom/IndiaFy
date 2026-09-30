@@ -35,7 +35,7 @@ function CatalogueDownload() {
               ))}
             </ul>
 
-            <button className="bg-brand-accent text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-emerald-400 transition-colors flex items-center gap-3">
+            <button className="bg-brand-accent text-white px-8 py-4 rounded font-bold uppercase tracking-widest text-sm hover:bg-emerald-400 transition-colors flex items-center gap-3">
               <DownloadCloud size={20} />
               Download PDF (12MB)
             </button>
@@ -43,8 +43,8 @@ function CatalogueDownload() {
 
           {/* Right Visual mock */}
           <div className="lg:col-span-6 relative">
-             <div className="relative w-full aspect-[4/5] max-w-[400px] mx-auto bg-white rounded-3xl p-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border border-white/10 rotate-2 hover:rotate-0 transition-transform duration-500">
-               <div className="w-full h-full border border-brand-border rounded-xl bg-brand-background overflow-hidden relative">
+             <div className="relative w-full aspect-[4/5] max-w-[400px] mx-auto bg-white rounded p-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border border-white/10 rotate-2 hover:rotate-0 transition-transform duration-500">
+               <div className="w-full h-full border border-brand-border rounded bg-brand-background overflow-hidden relative">
                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=600" alt="Cover" className="w-full h-1/2 object-cover" />
                  <div className="p-6">
                     <p className="text-[10px] font-black text-brand-accent uppercase tracking-widest mb-2">B2B Procurement</p>
@@ -55,7 +55,7 @@ function CatalogueDownload() {
                </div>
                
                {/* Decorative elements */}
-               <div className="absolute -top-6 -right-6 bg-brand-primary text-white p-4 rounded-2xl shadow-xl border border-brand-border/20 rotate-12">
+               <div className="absolute -top-6 -right-6 bg-brand-primary text-white p-4 rounded shadow-xl border border-brand-border/20 rotate-12">
                  <p className="text-[10px] font-black uppercase tracking-widest text-brand-accent mb-1">Updated</p>
                  <p className="text-xl font-black">Q3 '26</p>
                </div>
