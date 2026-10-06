@@ -169,7 +169,7 @@ export default function SearchResultsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
           {/* Sidebar Filters */}
           <div className={`fixed inset-0 z-[110] bg-black/50 lg:static lg:bg-transparent lg:z-auto transition-opacity ${isMobileFilterOpen ? "opacity-100" : "opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto"}`}>
-            <div className={`absolute top-0 left-0 w-[280px] h-full bg-white shadow-xl lg:static lg:w-full lg:h-auto lg:shadow-none border border-brand-border rounded-md transform transition-transform ${isMobileFilterOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+            <div className={`absolute top-0 left-0 w-[280px] h-full bg-white shadow-xl lg:static lg:w-full lg:h-auto lg:shadow-none border border-brand-border rounded-md transform transition-transform ${isMobileFilterOpen ? "trangray-x-0" : "-trangray-x-full lg:trangray-x-0"}`}>
               {/* Mobile Header */}
               <div className="flex items-center justify-between p-4 border-b border-brand-border lg:hidden">
                 <span className="font-bold text-lg">Filters</span>
@@ -327,7 +327,7 @@ function ProductCardGrid({ p }) {
   const dp = pct(p.price, p.orig);
 
   return (
-    <div className="group relative bg-[#f4f5f7] border border-gray-200/60 rounded-xl hover:shadow-card-hover transition-all flex flex-col overflow-hidden h-full">
+    <div className="group relative bg-[#f4f5f7] border border-gray-200/60 rounded hover:shadow-card-hover transition-all flex flex-col overflow-hidden h-full">
       {/* Image Container */}
       <div className="relative aspect-[4/5] bg-[#eef0f2] p-4 flex items-center justify-center overflow-hidden">
         <img loading="lazy" src={p.img} alt={p.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />

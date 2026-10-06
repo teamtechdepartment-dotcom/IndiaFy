@@ -47,7 +47,7 @@ export default function PrivacyPolicy() {
   };
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
+    <div className="bg-[#F8FAFC] min-h-screen font-sans text-gray-900">
       <SEOHead 
         title="Privacy Policy | Indiafy"
         description="Learn how Indiafy handles your data. Read our privacy policy detailing data collection, security, and your user rights."
@@ -55,15 +55,15 @@ export default function PrivacyPolicy() {
       <WebsiteNavbar scrolledByDefault={true} />
 
       {/* HEADER SECTION */}
-      <header className="bg-slate-900 pt-32 pb-24 px-6 relative overflow-hidden">
+      <header className="bg-gray-900 pt-32 pb-24 px-6 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6 lg:mx-0 mx-auto">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6 lg:mx-0 mx-auto">
             <ShieldCheck size={16} /> Privacy Mandate
           </div>
           <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight mb-4">
             Privacy Policy
           </h1>
-          <p className="text-slate-400 text-sm md:text-base font-medium max-w-2xl">
+          <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl">
             Last Updated: March 25, 2026 · We believe that trust is built on transparency.
           </p>
         </div>
@@ -75,8 +75,8 @@ export default function PrivacyPolicy() {
           {/* LEFT: STICKY TOC */}
           <div className="hidden lg:block w-1/4 shrink-0">
             <div className="sticky top-32">
-              <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Contents</h4>
-              <ul className="space-y-4 border-l-2 border-slate-200">
+              <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-6">Contents</h4>
+              <ul className="space-y-4 border-l-2 border-gray-200">
                 {sections.map((section) => (
                   <li key={section.id}>
                     <button
@@ -84,7 +84,7 @@ export default function PrivacyPolicy() {
                       className={`text-sm font-bold text-left w-full pl-6 py-1 transition-all relative ${
                         activeSection === section.id 
                           ? "text-brand-primary" 
-                          : "text-slate-500 hover:text-slate-900"
+                          : "text-gray-500 hover:text-gray-900"
                       }`}
                     >
                       {activeSection === section.id && (
@@ -96,9 +96,9 @@ export default function PrivacyPolicy() {
                 ))}
               </ul>
               
-              <div className="mt-12 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+              <div className="mt-12 p-6 bg-white rounded border border-gray-200 shadow-sm">
                 <p className="text-sm font-bold mb-3">Questions?</p>
-                <p className="text-xs text-slate-500 mb-4">Our privacy team is available to help.</p>
+                <p className="text-xs text-gray-500 mb-4">Our privacy team is available to help.</p>
                 <Link to="/contact" className="text-xs font-bold text-brand-primary flex items-center gap-1 hover:gap-2 transition-all">
                   Contact Support <ChevronRight size={14} />
                 </Link>
@@ -107,10 +107,10 @@ export default function PrivacyPolicy() {
           </div>
 
           {/* RIGHT: CONTENT */}
-          <div className="w-full lg:w-3/4 max-w-3xl prose prose-slate prose-headings:font-black prose-headings:tracking-tight prose-a:text-brand-primary">
+          <div className="w-full lg:w-3/4 max-w-3xl prose prose-gray prose-headings:font-black prose-headings:tracking-tight prose-a:text-brand-primary">
             
             <section id="data-collection" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Data Collection</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Data Collection</h2>
               <p>
                 At Indiafy, we collect information to provide you with the fastest and most secure hyperlocal commerce experience. When you create an account, we collect:
               </p>
@@ -123,7 +123,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section id="cookies" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Cookies & Tracking</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Cookies & Tracking</h2>
               <p>
                 We use cookies to improve your browsing experience, remember your local store preferences, and keep you logged in securely.
               </p>
@@ -138,7 +138,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section id="security" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Data Security</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Data Security</h2>
               <p>
                 Security is not an afterthought; it is our foundation. Your data is encrypted in transit and at rest using AES-256 standards.
               </p>
@@ -148,7 +148,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section id="user-rights" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">User Rights</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">User Rights</h2>
               <p>
                 Under the Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules, you have the right to:
               </p>
@@ -161,7 +161,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section id="account-deletion" className="mb-16 scroll-mt-32">
-              <h2 className="text-3xl mb-6 text-slate-900">Account Deletion</h2>
+              <h2 className="text-3xl mb-6 text-gray-900">Account Deletion</h2>
               <p>
                 You can delete your account at any time from your Profile Settings.
               </p>

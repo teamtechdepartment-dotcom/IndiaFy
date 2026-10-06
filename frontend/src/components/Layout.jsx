@@ -6,7 +6,7 @@ export default function Layout({ children, activePage, setActivePage, search, se
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen bg-gray-50 text-gray-900">
       <Sidebar activePage={activePage} setActivePage={setActivePage} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div className="flex-1 flex flex-col">
         <Navbar search={search} setSearch={setSearch} setSidebarOpen={setSidebarOpen} />

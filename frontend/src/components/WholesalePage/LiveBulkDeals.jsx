@@ -52,9 +52,9 @@ function LiveBulkDeals() {
 
         <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
           {DEALS.map((deal) => (
-            <div key={deal.id} className="bg-white border border-brand-border rounded-[24px] p-4 lg:p-6 flex flex-col sm:flex-row gap-6 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group cursor-pointer">
+            <div key={deal.id} className="bg-white border border-brand-border rounded-[24px] p-4 lg:p-6 flex flex-col sm:flex-row gap-6 hover:shadow-2xl hover:-trangray-y-2 transition-all duration-300 group cursor-pointer">
               
-              <div className="relative w-full sm:w-48 aspect-square rounded-2xl bg-brand-background overflow-hidden shrink-0 border border-brand-border">
+              <div className="relative w-full sm:w-48 aspect-square rounded bg-brand-background overflow-hidden shrink-0 border border-brand-border">
                 <img loading="lazy" decoding="async" src={deal.img} alt={deal.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded border border-red-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
                   <TrendingDown size={12} /> {deal.discount}% OFF

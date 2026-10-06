@@ -13,7 +13,7 @@ const jwtToken = async (user) => {
       email: user.email,
     };
 
-    const accesToken = jwt.sign(payload, securityKey, { expiresIn: "7d" });
+    const accesToken = jwt.sign(payload, securityKey, { expiresIn: "15m" });
     const refreshToken = jwt.sign(payload, securityKey, { expiresIn: "30d" });
 
     return {

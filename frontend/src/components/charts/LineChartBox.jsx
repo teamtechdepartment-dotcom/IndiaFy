@@ -10,7 +10,7 @@ import {
 
 export default function LineChartBox({ title, data, xKey, yKey }) {
   return (
-    <div className="bg-white border rounded-2xl p-4 sm:p-6">
+    <div className="bg-white border rounded p-4 sm:p-6">
       <h2 className="font-bold mb-3 sm:mb-4 text-sm sm:text-base">{title}</h2>
 
       <div className="h-[220px] sm:h-[260px] lg:h-[280px]">

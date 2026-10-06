@@ -44,12 +44,12 @@ class GlobalErrorBoundary extends React.Component {
       return (
         <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white px-6 font-sans relative overflow-hidden">
           {/* Background decorative radial gradient */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none z-0" />
+          <div className="absolute top-1/2 left-1/2 -trangray-x-1/2 -trangray-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none z-0" />
           
           <div className="relative z-10 max-w-md w-full bg-zinc-900/80 border border-zinc-800 backdrop-blur-2xl rounded-[2.5rem] p-8 lg:p-10 shadow-[0_35px_60px_-15px_rgba(0,0,0,0.5)] text-center">
             
             {/* Icon Header */}
-            <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner animate-pulse">
+            <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded flex items-center justify-center mx-auto mb-6 shadow-inner animate-pulse">
               <AlertOctagon className="w-8 h-8 text-red-500" />
             </div>
 
@@ -67,7 +67,7 @@ class GlobalErrorBoundary extends React.Component {
 
             {/* Error Code Debug Message (Sanitized) */}
             {this.state.error && (
-              <div className="bg-black/50 border border-zinc-800/60 rounded-2xl p-4 mb-8 text-left overflow-hidden">
+              <div className="bg-black/50 border border-zinc-800/60 rounded p-4 mb-8 text-left overflow-hidden">
                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-2">Telemetry Log:</p>
                 <p className="text-xs font-mono text-red-400/90 break-all max-h-24 overflow-y-auto custom-scrollbar">
                   {this.state.error.toString()}
@@ -79,14 +79,14 @@ class GlobalErrorBoundary extends React.Component {
             <div className="flex flex-col gap-3">
               <button
                 onClick={this.handleReload}
-                className="w-full py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] shadow-xl"
+                className="w-full py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] shadow-xl"
               >
                 <RefreshCw size={14} className="animate-spin-slow" />
                 Re-sync Interface
               </button>
               <button
                 onClick={this.handleGoHome}
-                className="w-full py-4 bg-zinc-800 text-zinc-400 font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-zinc-700 hover:text-white border border-transparent hover:border-zinc-600 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full py-4 bg-zinc-800 text-zinc-400 font-black uppercase tracking-widest text-xs rounded hover:bg-zinc-700 hover:text-white border border-transparent hover:border-zinc-600 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Home size={14} />
                 Return to Marketplace

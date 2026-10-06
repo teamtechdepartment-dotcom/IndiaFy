@@ -28,7 +28,7 @@ const FloatingNode = ({ icon: Icon, delay, x, y, duration = 4, size = 20 }) => (
       y: { repeat: Infinity, duration, ease: "easeInOut" },
       opacity: { duration: 1, delay }
     }}
-    className="absolute bg-white border border-brand-accent/20 p-2.5 rounded-2xl shadow-[0_8px_20px_rgba(16,185,129,0.12)] flex items-center justify-center text-brand-accent"
+    className="absolute bg-white border border-brand-accent/20 p-2.5 rounded shadow-[0_8px_20px_rgba(16,185,129,0.12)] flex items-center justify-center text-brand-accent"
     style={{ left: x, top: y }}
   >
     <Icon size={size} className="drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
@@ -115,7 +115,7 @@ const UserLogin = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 px-4 py-6 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 px-4 py-6 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
       <SEOHead title="Login | Indiafy" noindex={true} />
       
       {/* Background Blobs (Hero Theme) */}
@@ -128,10 +128,10 @@ const UserLogin = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded-2xl sm:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-slate-200 overflow-hidden flex flex-col lg:flex-row min-h-[600px]"
+        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded sm:rounded shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-gray-200 overflow-hidden flex flex-col lg:flex-row min-h-[600px]"
       >
         {/* --- BRANDING / ILLUSTRATION SIDE --- */}
-        <div className="hidden lg:flex lg:w-5/12 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border-r border-slate-100 relative flex-col justify-between p-12 overflow-hidden shrink-0 text-brand-primary">
+        <div className="hidden lg:flex lg:w-5/12 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border-r border-gray-100 relative flex-col justify-between p-12 overflow-hidden shrink-0 text-brand-primary">
           <div className="relative z-20">
             <img src="/Images/logo.png" alt="Indiafy Logo" className="h-10 mb-8 object-contain" />
             <h2 className="text-3xl xl:text-4xl font-black tracking-tight leading-[1.2] mb-4">
@@ -166,7 +166,7 @@ const UserLogin = () => {
                  d="M 50 150 Q 100 200 200 150 T 350 180" stroke="url(#routeGrad)" strokeWidth="2" fill="none" strokeDasharray="4,6" 
                />
              </svg>
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-brand-accent/10 rounded-full blur-[40px]"></div>
+             <div className="absolute top-1/2 left-1/2 -trangray-x-1/2 -trangray-y-1/2 w-40 h-40 bg-brand-accent/10 rounded-full blur-[40px]"></div>
              
              <FloatingNode icon={Store} delay={0.2} x="10%" y="20%" duration={3.5} />
              <FloatingNode icon={ShoppingCart} delay={0.5} x="75%" y="15%" duration={4} />
@@ -176,17 +176,17 @@ const UserLogin = () => {
           </div>
 
           {/* Statistics Section */}
-          <div className="relative z-20 flex gap-4 xl:gap-8 pt-6 border-t border-slate-200">
+          <div className="relative z-20 flex gap-4 xl:gap-8 pt-6 border-t border-gray-200">
             <div>
               <div className="text-xl font-bold text-brand-primary flex items-center gap-1"><Users size={16} className="text-brand-accent"/> 10K+</div>
               <div className="text-[10px] text-brand-text-secondary font-bold uppercase tracking-wider mt-0.5">Active Buyers</div>
             </div>
-            <div className="w-px h-8 bg-slate-200 mt-1"></div>
+            <div className="w-px h-8 bg-gray-200 mt-1"></div>
             <div>
               <div className="text-xl font-bold text-brand-primary flex items-center gap-1"><Store size={16} className="text-brand-accent"/> 500+</div>
               <div className="text-[10px] text-brand-text-secondary font-bold uppercase tracking-wider mt-0.5">Seller Nodes</div>
             </div>
-            <div className="w-px h-8 bg-slate-200 mt-1 hidden xl:block"></div>
+            <div className="w-px h-8 bg-gray-200 mt-1 hidden xl:block"></div>
             <div className="hidden xl:block">
               <div className="text-xl font-bold text-brand-primary flex items-center gap-1"><MapPin size={16} className="text-brand-accent"/> 50+</div>
               <div className="text-[10px] text-brand-text-secondary font-bold uppercase tracking-wider mt-0.5">Cities</div>
@@ -224,20 +224,20 @@ const UserLogin = () => {
               {/* Email Field */}
               <div className="relative group">
                 <div 
-                  className={`relative rounded-xl border transition-all duration-300 bg-slate-50 overflow-hidden
+                  className={`relative rounded border transition-all duration-300 bg-gray-50 overflow-hidden
                     ${errors.email ? 'border-red-400 shadow-[0_0_0_2px_rgba(248,113,113,0.1)]' 
                     : focusedField === 'email' ? 'border-brand-accent shadow-[0_0_0_2px_rgba(16,185,129,0.1)]' 
-                    : 'border-slate-200 hover:border-slate-300'}
+                    : 'border-gray-200 hover:border-gray-300'}
                   `}
                 >
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Mail className={`h-[20px] w-[20px] transition-colors ${focusedField === 'email' ? 'text-brand-accent' : 'text-slate-400'}`} />
+                    <Mail className={`h-[20px] w-[20px] transition-colors ${focusedField === 'email' ? 'text-brand-accent' : 'text-gray-400'}`} />
                   </div>
                   
                   <label 
                     htmlFor="email"
-                    className={`absolute left-[44px] top-[14px] text-slate-500 font-medium origin-left pointer-events-none transition-all duration-200
-                      ${(focusedField === 'email' || emailValue) ? 'translate-y-[-12px] scale-75 opacity-100' : 'translate-y-0 scale-100 opacity-80'}`}
+                    className={`absolute left-[44px] top-[14px] text-gray-500 font-medium origin-left pointer-events-none transition-all duration-200
+                      ${(focusedField === 'email' || emailValue) ? 'trangray-y-[-12px] scale-75 opacity-100' : 'trangray-y-0 scale-100 opacity-80'}`}
                   >
                     Email Address
                   </label>
@@ -268,20 +268,20 @@ const UserLogin = () => {
               {/* Password Field */}
               <div className="relative group pt-1">
                 <div 
-                  className={`relative rounded-xl border transition-all duration-300 bg-slate-50 overflow-hidden
+                  className={`relative rounded border transition-all duration-300 bg-gray-50 overflow-hidden
                     ${errors.password ? 'border-red-400 shadow-[0_0_0_2px_rgba(248,113,113,0.1)]' 
                     : focusedField === 'password' ? 'border-brand-accent shadow-[0_0_0_2px_rgba(16,185,129,0.1)]' 
-                    : 'border-slate-200 hover:border-slate-300'}
+                    : 'border-gray-200 hover:border-gray-300'}
                   `}
                 >
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock className={`h-[20px] w-[20px] transition-colors ${focusedField === 'password' ? 'text-brand-accent' : 'text-slate-400'}`} />
+                    <Lock className={`h-[20px] w-[20px] transition-colors ${focusedField === 'password' ? 'text-brand-accent' : 'text-gray-400'}`} />
                   </div>
                   
                   <label 
                     htmlFor="password"
-                    className={`absolute left-[44px] top-[14px] text-slate-500 font-medium origin-left pointer-events-none transition-all duration-200
-                      ${(focusedField === 'password' || passwordValue) ? 'translate-y-[-12px] scale-75 opacity-100' : 'translate-y-0 scale-100 opacity-80'}`}
+                    className={`absolute left-[44px] top-[14px] text-gray-500 font-medium origin-left pointer-events-none transition-all duration-200
+                      ${(focusedField === 'password' || passwordValue) ? 'trangray-y-[-12px] scale-75 opacity-100' : 'trangray-y-0 scale-100 opacity-80'}`}
                   >
                     Password
                   </label>
@@ -300,7 +300,7 @@ const UserLogin = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-accent p-2 rounded-lg hover:bg-slate-200 transition-colors focus:outline-none"
+                    className="absolute right-2 top-1/2 -trangray-y-1/2 text-gray-400 hover:text-brand-accent p-2 rounded-lg hover:bg-gray-200 transition-colors focus:outline-none"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -333,22 +333,22 @@ const UserLogin = () => {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-brand-accent hover:bg-brand-accent-hover text-white rounded-xl py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full bg-brand-accent hover:bg-brand-accent-hover text-white rounded py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loading ? "Signing In..." : "Continue"}
                 </motion.button>
 
                 <div className="relative flex items-center py-2">
-                  <div className="flex-grow border-t border-slate-200"></div>
-                  <span className="mx-4 text-slate-400 text-[11px] font-bold uppercase tracking-widest">Or</span>
-                  <div className="flex-grow border-t border-slate-200"></div>
+                  <div className="flex-grow border-t border-gray-200"></div>
+                  <span className="mx-4 text-gray-400 text-[11px] font-bold uppercase tracking-widest">Or</span>
+                  <div className="flex-grow border-t border-gray-200"></div>
                 </div>
 
                 <motion.button
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
-                  className="w-full bg-white border border-slate-200 text-brand-primary rounded-xl py-4 font-bold text-[15px] hover:bg-slate-50 transition-all flex items-center justify-center gap-3 shadow-sm"
+                  className="w-full bg-white border border-gray-200 text-brand-primary rounded py-4 font-bold text-[15px] hover:bg-gray-50 transition-all flex items-center justify-center gap-3 shadow-sm"
                 >
                   <svg className="w-[20px] h-[20px]" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

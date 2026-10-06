@@ -136,7 +136,7 @@ export default function Settings() {
 
               <button
                 onClick={fetchSettings}
-                className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-4 py-3 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition shadow-xs self-start sm:self-auto"
+                className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-3 rounded text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-xs self-start sm:self-auto"
               >
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                 Refresh Config
@@ -145,7 +145,7 @@ export default function Settings() {
 
             {/* Error Banner */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl flex items-center justify-between text-xs font-semibold">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-2">
                   <AlertTriangle size={18} className="text-red-500 shrink-0" />
                   <span>{error}</span>
@@ -159,17 +159,17 @@ export default function Settings() {
               <div className="bg-white border rounded-[2rem] shadow-xs overflow-hidden flex flex-col md:flex-row min-h-[500px]">
                 
                 {/* Left Tabs selectors */}
-                <div className="md:w-64 border-r bg-slate-50/50 p-4 flex flex-col gap-1 shrink-0">
+                <div className="md:w-64 border-r bg-gray-50/50 p-4 flex flex-col gap-1 shrink-0">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
                     return (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition text-left ${
+                        className={`flex items-center gap-3 px-4 py-3 rounded font-bold text-xs uppercase tracking-wider transition text-left ${
                           activeTab === tab.id
                             ? "bg-[#0B1528] text-[#D4AF37] border border-[#D4AF37]/20 shadow-md"
-                            : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                            : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                         }`}
                       >
                         <Icon size={16} />
@@ -182,9 +182,9 @@ export default function Settings() {
                 {/* Right Form settings container */}
                 <div className="flex-1 p-6 sm:p-8">
                   {loading ? (
-                    <p className="text-center text-slate-400 font-semibold py-12">Loading settings configs...</p>
+                    <p className="text-center text-gray-400 font-semibold py-12">Loading settings configs...</p>
                   ) : (
-                    <form onSubmit={handleSave} className="space-y-6 text-xs font-semibold text-slate-700">
+                    <form onSubmit={handleSave} className="space-y-6 text-xs font-semibold text-gray-700">
                       
                       {/* General Settings */}
                       {activeTab === "general" && (
@@ -197,7 +197,7 @@ export default function Settings() {
                               type="text" 
                               value={brandName}
                               onChange={(e) => setBrandName(e.target.value)}
-                              className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white focus:border-[#D4AF37]"
+                              className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white focus:border-[#D4AF37]"
                             />
                           </div>
 
@@ -208,7 +208,7 @@ export default function Settings() {
                                 type="text" 
                                 value={logoUrl}
                                 onChange={(e) => setLogoUrl(e.target.value)}
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                             <div>
@@ -217,7 +217,7 @@ export default function Settings() {
                                 type="text" 
                                 value={faviconUrl}
                                 onChange={(e) => setFaviconUrl(e.target.value)}
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                           </div>
@@ -229,7 +229,7 @@ export default function Settings() {
                                 type="email" 
                                 value={contactEmail}
                                 onChange={(e) => setContactEmail(e.target.value)}
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                             <div>
@@ -238,7 +238,7 @@ export default function Settings() {
                                 type="text" 
                                 value={contactPhone}
                                 onChange={(e) => setContactPhone(e.target.value)}
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                           </div>
@@ -251,7 +251,7 @@ export default function Settings() {
                           <h3 className="font-extrabold text-[#0B1528] text-base mb-4">Settlements Integrations</h3>
                           
                           <div className="space-y-3">
-                            <label className="flex items-center gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 cursor-pointer">
+                            <label className="flex items-center gap-3 bg-gray-50 p-3.5 rounded border border-gray-200 cursor-pointer">
                               <input 
                                 type="checkbox" 
                                 checked={razorpayActive}
@@ -259,12 +259,12 @@ export default function Settings() {
                                 className="w-4 h-4 accent-[#0B1528]"
                               />
                               <div>
-                                <p className="font-bold text-slate-900">Razorpay payment Gateway</p>
+                                <p className="font-bold text-gray-900">Razorpay payment Gateway</p>
                                 <p className="text-[10px] text-gray-400 font-medium">Activate UPI and Indian card settlements.</p>
                               </div>
                             </label>
 
-                            <label className="flex items-center gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 cursor-pointer">
+                            <label className="flex items-center gap-3 bg-gray-50 p-3.5 rounded border border-gray-200 cursor-pointer">
                               <input 
                                 type="checkbox" 
                                 checked={stripeActive}
@@ -272,7 +272,7 @@ export default function Settings() {
                                 className="w-4 h-4 accent-[#0B1528]"
                               />
                               <div>
-                                <p className="font-bold text-slate-900">Stripe Global (Fallback Mode)</p>
+                                <p className="font-bold text-gray-900">Stripe Global (Fallback Mode)</p>
                                 <p className="text-[10px] text-gray-400 font-medium">Activate international card processing.</p>
                               </div>
                             </label>
@@ -286,7 +286,7 @@ export default function Settings() {
                                 value={razorpayKey}
                                 onChange={(e) => setRazorpayKey(e.target.value)}
                                 placeholder="rzp_test_..."
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                             <div>
@@ -296,7 +296,7 @@ export default function Settings() {
                                 value={razorpaySecret}
                                 onChange={(e) => setRazorpaySecret(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                           </div>
@@ -315,7 +315,7 @@ export default function Settings() {
                                 type="text" 
                                 value={smtpHost}
                                 onChange={(e) => setSmtpHost(e.target.value)}
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                             <div className="col-span-1">
@@ -324,7 +324,7 @@ export default function Settings() {
                                 type="number" 
                                 value={smtpPort}
                                 onChange={(e) => setSmtpPort(e.target.value)}
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                           </div>
@@ -336,7 +336,7 @@ export default function Settings() {
                                 type="text" 
                                 value={smtpUser}
                                 onChange={(e) => setSmtpUser(e.target.value)}
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                             <div>
@@ -346,7 +346,7 @@ export default function Settings() {
                                 value={smtpPass}
                                 onChange={(e) => setSmtpPass(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                                className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                               />
                             </div>
                           </div>
@@ -364,7 +364,7 @@ export default function Settings() {
                               type="number" 
                               value={sessionTimeout}
                               onChange={(e) => setSessionTimeout(e.target.value)}
-                              className="w-full bg-slate-50 border rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white"
+                              className="w-full bg-gray-50 border rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white"
                             />
                           </div>
 
@@ -375,17 +375,17 @@ export default function Settings() {
                               onChange={(e) => setIpWhitelist(e.target.value)}
                               rows="3"
                               placeholder="e.g. 192.168.1.1, 103.45.18.2"
-                              className="w-full bg-slate-50 border rounded-xl p-3.5 outline-none font-medium text-slate-900 focus:bg-white"
+                              className="w-full bg-gray-50 border rounded p-3.5 outline-none font-medium text-gray-900 focus:bg-white"
                             />
                           </div>
                         </div>
                       )}
 
                       {/* Save button */}
-                      <div className="border-t border-slate-100 pt-5 flex justify-end">
+                      <div className="border-t border-gray-100 pt-5 flex justify-end">
                         <button
                           type="submit"
-                          className="flex items-center justify-center gap-2 bg-[#0B1528] text-white hover:bg-black font-bold text-xs rounded-xl py-3.5 px-6 border border-[#D4AF37]/20 transition shadow-md active:scale-95"
+                          className="flex items-center justify-center gap-2 bg-[#0B1528] text-white hover:bg-black font-bold text-xs rounded py-3.5 px-6 border border-[#D4AF37]/20 transition shadow-md active:scale-95"
                         >
                           <Save size={16} className="text-[#D4AF37]" /> Save Config
                         </button>

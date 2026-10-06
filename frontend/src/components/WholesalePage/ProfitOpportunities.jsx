@@ -56,11 +56,11 @@ function ProfitOpportunities() {
 
         <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
           {OPPORTUNITIES.map((opp, idx) => (
-            <div key={idx} className="bg-white rounded-[24px] border border-brand-border shadow-lg p-6 lg:p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+            <div key={idx} className="bg-white rounded-[24px] border border-brand-border shadow-lg p-6 lg:p-8 hover:shadow-2xl hover:-trangray-y-2 transition-all duration-300 group">
               
               {/* Header */}
               <div className="flex items-center gap-4 mb-8">
-                <img loading="lazy" decoding="async" src={opp.img} alt={opp.product} className="w-16 h-16 rounded-xl object-cover border border-brand-border shadow-sm" />
+                <img loading="lazy" decoding="async" src={opp.img} alt={opp.product} className="w-16 h-16 rounded object-cover border border-brand-border shadow-sm" />
                 <div>
                   <p className="text-[10px] font-bold text-brand-text-secondary uppercase tracking-widest mb-1">{opp.category}</p>
                   <h3 className="text-lg font-black text-brand-primary leading-tight">{opp.product}</h3>
@@ -68,7 +68,7 @@ function ProfitOpportunities() {
               </div>
 
               {/* Data Grid */}
-              <div className="bg-brand-background rounded-2xl p-6 border border-brand-border mb-6">
+              <div className="bg-brand-background rounded p-6 border border-brand-border mb-6">
                 <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                   <div>
                     <p className="text-xs font-semibold text-brand-text-secondary uppercase tracking-wider mb-1">Buy Price</p>

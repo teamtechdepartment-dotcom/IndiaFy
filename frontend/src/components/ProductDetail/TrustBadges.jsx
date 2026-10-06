@@ -14,7 +14,7 @@ function TrustBadges() {
     <div className="flex justify-between md:justify-start gap-4 md:gap-8 overflow-x-auto pb-4 custom-scrollbar mb-8 border-b border-gray-100">
       {BADGES.map((badge, idx) => (
         <div key={idx} className="flex flex-col items-center text-center w-[84px] shrink-0 cursor-pointer group">
-          <div className="w-12 h-12 bg-[#2874F0]/5 group-hover:bg-[#2874F0] rounded-2xl flex items-center justify-center transition-colors shadow-sm">
+          <div className="w-12 h-12 bg-[#2874F0]/5 group-hover:bg-[#2874F0] rounded flex items-center justify-center transition-colors shadow-sm">
             {badge.icon}
           </div>
           <span className="text-[11px] text-[#2874F0] group-hover:text-[#212121] font-bold leading-tight mt-3 transition-colors">

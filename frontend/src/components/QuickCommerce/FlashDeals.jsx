@@ -43,7 +43,7 @@ const FlashDealCard = ({ product, onAdd }) => {
         {/* Title */}
         <h3
           onClick={() => navigate(`/product/${product.id}`)}
-          className="text-sm font-semibold text-zinc-800 leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors min-h-[40px]"
+          className="text-sm font-semibold text-zinc-800 leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-[#065F46] transition-colors min-h-[40px]"
         >
           {product.name}
         </h3>

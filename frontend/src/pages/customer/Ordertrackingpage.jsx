@@ -28,6 +28,8 @@ import {
 import { useOrderStore } from "../../store/orderStore";
 import { useAuthStore } from "../../store/authStore";
 import { useSellerAuthStore } from "../../store/sellerAuthStore";
+import SupportChat from "../../components/support/SupportChat";
+import { MessageSquare } from "lucide-react";
 import { useAdminAuthStore } from "../../store/adminAuthStore";
 import { toast } from "react-toastify";
 import { Skeleton } from "../../components/ui/Skeleton";
@@ -57,7 +59,7 @@ const TIMELINE_STEPS = [
 ];
 
 const Card = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-[2rem] border border-zinc-200/60 shadow-sm ${className}`}>
+  <div className={`bg-white rounded border border-gray-200 shadow-sm ${className}`}>
     {children}
   </div>
 );
@@ -87,6 +89,7 @@ export default function OrderTrackingPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [showSupport, setShowSupport] = useState(false);
   const [etaText, setEtaText] = useState("40 mins");
 
   // Geolocation Coordinates
@@ -246,7 +249,7 @@ export default function OrderTrackingPage() {
 
   // Leaflet custom marker icons
   const storeIcon = useMemo(() => L.divIcon({
-    html: `<div class="w-10 h-10 rounded-full bg-slate-900 border-2 border-white flex items-center justify-center text-white shadow-lg text-lg">🏪</div>`,
+    html: `<div class="w-10 h-10 rounded-full bg-gray-900 border-2 border-white flex items-center justify-center text-white shadow-lg text-lg">🏪</div>`,
     className: "",
     iconSize: [40, 40],
     iconAnchor: [20, 20]
@@ -268,18 +271,18 @@ export default function OrderTrackingPage() {
 
   if (loading) {
     return (
-      <div className="bg-white min-h-screen text-slate-600 font-sans">
+      <div className="bg-white min-h-screen text-gray-600 font-sans">
         <SEOHead title="Tracking Order | Indiafy" noindex={true} />
         <WebsiteNavbar />
         <div className="max-w-5xl mx-auto px-6 pt-32 pb-24 space-y-8">
-          <Skeleton className="w-full h-[320px] rounded-[2.5rem] bg-slate-100 animate-pulse" />
+          <Skeleton className="w-full h-[320px] rounded-[2.5rem] bg-gray-100 animate-pulse" />
           <div className="grid lg:grid-cols-12 gap-8">
             <div className="lg:col-span-7 space-y-8">
-              <Skeleton className="w-full h-[400px] rounded-[2rem] bg-slate-100" />
+              <Skeleton className="w-full h-[400px] rounded bg-gray-100" />
             </div>
             <div className="lg:col-span-5 space-y-6">
-              <Skeleton className="w-full h-[200px] rounded-[2rem] bg-slate-100" />
-              <Skeleton className="w-full h-[150px] rounded-[2rem] bg-slate-100" />
+              <Skeleton className="w-full h-[200px] rounded bg-gray-100" />
+              <Skeleton className="w-full h-[150px] rounded bg-gray-100" />
             </div>
           </div>
         </div>
@@ -289,20 +292,20 @@ export default function OrderTrackingPage() {
 
   if (error || !order) {
     return (
-      <div className="bg-white min-h-screen text-slate-600 font-sans">
+      <div className="bg-white min-h-screen text-gray-600 font-sans">
         <SEOHead title="Tracking Order | Indiafy" noindex={true} />
         <WebsiteNavbar />
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6 px-4 text-center">
           <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-2 border border-red-100">
             <AlertTriangle size={36} />
           </div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">{error || "Order Not Found"}</h2>
-          <p className="text-slate-500 max-w-sm">
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight">{error || "Order Not Found"}</h2>
+          <p className="text-gray-500 max-w-sm">
             We couldn't retrieve the tracking details. The link may be expired, invalid, or you do not have authorized privileges.
           </p>
           <button 
             onClick={() => navigate("/order-history")}
-            className="px-8 py-3.5 bg-slate-900 text-white hover:bg-slate-800 rounded-full font-bold text-xs uppercase tracking-widest transition-all shadow-lg"
+            className="px-8 py-3.5 bg-gray-900 text-white hover:bg-gray-800 rounded-full font-bold text-xs uppercase tracking-widest transition-all shadow-lg"
           >
             Go to My Orders
           </button>
@@ -431,36 +434,32 @@ export default function OrderTrackingPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen font-sans selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="bg-[#f1f2f4] min-h-screen text-gray-700 font-sans selection:bg-[#065F46]/20 selection:text-[#065F46]">
       <SEOHead title={`Track Order #${(order._id || "").slice(-8).toUpperCase()} | Indiafy`} noindex={true} />
       <WebsiteNavbar />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-28 md:pt-36 pb-20 relative z-10">
         
-        {/* Background Gradients */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-          <div className="absolute top-[-5%] right-[5%] w-[45vw] h-[45vw] bg-gradient-to-br from-emerald-100/40 to-teal-100/20 rounded-full blur-[100px]" />
-          <div className="absolute top-[10%] left-[-5%] w-[35vw] h-[35vw] bg-gradient-to-tr from-blue-100/30 to-indigo-100/10 rounded-full blur-[100px]" />
-        </div>
+        {/* Background Gradients Removed */}
 
         {/* HEADER BLOCK */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <button
               onClick={() => navigate("/order-history")}
-              className="group flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition-colors text-xs font-semibold mb-4"
+              className="group flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors text-xs font-semibold mb-4"
             >
-              <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> 
+              <ChevronLeft size={16} className="group-hover:-trangray-x-1 transition-transform" /> 
               Back to Orders
             </button>
             <div className="flex items-center gap-4">
-              <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
-                Track <span className="text-emerald-600 italic">Order</span>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+                Track <span className="text-[#065F46]">Order</span>
               </h1>
               {!isCancelled && order.status !== "Delivered" && (
                 <div className="relative flex h-3.5 w-3.5 mt-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-orange-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#065F46] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#065F46]"></span>
                 </div>
               )}
             </div>
@@ -468,13 +467,13 @@ export default function OrderTrackingPage() {
           
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Last Update</p>
-              <p className="text-xs font-semibold text-slate-900">{formatDate(order.updatedAt)}</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Last Update</p>
+              <p className="text-xs font-semibold text-gray-900">{formatDate(order.updatedAt)}</p>
             </div>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="p-3.5 bg-white border border-slate-200 rounded-full text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all disabled:opacity-50 shadow-sm group"
+              className="p-3.5 bg-white border border-gray-200 rounded-full text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all disabled:opacity-50 shadow-sm group"
             >
               <RefreshCw size={18} className={refreshing ? "animate-spin text-emerald-500" : "group-hover:rotate-180 transition-transform duration-500"} />
             </button>
@@ -485,9 +484,9 @@ export default function OrderTrackingPage() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 p-6 md:p-8 bg-red-50 border border-red-100 rounded-[2rem] flex flex-col sm:flex-row items-start sm:items-center gap-5"
+            className="mb-8 p-6 md:p-8 bg-red-50 border border-red-100 rounded flex flex-col sm:flex-row items-start sm:items-center gap-5"
           >
-            <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-red-650 shrink-0">
+            <div className="w-12 h-12 bg-red-100 rounded flex items-center justify-center text-red-650 shrink-0">
               <Package size={24} />
             </div>
             <div>
@@ -503,23 +502,23 @@ export default function OrderTrackingPage() {
         <Card className="p-6 md:p-8 mb-8 overflow-hidden border border-zinc-200/80 shadow-md">
           
           {/* Header Info */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
                 Delivery Status Timeline
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5 font-medium">
+              <p className="text-xs text-gray-500 mt-0.5 font-medium">
                 {isCancelled ? "Order was cancelled" : `Current Stage: Step ${Math.max(1, currentStep + 1)} of ${TIMELINE_STEPS.length} — ${TIMELINE_STEPS[Math.max(0, Math.min(currentStep, TIMELINE_STEPS.length - 1))]?.label}`}
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 border ${
+              <div className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 border ${
                 isCancelled 
                   ? "bg-red-50 text-red-600 border-red-200" 
-                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-[#065F46]/10 text-[#065F46] border-[#065F46]/20"
               }`}>
-                <span className={`w-2 h-2 rounded-full ${isCancelled ? "bg-red-500" : "bg-emerald-500 animate-ping"}`}></span>
+                <span className={`w-2 h-2 rounded-full ${isCancelled ? "bg-red-500" : "bg-[#065F46] animate-ping"}`}></span>
                 {isCancelled ? "Cancelled" : "Active Tracker"}
               </div>
             </div>
@@ -532,11 +531,11 @@ export default function OrderTrackingPage() {
             <div className="min-w-[760px] px-4 relative">
               
               {/* Connecting Line Track Background */}
-              <div className="absolute top-5 left-10 right-10 h-1 bg-slate-100 rounded-full z-0" />
+              <div className="absolute top-5 left-10 right-10 h-1 bg-gray-100 rounded-full z-0" />
 
               {/* Active Progress Line */}
               <div 
-                className="absolute top-5 left-10 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400 rounded-full z-0 transition-all duration-700 ease-out shadow-sm"
+                className="absolute top-5 left-10 h-1 bg-[#065F46] rounded-full z-0 transition-all duration-700 ease-out shadow-sm"
                 style={{
                   width: isCancelled 
                     ? "0%" 
@@ -557,25 +556,25 @@ export default function OrderTrackingPage() {
                       
                       {/* Step Icon Circle */}
                       <div
-                        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all duration-300 relative border-2 ${
+                        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all duration-300 relative border-2 ${
                           isCurrent 
-                            ? "bg-slate-900 text-white border-slate-900 ring-4 ring-slate-900/15 shadow-xl scale-110" 
+                            ? "bg-white text-[#065F46] border-[#065F46] shadow-sm" 
                             : isCompleted 
-                              ? "bg-emerald-600 text-white border-emerald-600 shadow-md scale-100" 
-                              : "bg-white text-slate-300 border-slate-200"
+                              ? "bg-[#065F46] text-white border-[#065F46] shadow-sm" 
+                              : "bg-white text-gray-300 border-gray-200"
                         }`}
                       >
                         {isCompleted ? (
                           <CheckCircle2 size={18} className="text-white" />
                         ) : (
-                          <StepIcon size={18} className={isCurrent ? "text-emerald-400" : "text-slate-400"} />
+                          <StepIcon size={18} className={isCurrent ? "text-[#065F46]" : "text-gray-400"} />
                         )}
 
                         {/* Active Glowing Pulse Dot on Current Step */}
                         {isCurrent && (
                           <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#065F46] opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#065F46] border-2 border-white"></span>
                           </span>
                         )}
                       </div>
@@ -583,17 +582,17 @@ export default function OrderTrackingPage() {
                       {/* Step Label */}
                       <p className={`text-xs font-bold mt-3 leading-tight transition-colors ${
                         isCurrent 
-                          ? "text-slate-900 font-extrabold" 
+                          ? "text-gray-900 font-extrabold" 
                           : isCompleted 
-                            ? "text-slate-800 font-bold" 
-                            : "text-slate-400 font-medium"
+                            ? "text-gray-800 font-bold" 
+                            : "text-gray-400 font-medium"
                       }`}>
                         {step.label}
                       </p>
 
                       {/* Step Description */}
                       <p className={`text-[10px] mt-1 font-medium leading-snug line-clamp-2 px-1 transition-colors ${
-                        isCurrent || isCompleted ? "text-slate-500" : "text-slate-400/80"
+                        isCurrent || isCompleted ? "text-gray-500" : "text-gray-400/80"
                       }`}>
                         {step.desc}
                       </p>
@@ -607,7 +606,7 @@ export default function OrderTrackingPage() {
           </div>
 
           {/* Mobile Scroll Indicator Hint */}
-          <div className="flex sm:hidden items-center justify-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 border-t border-slate-100 pt-3">
+          <div className="flex sm:hidden items-center justify-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2 border-t border-gray-100 pt-3">
             <span>← Swipe to view all steps →</span>
           </div>
 
@@ -616,22 +615,22 @@ export default function OrderTrackingPage() {
         {/* MAIN COLUMNS */}
         <div className="grid lg:grid-cols-12 gap-8 items-start">
           
-          {/* LEFT PANEL */}
+            {/* LEFT PANEL */}
           <div className="lg:col-span-7 space-y-6 lg:space-y-8">
             
             {/* ETA CARD */}
-            <Card className="p-8 relative overflow-hidden group bg-gradient-to-br from-white to-slate-50/50">
+            <Card className="p-6 md:p-8 relative overflow-hidden group bg-white">
               <div className="relative z-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-6">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3">
                     {isCancelled ? "Status: Cancelled" : order.status === "Delivered" ? "Order Completed" : "Estimated Delivery"}
                   </p>
                   <div className="flex items-baseline gap-2">
-                    <h2 className={`text-5xl md:text-6xl font-black tracking-tighter ${isCancelled ? "text-slate-300" : "text-slate-900"}`}>
+                    <h2 className={`text-3xl md:text-4xl font-bold tracking-tight ${isCancelled ? "text-gray-400" : "text-gray-900"}`}>
                       {etaText}
                     </h2>
                     {!isCancelled && order.status !== "Delivered" && (
-                      <span className="text-slate-400 text-lg font-bold uppercase tracking-widest">Mins</span>
+                      <span className="text-gray-500 text-sm font-bold uppercase tracking-widest">Mins</span>
                     )}
                   </div>
                   {order.status === "Delivered" && order.deliveredAt && (
@@ -642,10 +641,10 @@ export default function OrderTrackingPage() {
                   )}
                 </div>
                 <div className="sm:text-right">
-                  <div className="w-14 h-14 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-center justify-center mb-3 sm:ml-auto">
-                    <Truck size={24} className={isCancelled ? "text-slate-400" : "text-slate-800"} />
+                  <div className="w-14 h-14 bg-gray-50 border border-gray-200/60 rounded flex items-center justify-center mb-3 sm:ml-auto">
+                    <Truck size={24} className={isCancelled ? "text-gray-400" : "text-gray-800"} />
                   </div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                     ID: #{(order._id || "").slice(-8).toUpperCase()}
                   </p>
                 </div>
@@ -655,7 +654,7 @@ export default function OrderTrackingPage() {
             {/* INTERACTIVE DELIVERY MAP (Shown ONLY for Quick Commerce orders) */}
             {isQuickCommerce && (
               <Card className="overflow-hidden h-[340px] md:h-[400px] border border-zinc-200/60 relative">
-                <div className="w-full h-full absolute inset-0 z-0 bg-slate-100">
+                <div className="w-full h-full absolute inset-0 z-0 bg-gray-100">
                   <MapContainer 
                     center={riderCoords} 
                     zoom={14} 
@@ -668,7 +667,7 @@ export default function OrderTrackingPage() {
                       <Popup>
                         <div className="p-1">
                           <p className="font-bold text-xs">{storeDetails.nodeTypeLabel}</p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{storeDetails.name}</p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">{storeDetails.name}</p>
                         </div>
                       </Popup>
                     </Marker>
@@ -677,7 +676,7 @@ export default function OrderTrackingPage() {
                       <Popup>
                         <div className="p-1">
                           <p className="font-bold text-xs">Your Delivery Point</p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{order.shippingAddress?.address}</p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">{order.shippingAddress?.address}</p>
                         </div>
                       </Popup>
                     </Marker>
@@ -704,10 +703,10 @@ export default function OrderTrackingPage() {
                 </div>
 
                 {/* Map floating banner */}
-                <div className="absolute bottom-4 left-4 right-4 z-[400] bg-slate-900/95 text-white backdrop-blur px-4 py-3 rounded-2xl flex items-center justify-between text-xs shadow-xl border border-slate-800">
+                <div className="absolute bottom-4 left-4 right-4 z-[400] bg-gray-900/95 text-white backdrop-blur px-4 py-3 rounded flex items-center justify-between text-xs shadow-xl border border-gray-800">
                   <div className="flex items-center gap-2">
                     <Navigation size={14} className="text-emerald-400 animate-pulse" />
-                    <span className="font-medium text-slate-200">
+                    <span className="font-medium text-gray-200">
                       {riderAssigned ? `Rider is ${distanceText}` : "Rider is awaiting node dispatch"}
                     </span>
                   </div>
@@ -723,15 +722,15 @@ export default function OrderTrackingPage() {
             {/* ORDER ITEMS SUMMARY */}
             <Card className="p-6 md:p-8">
               <div className="flex justify-between items-center mb-6">
-                <p className="text-sm font-bold text-slate-900">Items Ordered</p>
-                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
+                <p className="text-sm font-bold text-gray-900">Items Ordered</p>
+                <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md">
                   {order.orderItems?.length || 0}
                 </span>
               </div>
               <div className="space-y-3">
                 {(order.orderItems || []).map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 p-3 hover:bg-slate-50 border border-transparent hover:border-slate-100 rounded-2xl transition-colors">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-150 shrink-0 border border-slate-100">
+                  <div key={i} className="flex items-center gap-4 p-3 hover:bg-gray-50 border border-transparent hover:border-gray-100 rounded transition-colors">
+                    <div className="w-16 h-16 rounded overflow-hidden bg-zinc-150 shrink-0 border border-gray-100">
                       <img loading="lazy" decoding="async" 
                         src={item.product?.productImage?.[0] || "https://placehold.co/100x100"} 
                         className="w-full h-full object-cover mix-blend-multiply" 
@@ -739,12 +738,12 @@ export default function OrderTrackingPage() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-900 truncate">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
                         {item.product?.productName || "Product Item"}
                       </p>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">Quantity: {item.quantity}</p>
+                      <p className="text-xs text-gray-500 font-medium mt-0.5">Quantity: {item.quantity}</p>
                     </div>
-                    <p className="text-sm font-bold text-slate-900 shrink-0">
+                    <p className="text-sm font-bold text-gray-900 shrink-0">
                       ₹{Number(item.price || 0).toLocaleString("en-IN")}
                     </p>
                   </div>
@@ -752,23 +751,23 @@ export default function OrderTrackingPage() {
               </div>
 
               {/* Total calculations */}
-              <div className="mt-6 pt-5 border-t border-slate-100 space-y-3 px-3">
+              <div className="mt-6 pt-5 border-t border-gray-100 space-y-3 px-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">Items Price</span>
-                  <span className="text-slate-900 font-semibold">₹{Number(order.itemsPrice || 0).toLocaleString("en-IN")}</span>
+                  <span className="text-gray-500 font-medium">Items Price</span>
+                  <span className="text-gray-900 font-semibold">₹{Number(order.itemsPrice || 0).toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">Delivery Charge</span>
-                  <span className="text-slate-900 font-semibold">₹{Number(order.shippingPrice || 0).toLocaleString("en-IN")}</span>
+                  <span className="text-gray-500 font-medium">Delivery Charge</span>
+                  <span className="text-gray-900 font-semibold">₹{Number(order.shippingPrice || 0).toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">GST / Taxes</span>
-                  <span className="text-slate-900 font-semibold">₹{Number(order.taxPrice || 0).toLocaleString("en-IN")}</span>
+                  <span className="text-gray-500 font-medium">GST / Taxes</span>
+                  <span className="text-gray-900 font-semibold">₹{Number(order.taxPrice || 0).toLocaleString("en-IN")}</span>
                 </div>
-                <div className="h-px bg-slate-100 my-2" />
+                <div className="h-px bg-gray-100 my-2" />
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-slate-955">Grand Total</span>
-                  <span className="text-xl font-black text-slate-900">
+                  <span className="text-sm font-bold text-gray-900">Grand Total</span>
+                  <span className="text-lg font-bold text-gray-900">
                     ₹{Number(order.totalPrice || 0).toLocaleString("en-IN")}
                   </span>
                 </div>
@@ -788,21 +787,21 @@ export default function OrderTrackingPage() {
                     <span className="bg-amber-500/10 border border-amber-500/20 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                       Pilot Assigned
                     </span>
-                    <h3 className="text-lg font-black text-slate-900 mt-2">Rahul Kumar</h3>
-                    <p className="text-xs text-slate-500 font-semibold mt-0.5">HR 26 DQ 8829 • Hero Electric Optima</p>
+                    <h3 className="text-lg font-black text-gray-900 mt-2">Rahul Kumar</h3>
+                    <p className="text-xs text-gray-500 font-semibold mt-0.5">HR 26 DQ 8829 • Hero Electric Optima</p>
                   </div>
                   <div className="w-14 h-14 bg-amber-100 rounded-full overflow-hidden flex items-center justify-center text-amber-600 border-2 border-white shadow">
                     <User size={28} />
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-4">
-                  <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
+                <div className="flex items-center gap-3 bg-white border border-gray-200/80 rounded p-4">
+                  <div className="w-9 h-9 rounded bg-gray-100 flex items-center justify-center text-gray-700">
                     <Clock size={16} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Current ETA</p>
-                    <p className="text-xs font-bold text-slate-900 mt-0.5">Delivering in {etaText} ({distanceText})</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Current ETA</p>
+                    <p className="text-xs font-bold text-gray-900 mt-0.5">Delivering in {etaText} ({distanceText})</p>
                   </div>
                 </div>
               </Card>
@@ -810,8 +809,8 @@ export default function OrderTrackingPage() {
 
             {/* DELIVERY DETAILS CARD */}
             <Card className="p-6 md:p-8">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-xl shadow-md overflow-hidden shrink-0">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-xl border border-gray-200 overflow-hidden shrink-0">
                   {storeDetails.logo ? (
                     <img src={storeDetails.logo} alt={storeDetails.name} className="w-full h-full object-cover" />
                   ) : (
@@ -819,12 +818,12 @@ export default function OrderTrackingPage() {
                   )}
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-slate-900">
+                  <h4 className="text-base font-bold text-gray-900">
                     {storeDetails.name}
                   </h4>
-                  <p className="text-xs text-slate-500 font-medium">{storeDetails.nodeTypeLabel}</p>
+                  <p className="text-xs text-gray-500 font-medium">{storeDetails.nodeTypeLabel}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
                       {order.paymentMethod || "UPI"}
                     </span>
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${order.isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
@@ -835,30 +834,30 @@ export default function OrderTrackingPage() {
               </div>
 
               {/* Shipping Address */}
-              <div className="mb-6 p-5 bg-zinc-50 border border-zinc-100 rounded-2xl">
+              <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded">
                 <div className="flex items-center gap-2 mb-2">
-                  <MapPin size={14} className="text-slate-400" />
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Delivery Address</p>
+                  <MapPin size={14} className="text-gray-400" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Delivery Address</p>
                 </div>
-                <p className="text-sm text-slate-900 font-medium leading-relaxed">
+                <p className="text-sm text-gray-900 font-medium leading-relaxed">
                   {order.shippingAddress?.address || "No address supplied"}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   {[order.shippingAddress?.city, order.shippingAddress?.state, order.shippingAddress?.postalCode].filter(Boolean).join(", ")}
                 </p>
               </div>
 
               {/* Packing Proof Video Player (inline) */}
               {order.packingVideoUrl && (
-                <div className="mb-5 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900">
+                <div className="mb-5 rounded overflow-hidden border border-gray-200 bg-gray-900">
                   <video
                     src={order.packingVideoUrl}
                     controls
                     playsInline
                     className="w-full max-h-64 object-contain"
                   />
-                  <div className="px-4 py-2 bg-slate-900">
-                    <p className="text-xs text-slate-400 font-bold flex items-center gap-1.5">
+                  <div className="px-4 py-2 bg-gray-900">
+                    <p className="text-xs text-gray-400 font-bold flex items-center gap-1.5">
                       <ShieldCheck size={13} className="text-emerald-400" />
                       Verified Packing Video from Seller
                     </p>
@@ -871,7 +870,7 @@ export default function OrderTrackingPage() {
                   onClick={() => {
                     toast.info("Calling support desk: 1800-102-3920");
                   }}
-                  className="flex items-center justify-center gap-2 py-3.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-50 transition-colors shadow-sm"
+                  className="flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 text-gray-700 rounded font-bold text-xs hover:bg-gray-50 transition-colors shadow-sm"
                 >
                   <Phone size={16} /> Call Seller
                 </button>
@@ -883,10 +882,10 @@ export default function OrderTrackingPage() {
                       toast.info("Packing verification video will be unlocked shortly!");
                     }
                   }}
-                  className={`flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-xs transition-all shadow-sm border ${
+                  className={`flex items-center justify-center gap-2 py-3 rounded font-bold text-xs transition-all shadow-sm border ${
                     order.packingVideoUrl 
-                      ? "bg-slate-900 text-white border-slate-900 hover:bg-slate-800" 
-                      : "bg-slate-50 border-slate-200 text-slate-455 cursor-not-allowed"
+                      ? "bg-[#065F46] text-white border-[#065F46] hover:bg-[#047857]" 
+                      : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
                   <Video size={16} /> Packing Proof
@@ -899,40 +898,51 @@ export default function OrderTrackingPage() {
             <Card className="p-6 md:p-8">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h4 className="text-sm font-bold text-slate-955">Documents & Invoices</h4>
-                  <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider mt-0.5">Verify tax and billing details</p>
+                  <h4 className="text-sm font-bold text-gray-955">Documents & Invoices</h4>
+                  <p className="text-[10px] text-gray-450 font-bold uppercase tracking-wider mt-0.5">Verify tax and billing details</p>
                 </div>
-                <FileText size={20} className="text-slate-400" />
+                <FileText size={20} className="text-gray-400" />
               </div>
               
               <button 
                 onClick={handleDownloadInvoice}
-                className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-100 rounded-2xl transition-all group/btn text-xs font-bold text-slate-800"
+                className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100/80 border border-gray-100 rounded transition-all group/btn text-xs font-bold text-gray-800"
               >
                 <span className="flex items-center gap-2">
                   <FileText size={16} className="text-emerald-500" />
                   Download TAX Invoice
                 </span>
-                <ArrowRight size={14} className="text-slate-400 group-hover/btn:translate-x-1 transition-transform" />
+                <ArrowRight size={14} className="text-gray-400 group-hover/btn:trangray-x-1 transition-transform" />
+              </button>
+
+              <button 
+                onClick={() => setShowSupport(true)}
+                className="w-full mt-3 flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100/80 border border-gray-100 rounded transition-all group/btn text-xs font-bold text-gray-800"
+              >
+                <span className="flex items-center gap-2">
+                  <MessageSquare size={16} className="text-[#065F46]" />
+                  Need Help? Talk to Support
+                </span>
+                <ArrowRight size={14} className="text-gray-400 group-hover/btn:trangray-x-1 transition-transform" />
               </button>
             </Card>
 
             {/* TRUST SIGNAL BOX */}
-            <div className="p-6 bg-gradient-to-br from-emerald-50/50 to-teal-50/50 rounded-[2rem] border border-emerald-100/60 shadow-sm">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-emerald-100">
-                <ShieldCheck size={20} className="text-emerald-600" />
+            <div className="p-6 bg-white rounded border border-gray-200 shadow-sm">
+              <div className="w-10 h-10 bg-gray-50 rounded flex items-center justify-center mb-4 border border-gray-200">
+                <ShieldCheck size={20} className="text-gray-400" />
               </div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-slate-900 mb-2">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-gray-900 mb-2">
                 Indiafy Assurance
               </p>
-              <p className="text-xs text-slate-655 leading-relaxed font-medium">
+              <p className="text-xs text-gray-600 leading-relaxed font-medium">
                 Order packed with verified sector-verification. Dynamic QR enabled for secure payment. Video proof attached to every shipment.
               </p>
             </div>
 
             {/* Auto-refresh status banner */}
             {order.status !== "Delivered" && order.status !== "Cancelled" && (
-              <div className="flex items-center justify-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-4">
+              <div className="flex items-center justify-center gap-2 text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-4">
                 <RefreshCw size={12} className="animate-spin text-emerald-500" style={{ animationDuration: "3s" }} />
                 Real-time updates enabled
               </div>
@@ -943,6 +953,14 @@ export default function OrderTrackingPage() {
         </div>
 
       </main>
+
+      {showSupport && (
+        <SupportChat
+          orderId={orderId}
+          role="customer"
+          onClose={() => setShowSupport(false)}
+        />
+      )}
 
       <Footer />
     </div>

@@ -70,7 +70,7 @@ export default function VerifiedSellersSEO() {
 
       <h2>A Platform Built on Trust</h2>
       <p>
-        Our rigorous verification process isn't just about keeping bad actors out; it's about building immense consumer trust. When buyers see the "Verified Indiafy Node" badge next to your store's name, they know they are dealing with a legitimate, audited business. This trust translates directly into higher conversion rates, larger average order values, and intense customer loyalty. 
+        Our rigorous verification process isn't just about keeping bad actors out; it's about building immense consumer trust. When buyers see the "Verified Indiafy Node" badge next to your store's name, they know they are dealing with a legitimate, audited business. This trust trangrays directly into higher conversion rates, larger average order values, and intense customer loyalty. 
       </p>
 
       <h2>Scale to the Wholesale Marketplace</h2>

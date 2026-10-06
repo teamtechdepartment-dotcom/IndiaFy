@@ -27,13 +27,13 @@ export default function CookieConsent() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 md:p-6 pointer-events-none">
-      <div className="max-w-5xl mx-auto bg-zinc-900/95 backdrop-blur-xl border border-zinc-800 p-6 md:p-8 rounded-[2rem] shadow-2xl pointer-events-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+      <div className="max-w-5xl mx-auto bg-zinc-900/95 backdrop-blur-xl border border-zinc-800 p-6 md:p-8 rounded shadow-2xl pointer-events-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
         
         {/* Glow effect */}
-        <div className="absolute top-1/2 -left-20 -translate-y-1/2 w-40 h-40 bg-emerald-500/20 blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 -left-20 -trangray-y-1/2 w-40 h-40 bg-emerald-500/20 blur-[100px] pointer-events-none" />
 
         <div className="flex-1 relative z-10 flex items-start gap-4">
-          <div className="bg-emerald-500/10 p-3 rounded-2xl shrink-0 border border-emerald-500/20">
+          <div className="bg-emerald-500/10 p-3 rounded shrink-0 border border-emerald-500/20">
             <ShieldCheck className="w-6 h-6 text-emerald-400" />
           </div>
           <div>
@@ -47,13 +47,13 @@ export default function CookieConsent() {
         <div className="flex w-full md:w-auto items-center gap-3 shrink-0 relative z-10">
           <button
             onClick={declineCookies}
-            className="flex-1 md:flex-none px-6 py-3 rounded-xl font-bold text-sm tracking-wide text-zinc-300 hover:text-white bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-zinc-700 transition-all"
+            className="flex-1 md:flex-none px-6 py-3 rounded font-bold text-sm tracking-wide text-zinc-300 hover:text-white bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-zinc-700 transition-all"
           >
             Decline
           </button>
           <button
             onClick={acceptCookies}
-            className="flex-1 md:flex-none px-6 py-3 rounded-xl font-bold text-sm tracking-wide text-black bg-white hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(52,211,153,0.2)] hover:shadow-[0_0_30px_rgba(52,211,153,0.4)]"
+            className="flex-1 md:flex-none px-6 py-3 rounded font-bold text-sm tracking-wide text-black bg-white hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(52,211,153,0.2)] hover:shadow-[0_0_30px_rgba(52,211,153,0.4)]"
           >
             Accept All
           </button>

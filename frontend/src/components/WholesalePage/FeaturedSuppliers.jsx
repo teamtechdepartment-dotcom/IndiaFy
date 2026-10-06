@@ -4,7 +4,7 @@ import { useWholesaleStore } from "../../store/wholesaleStore";
 
 function SupplierSkeleton() {
   return (
-    <div className="bg-white border border-brand-border rounded-xl p-5 flex flex-col animate-pulse">
+    <div className="bg-white border border-brand-border rounded p-5 flex flex-col animate-pulse">
       <div className="flex gap-4 mb-4">
         <div className="w-12 h-12 bg-gray-100 rounded-lg shrink-0" />
         <div className="flex-1">
@@ -54,7 +54,7 @@ function FeaturedSuppliers() {
               const moq = "₹5,000";
               
               return (
-                <div key={dist._id} className="bg-white border border-brand-border rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col group">
+                <div key={dist._id} className="bg-white border border-brand-border rounded p-5 hover:shadow-md transition-shadow flex flex-col group">
                   
                   {/* Header: Logo & Name */}
                   <div className="flex items-start gap-3 mb-4">
@@ -108,7 +108,7 @@ function FeaturedSuppliers() {
             })}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white border border-brand-border rounded-xl">
+          <div className="text-center py-16 bg-white border border-brand-border rounded">
             <div className="w-16 h-16 bg-gray-50 border border-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <ShieldCheck size={24} className="text-gray-400" />
             </div>

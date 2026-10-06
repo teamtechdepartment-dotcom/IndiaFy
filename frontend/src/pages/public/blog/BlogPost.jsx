@@ -136,7 +136,7 @@ export default function BlogPost() {
 
       {/* Hero Image */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-        <div className="aspect-[21/9] md:aspect-[21/9] rounded-3xl overflow-hidden shadow-2xl relative">
+        <div className="aspect-[21/9] md:aspect-[21/9] rounded overflow-hidden shadow-2xl relative">
           <img 
             src={post.image} 
             alt={post.title} 
@@ -156,7 +156,7 @@ export default function BlogPost() {
           
           {/* FAQ Section */}
           {post.faqs && post.faqs.length > 0 && (
-            <div className="mt-16 bg-zinc-50 rounded-3xl p-8 border border-zinc-100">
+            <div className="mt-16 bg-zinc-50 rounded p-8 border border-zinc-100">
               <h3 className="text-2xl font-bold text-zinc-900 mb-6">Frequently Asked Questions</h3>
               <div className="space-y-6">
                 {post.faqs.map((faq, index) => (
@@ -188,7 +188,7 @@ export default function BlogPost() {
           <div className="border-t border-zinc-200 pt-16">
             <div className="flex items-center justify-between mb-10">
               <h3 className="text-3xl font-bold text-zinc-900">Related Articles</h3>
-              <Link to="/blog" className="text-indigo-600 font-medium hover:text-indigo-700 flex items-center">
+              <Link to="/blog" className="text-[#065F46] font-medium hover:text-indigo-700 flex items-center">
                 View all <ChevronRight className="w-5 h-5 ml-1" />
               </Link>
             </div>
@@ -196,7 +196,7 @@ export default function BlogPost() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {relatedPosts.map((rPost) => (
                 <Link key={rPost.id} to={`/blog/${rPost.slug}`} className="group block">
-                  <div className="bg-zinc-50 rounded-3xl overflow-hidden border border-zinc-100 hover:shadow-lg transition-all duration-300">
+                  <div className="bg-zinc-50 rounded overflow-hidden border border-zinc-100 hover:shadow-lg transition-all duration-300">
                     <div className="aspect-video overflow-hidden">
                       <img 
                         src={rPost.image} 
@@ -205,7 +205,7 @@ export default function BlogPost() {
                       />
                     </div>
                     <div className="p-6">
-                      <h4 className="text-xl font-bold text-zinc-900 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                      <h4 className="text-xl font-bold text-zinc-900 mb-2 group-hover:text-[#065F46] transition-colors line-clamp-2">
                         {rPost.title}
                       </h4>
                       <p className="text-zinc-600 text-sm line-clamp-2">

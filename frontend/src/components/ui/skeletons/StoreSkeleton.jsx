@@ -8,7 +8,7 @@ export function StoreSkeleton({ count = 4, variant = "grid" }) {
     return (
       <div className="flex flex-col gap-4 w-full">
         {Skeletons.map((_, i) => (
-          <div key={i} className="flex gap-4 p-4 border border-slate-100 rounded-2xl bg-white items-center">
+          <div key={i} className="flex gap-4 p-4 border border-gray-100 rounded bg-white items-center">
             <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-full" />
             <div className="flex-1">
               <Skeleton className="h-5 w-1/3 mb-2" />
@@ -29,7 +29,7 @@ export function StoreSkeleton({ count = 4, variant = "grid" }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
       {Skeletons.map((_, i) => (
-        <div key={i} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+        <div key={i} className="bg-white rounded p-5 border border-gray-100 shadow-sm">
           <div className="flex items-start gap-4">
             <Skeleton className="w-16 h-16 rounded-full shrink-0" />
             <div className="flex-1">

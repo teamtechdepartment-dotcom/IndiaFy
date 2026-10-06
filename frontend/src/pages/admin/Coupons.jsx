@@ -90,7 +90,7 @@ export default function Coupons() {
   return (
     <>
       <div
-        className="flex min-h-screen text-slate-900 dark:text-slate-100"
+        className="flex min-h-screen text-gray-900 dark:text-slate-100"
         style={{
           background:
             "radial-gradient(ellipse at 20% 50%, rgba(40,116,240,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(251,100,27,0.04) 0%, transparent 60%), linear-gradient(135deg, #050811 0%, #080C1A 50%, #050811 100%)",
@@ -105,10 +105,10 @@ export default function Coupons() {
             {/* HEADER */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+                <h1 className="text-2xl font-black text-gray-900 dark:text-white">
                   Discount Coupons & Promotions
                 </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Manage and monitor storefront discount vouchers & coupon codes
                 </p>
               </div>
@@ -116,14 +116,14 @@ export default function Coupons() {
               <div className="flex gap-3">
                 <button
                   onClick={fetchCoupons}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#065F46] border border-gray-200 dark:border-slate-800 rounded text-xs font-bold text-gray-700 dark:text-slate-300 hover:bg-gray-50 transition cursor-pointer"
                 >
                   <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
                   Refresh
                 </button>
                 <button
                   onClick={() => setOpen(true)}
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#2874F0] hover:bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer"
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#2874F0] hover:bg-blue-600 text-white rounded text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer"
                 >
                   <Plus size={16} />
                   Create Coupon
@@ -144,7 +144,7 @@ export default function Coupons() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 outline-none"
+                  className="px-4 py-2 border border-gray-200 dark:border-slate-800 rounded text-xs font-bold bg-white dark:bg-[#065F46] text-gray-800 dark:text-slate-200 outline-none"
                 >
                   <option value="All">All Statuses</option>
                   <option value="Active">Active Only</option>
@@ -154,7 +154,7 @@ export default function Coupons() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 outline-none"
+                  className="px-4 py-2 border border-gray-200 dark:border-slate-800 rounded text-xs font-bold bg-white dark:bg-[#065F46] text-gray-800 dark:text-slate-200 outline-none"
                 >
                   <option value="">Sort By</option>
                   <option value="az">Code A–Z</option>
@@ -163,16 +163,16 @@ export default function Coupons() {
                 </select>
               </div>
 
-              <div className="flex items-center gap-2 text-slate-400 text-xs font-bold justify-end">
+              <div className="flex items-center gap-2 text-gray-400 text-xs font-bold justify-end">
                 <Filter size={14} />
                 <span>{filteredCoupons.length} coupons listed</span>
               </div>
             </div>
 
             {/* TABLE */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl overflow-x-auto shadow-sm">
+            <div className="bg-white/80 dark:bg-[#065F46]/80 backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded overflow-x-auto shadow-sm">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-50 dark:bg-slate-950/40 text-slate-400 uppercase tracking-widest text-[9px] border-b border-slate-100 dark:border-slate-800">
+                <thead className="bg-gray-50 dark:bg-slate-950/40 text-gray-400 uppercase tracking-widest text-[9px] border-b border-gray-100 dark:border-slate-800">
                   <tr>
                     <th className="px-6 py-4 font-bold">Coupon Code</th>
                     <th className="px-6 py-4 font-bold">Benefit</th>
@@ -186,13 +186,13 @@ export default function Coupons() {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                   {loading ? (
                     <tr>
-                      <td colSpan="6" className="py-12 text-center text-slate-400 text-xs">
+                      <td colSpan="6" className="py-12 text-center text-gray-400 text-xs">
                         Loading coupons catalog...
                       </td>
                     </tr>
                   ) : filteredCoupons.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="py-12 text-center text-slate-400 text-xs font-bold">
+                      <td colSpan="6" className="py-12 text-center text-gray-400 text-xs font-bold">
                         No coupons found matching criteria.
                       </td>
                     </tr>
@@ -205,20 +205,20 @@ export default function Coupons() {
                       const usageStr = `${c.usedCount || 0} / ${c.usageLimit || "∞"}`;
 
                       return (
-                        <tr key={c._id || c.code} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
-                          <td className="px-6 py-4 flex items-center gap-3 font-extrabold text-slate-900 dark:text-white">
-                            <span className="p-2 bg-blue-50 dark:bg-blue-950/40 text-[#2874F0] dark:text-[#FB641B] rounded-xl border border-blue-200 dark:border-blue-900/30">
+                        <tr key={c._id || c.code} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition">
+                          <td className="px-6 py-4 flex items-center gap-3 font-extrabold text-gray-900 dark:text-white">
+                            <span className="p-2 bg-blue-50 dark:bg-blue-950/40 text-[#2874F0] dark:text-[#FB641B] rounded border border-blue-200 dark:border-blue-900/30">
                               <TicketPercent size={16} />
                             </span>
                             {c.code}
                           </td>
-                          <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">
+                          <td className="px-6 py-4 font-bold text-gray-800 dark:text-slate-200">
                             {benefit}
                           </td>
-                          <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                          <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
                             {c.minOrderAmount ? `₹${c.minOrderAmount}` : "None"}
                           </td>
-                          <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                          <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
                             {usageStr}
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -226,7 +226,7 @@ export default function Coupons() {
                               className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
                                 c.isActive
                                   ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30"
-                                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700"
+                                  : "bg-gray-100 dark:bg-slate-800 text-gray-500 border border-gray-200 dark:border-slate-700"
                               }`}
                             >
                               {c.isActive ? "Active" : "Disabled"}
@@ -236,7 +236,7 @@ export default function Coupons() {
                             <button
                               type="button"
                               onClick={() => handleToggleStatus(c._id, c.isActive)}
-                              className={`px-3 py-1.5 border rounded-xl text-xs font-bold transition cursor-pointer ${
+                              className={`px-3 py-1.5 border rounded text-xs font-bold transition cursor-pointer ${
                                 c.isActive
                                   ? "border-amber-200 hover:bg-amber-50 text-amber-700 dark:hover:bg-amber-950/30"
                                   : "border-emerald-200 hover:bg-emerald-50 text-emerald-700 dark:hover:bg-emerald-950/30"
@@ -247,7 +247,7 @@ export default function Coupons() {
                             <button
                               type="button"
                               onClick={() => handleDeleteCoupon(c._id, c.code)}
-                              className="px-2.5 py-1.5 border border-red-200 hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 rounded-xl transition cursor-pointer"
+                              className="px-2.5 py-1.5 border border-red-200 hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 rounded transition cursor-pointer"
                             >
                               <Trash2 size={13} />
                             </button>

@@ -101,7 +101,7 @@ export default function LiveOrders() {
       case "Processing": return "bg-blue-50 text-blue-700 border-blue-200";
       case "Shipped": return "bg-cyan-50 text-cyan-700 border-cyan-200";
       case "Delivered": return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      default: return "bg-slate-100 text-slate-600 border-slate-200";
+      default: return "bg-gray-100 text-gray-600 border-gray-200";
     }
   };
 
@@ -111,25 +111,25 @@ export default function LiveOrders() {
       {/* Header & Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             Live Fulfillment
             {liveOrders.length > 0 && (
-              <span className="bg-blue-50 text-blue-600 text-sm px-2.5 py-0.5 rounded-full font-bold animate-pulse">
+              <span className="bg-blue-50 text-[#065F46] text-sm px-2.5 py-0.5 rounded-full font-bold animate-pulse">
                 {liveOrders.length} Active
               </span>
             )}
           </h1>
-          <p className="text-slate-500 text-sm mt-1">Pack, record, and dispatch accepted orders.</p>
+          <p className="text-gray-500 text-sm mt-1">Pack, record, and dispatch accepted orders.</p>
         </div>
 
         <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" size={18} />
           <input 
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search orders or products..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-all shadow-sm"
           />
         </div>
       </div>
@@ -149,15 +149,15 @@ export default function LiveOrders() {
                     
                     {/* Customer & Order Meta */}
                     <div className="flex gap-3 items-start flex-1 min-w-0">
-                      <div className="w-11 h-11 bg-blue-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                      <div className="w-11 h-11 bg-[#065F46] text-white rounded flex items-center justify-center shrink-0 shadow-sm">
                         <User size={18} />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-slate-900 text-base leading-tight truncate">
+                          <h3 className="font-bold text-gray-900 text-base leading-tight truncate">
                             {order.customer}
                           </h3>
-                          <span className="text-slate-400 font-mono text-xs px-1.5 py-0.5 bg-slate-100 rounded shrink-0">
+                          <span className="text-gray-400 font-mono text-xs px-1.5 py-0.5 bg-gray-100 rounded shrink-0">
                             #{order.displayId}
                           </span>
                           <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0 flex items-center gap-1 ${getStatusColor(order.status)}`}>
@@ -165,30 +165,30 @@ export default function LiveOrders() {
                             {order.status}
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-slate-500 font-medium">
-                          <span className="flex items-center gap-1"><MapPin size={12} className="text-slate-400"/> {order.location}</span>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-500 font-medium">
+                          <span className="flex items-center gap-1"><MapPin size={12} className="text-gray-400"/> {order.location}</span>
                           <span className="flex items-center gap-1 text-amber-600"><Clock size={12}/> {order.date}, {order.time}</span>
-                          <span className="flex items-center gap-1"><CreditCard size={12} className="text-slate-400"/> {order.paymentMethod}</span>
+                          <span className="flex items-center gap-1"><CreditCard size={12} className="text-gray-400"/> {order.paymentMethod}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Amount */}
-                    <div className="text-left sm:text-right bg-slate-50 px-4 py-2.5 rounded-xl shrink-0">
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Order Value</p>
-                      <p className="text-xl font-black text-slate-900 leading-none">{order.amount}</p>
-                      <p className="text-xs font-medium text-slate-500 flex items-center justify-end gap-1 mt-1">
+                    <div className="text-left sm:text-right bg-gray-50 px-4 py-2.5 rounded shrink-0">
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Order Value</p>
+                      <p className="text-xl font-black text-gray-900 leading-none">{order.amount}</p>
+                      <p className="text-xs font-medium text-gray-500 flex items-center justify-end gap-1 mt-1">
                         <Package size={12}/> {order.itemCount} Item{order.itemCount !== 1 ? "s" : ""}
                       </p>
                     </div>
                   </div>
 
                   {/* Product Items Detail */}
-                  <div className="bg-slate-50/80 rounded-2xl border border-slate-100 overflow-hidden">
+                  <div className="bg-gray-50/80 rounded border border-gray-100 overflow-hidden">
                     {order.orderItems.slice(0, isExpanded ? order.orderItems.length : 2).map((item, idx) => (
-                      <div key={idx} className={`flex items-center gap-3 px-4 py-3 ${idx > 0 ? "border-t border-slate-100" : ""}`}>
+                      <div key={idx} className={`flex items-center gap-3 px-4 py-3 ${idx > 0 ? "border-t border-gray-100" : ""}`}>
                         {/* Product Image */}
-                        <div className="w-14 h-14 rounded-xl bg-white border border-slate-200 overflow-hidden shrink-0 shadow-sm">
+                        <div className="w-14 h-14 rounded bg-white border border-gray-200 overflow-hidden shrink-0 shadow-sm">
                           {item.productImage ? (
                             <img 
                               src={item.productImage} 
@@ -200,24 +200,24 @@ export default function LiveOrders() {
                               }}
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-slate-100">
-                              <ImageIcon size={20} className="text-slate-300" />
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <ImageIcon size={20} className="text-gray-300" />
                             </div>
                           )}
                         </div>
 
                         {/* Product Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-slate-800 truncate">{item.productName}</p>
+                          <p className="text-sm font-bold text-gray-800 truncate">{item.productName}</p>
                           {item.shortDescription && (
-                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{item.shortDescription}</p>
+                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{item.shortDescription}</p>
                           )}
                         </div>
 
                         {/* Qty & Price */}
                         <div className="text-right shrink-0">
-                          <p className="text-sm font-bold text-slate-900">₹{item.price * item.quantity}</p>
-                          <p className="text-[11px] text-slate-500 font-medium">Qty: {item.quantity} × ₹{item.price}</p>
+                          <p className="text-sm font-bold text-gray-900">₹{item.price * item.quantity}</p>
+                          <p className="text-[11px] text-gray-500 font-medium">Qty: {item.quantity} × ₹{item.price}</p>
                         </div>
                       </div>
                     ))}
@@ -226,7 +226,7 @@ export default function LiveOrders() {
                     {order.orderItems.length > 2 && (
                       <button
                         onClick={() => toggleExpand(order.id)}
-                        className="w-full py-2 text-xs font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-center gap-1 border-t border-slate-100"
+                        className="w-full py-2 text-xs font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-center gap-1 border-t border-gray-100"
                       >
                         {isExpanded ? (
                           <><ChevronUp size={14} /> Show Less</>
@@ -239,32 +239,32 @@ export default function LiveOrders() {
 
                   {/* Shipping Address */}
                   {order.fullAddress && order.fullAddress !== "Local" && (
-                    <div className="flex items-start gap-2 text-xs text-slate-500 px-1">
-                      <MapPin size={13} className="text-slate-400 shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 text-xs text-gray-500 px-1">
+                      <MapPin size={13} className="text-gray-400 shrink-0 mt-0.5" />
                       <span className="leading-relaxed">{order.fullAddress}</span>
                     </div>
                   )}
 
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 border-t border-slate-100 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 border-t border-gray-100 pt-4">
                     {order.status === "Accepted" ? (
                       <button 
                         onClick={() => handleUpdateStatus(order.id, "Processing")}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm rounded-xl shadow-md transition-all col-span-2"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#065F46] text-white hover:bg-emerald-700 font-bold text-sm rounded shadow-md transition-all col-span-2"
                       >
                         <CheckCircle size={18}/> Start Processing
                       </button>
                     ) : order.status === "Processing" ? (
                       <>
                         <Link to={`/seller/dashboard/${nodeId || activeNode?._id}/video-verification/${order.id}`} className="w-full col-span-2 sm:col-span-1 lg:col-span-2">
-                          <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-bold text-sm rounded-xl transition-colors">
+                          <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-bold text-sm rounded transition-colors">
                             <Video size={16}/> Record Packing
                           </button>
                         </Link>
                         
                         <button 
                           onClick={() => handleUpdateStatus(order.id, "Packed")}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm rounded-xl shadow-md transition-all col-span-2 sm:col-span-1 lg:col-span-2"
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#065F46] text-white hover:bg-emerald-700 font-bold text-sm rounded shadow-md transition-all col-span-2 sm:col-span-1 lg:col-span-2"
                         >
                           <CheckCircle size={18}/> Mark Packed
                         </button>
@@ -272,14 +272,14 @@ export default function LiveOrders() {
                     ) : order.status === "Packed" ? (
                       <button 
                         onClick={() => handleUpdateStatus(order.id, "Shipped")}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 font-bold text-sm rounded-xl shadow-md transition-all col-span-2"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#065F46] text-white hover:bg-blue-700 font-bold text-sm rounded shadow-md transition-all col-span-2"
                       >
                         <Truck size={18}/> Ship Order
                       </button>
                     ) : (order.status === "Shipped" || order.status === "Dispatched") ? (
                       <button 
                         onClick={() => handleUpdateStatus(order.id, "Delivered")}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm rounded-xl shadow-md transition-all col-span-2"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#065F46] text-white hover:bg-emerald-700 font-bold text-sm rounded shadow-md transition-all col-span-2"
                       >
                         <CheckCircle size={18}/> Mark Delivered
                       </button>
@@ -287,14 +287,14 @@ export default function LiveOrders() {
                     
                     <button 
                       onClick={() => window.print()}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 font-bold text-sm rounded-xl transition-colors"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 font-bold text-sm rounded transition-colors"
                     >
                       <Printer size={16}/> Print Invoice
                     </button>
 
                     <button 
                       onClick={() => handleDeleteOrder(order.id)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold text-sm rounded-xl transition-colors"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold text-sm rounded transition-colors"
                       title="Delete Order from Live Dispatch"
                     >
                       <Trash2 size={16}/> Delete Order
@@ -307,12 +307,12 @@ export default function LiveOrders() {
           })
         ) : (
           /* Empty State */
-          <div className="text-center py-16 px-4 bg-white border border-slate-200 border-dashed rounded-3xl">
-            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-16 px-4 bg-white border border-gray-200 border-dashed rounded">
+            <div className="w-16 h-16 bg-blue-50 rounded flex items-center justify-center mx-auto mb-4">
               <Box size={32} className="text-blue-500" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-1">No Active Orders</h3>
-            <p className="text-slate-500 max-w-sm mx-auto">
+            <h3 className="text-lg font-bold text-gray-900 mb-1">No Active Orders</h3>
+            <p className="text-gray-500 max-w-sm mx-auto">
               {searchTerm ? `No live orders matching "${searchTerm}".` : "Accept an order from your Inbox to start fulfillment."}
             </p>
           </div>

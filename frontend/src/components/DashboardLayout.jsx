@@ -23,7 +23,9 @@ import {
   LogOut,
   ArrowLeft,
   Lock,
+  MessageSquare
 } from "lucide-react";
+import SupportChat from "./support/SupportChat";
 import { useSellerAuthStore } from "../store/sellerAuthStore";
 import { useAuthStore } from "../store/authStore";
 import { useNodeStore } from "../store/nodeStore";
@@ -38,7 +40,7 @@ import toast from "react-hot-toast";
 ---------------------------------------------------------- */
 const NODE_THEMES = {
   LOCAL_RETAIL: {
-    accent: "bg-blue-600",
+    accent: "bg-[#065F46]",
     light: "bg-blue-50",
     text: "text-blue-700",
     border: "border-blue-200",
@@ -54,7 +56,7 @@ const NODE_THEMES = {
     label: "Wholesale B2B",
   },
   QUICK_COMMERCE: {
-    accent: "bg-teal-600",
+    accent: "bg-[#065F46]",
     light: "bg-teal-50",
     text: "text-teal-700",
     border: "border-teal-200",
@@ -62,7 +64,7 @@ const NODE_THEMES = {
     label: "Quick Commerce",
   },
   HOME_ESSENTIALS: {
-    accent: "bg-orange-500",
+    accent: "bg-[#065F46]",
     light: "bg-orange-50",
     text: "text-orange-700",
     border: "border-orange-200",
@@ -70,7 +72,7 @@ const NODE_THEMES = {
     label: "Home Essentials",
   },
   ELECTRONICS: {
-    accent: "bg-purple-600",
+    accent: "bg-[#065F46]",
     light: "bg-purple-50",
     text: "text-purple-700",
     border: "border-purple-200",
@@ -88,10 +90,10 @@ const NODE_THEMES = {
 };
 
 const DEFAULT_THEME = {
-  accent: "bg-slate-900",
-  light: "bg-slate-50",
-  text: "text-slate-700",
-  border: "border-slate-200",
+  accent: "bg-[#065F46]",
+  light: "bg-gray-50",
+  text: "text-gray-700",
+  border: "border-gray-200",
   icon: Store,
   label: "Seller Store",
 };
@@ -122,6 +124,7 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
   const { user, logout } = useSellerAuthStore();
   const { logout: logoutCustomer } = useAuthStore();
   const { clearActiveNode, activeNode: fullActiveNode } = useNodeStore();
+  const [showSupport, setShowSupport] = useState(false);
 
   const isVerified = fullActiveNode?.isVerified !== false;
   const pathParts = location.pathname.split("/").filter(Boolean);
@@ -173,40 +176,40 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* BRAND */}
-      <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+      <div className="p-5 border-b border-gray-100 flex items-center justify-between">
         <Link
           to="/"
-          className="text-2xl font-black text-slate-900 tracking-tight hover:opacity-80 transition-opacity"
+          className="text-2xl font-black text-gray-900 tracking-tight hover:opacity-80 transition-opacity"
         >
           indiafy
         </Link>
         {/* Mobile close button */}
         <button
           onClick={() => setSidebarOpen(false)}
-          className="lg:hidden p-1.5 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors"
+          className="lg:hidden p-1.5 rounded text-gray-500 hover:bg-gray-100 transition-colors"
         >
           <X size={18} />
         </button>
       </div>
 
       {/* STORE INFO */}
-      <div className="p-5 border-b border-slate-100">
+      <div className="p-5 border-b border-gray-100">
         <div className="flex items-center gap-3 mb-3">
           {storeDetails?.logo ? (
             <img loading="lazy" decoding="async"
               src={storeDetails.logo}
               alt={storeName}
-              className="w-12 h-12 rounded-2xl object-cover border border-slate-200 shadow-sm shrink-0"
+              className="w-12 h-12 rounded object-cover border border-gray-200 shadow-sm shrink-0"
             />
           ) : (
             <div
-              className={`w-12 h-12 rounded-2xl ${theme.accent} text-white flex items-center justify-center font-black text-lg shrink-0 shadow-sm`}
+              className={`w-12 h-12 rounded ${theme.accent} text-white flex items-center justify-center font-black text-lg shrink-0 shadow-sm`}
             >
               {storeInitial}
             </div>
           )}
           <div className="min-w-0">
-            <h2 className="font-black text-slate-900 truncate leading-tight">
+            <h2 className="font-black text-gray-900 truncate leading-tight">
               {storeName}
             </h2>
             <div
@@ -226,11 +229,11 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
             setSidebarOpen(false);
             navigate("/seller-hub?select=true", { state: { noRedirect: true } });
           }}
-          className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors group cursor-pointer w-full py-1.5 px-2 rounded-xl hover:bg-slate-100"
+          className="flex items-center gap-2 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors group cursor-pointer w-full py-1.5 px-2 rounded hover:bg-gray-100"
         >
           <ArrowLeft
             size={14}
-            className="group-hover:-translate-x-0.5 transition-transform"
+            className="group-hover:-trangray-x-0.5 transition-transform"
           />
           All Nodes (Seller Hub)
         </button>
@@ -255,12 +258,12 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
                 setSidebarOpen(false);
               }}
               className={({ isActive }) =>
-                `flex items-center justify-between px-4 py-2.5 rounded-2xl transition-all font-semibold text-sm ${
+                `flex items-center justify-between px-4 py-3 transition-all font-semibold text-sm ${
                   isItemLocked
-                    ? "text-slate-350 cursor-not-allowed bg-transparent"
+                    ? "text-gray-400 cursor-not-allowed bg-transparent"
                     : isActive
-                    ? `${theme.accent} text-white shadow-sm`
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "text-[#065F46] bg-[#065F46]/10 border-l-4 border-[#065F46]"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent"
                 }`
               }
             >
@@ -268,14 +271,14 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
                 <Icon size={18} />
                 {item.label}
               </span>
-              {isItemLocked && <Lock size={12} className="text-slate-450" />}
+              {isItemLocked && <Lock size={12} className="text-gray-450" />}
             </NavLink>
           );
         })}
       </nav>
 
       {/* FOOTER ACTION (Log Out) */}
-      <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+      <div className="p-4 border-t border-gray-100 bg-gray-50/50">
         <button
           onClick={() => {
             logout();
@@ -283,9 +286,9 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
             setSidebarOpen(false);
             navigate("/", { replace: true });
           }}
-          className="w-full flex items-center justify-between px-4 py-3 rounded-2xl font-bold text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-all border border-transparent hover:border-red-100"
+          className="w-full flex items-center justify-between px-4 py-3 font-bold text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-all border-l-4 border-transparent"
         >
-          <span className="flex items-center gap-2.5">
+          <span className="flex items-center gap-3">
             <LogOut size={16} />
             Log Out
           </span>
@@ -303,11 +306,11 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800 antialiased selection:bg-slate-900 selection:text-white">
+    <div className="min-h-screen bg-[#f1f2f4] flex font-sans text-gray-800 antialiased selection:bg-[#065F46]/20 selection:text-[#065F46]">
       {/* -------------------------------------------------------
           DESKTOP SIDEBAR
       ------------------------------------------------------- */}
-      <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-slate-200 sticky top-0 h-screen z-40">
+      <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-gray-200 sticky top-0 h-screen z-40">
         <SidebarContent />
       </aside>
 
@@ -317,12 +320,12 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-[#065F46]/40 backdrop-blur-sm z-50 lg:hidden transition-opacity"
         />
       )}
       <aside
         className={`fixed top-0 bottom-0 left-0 w-72 bg-white z-50 lg:hidden transform transition-transform duration-300 ease-in-out shadow-2xl flex flex-col ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          sidebarOpen ? "trangray-x-0" : "-trangray-x-full"
         }`}
       >
         <SidebarContent />
@@ -333,34 +336,34 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
       ------------------------------------------------------- */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* TOP HEADER (mobile only + breadcrumb) */}
-        <header className="h-16 bg-white border-b border-slate-200 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30">
+        <header className="h-16 bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
             {/* Mobile hamburger */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+              className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 transition-colors"
             >
               <Menu size={20} />
             </button>
             <button
               type="button"
               onClick={() => navigate("/seller-hub?select=true", { state: { noRedirect: true } })}
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-2.5 py-1.5 rounded-xl transition-all border border-slate-200 shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-3 py-2 rounded transition-all border border-gray-200 shadow-sm cursor-pointer"
               title="Return to Seller Hub"
             >
               <ArrowLeft size={14} />
               <span className="hidden sm:inline">Seller Hub</span>
             </button>
             <div className="hidden lg:block">
-              <h2 className="text-base font-black text-slate-900">
+              <h2 className="text-base font-black text-gray-900">
                 {storeName}
               </h2>
-              <p className="text-xs text-slate-400 font-medium">
+              <p className="text-xs text-gray-400 font-medium">
                 {displayNodeLabel} Node
               </p>
             </div>
             <div className="lg:hidden">
-              <p className="text-sm font-black text-slate-900">{storeName}</p>
+              <p className="text-sm font-black text-gray-900">{storeName}</p>
             </div>
           </div>
 
@@ -387,19 +390,19 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           {!isVerified && currentPathSegment !== "dashboard" && !isVideoVerificationPage ? (
             <div className="min-h-[60vh] flex items-center justify-center p-6">
-              <div className="max-w-md w-full bg-white/70 backdrop-blur-xl border border-slate-200 p-8 rounded-[2rem] shadow-xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
-                <div className="w-16 h-16 bg-amber-50/50 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+              <div className="max-w-md w-full bg-white border border-gray-200 p-8 rounded shadow-sm text-center space-y-5">
+                <div className="w-16 h-16 bg-amber-50 rounded flex items-center justify-center mx-auto border border-amber-100">
                   <Lock size={28} className="text-amber-500" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-black text-slate-900">Console Feature Locked</h3>
-                  <p className="text-slate-500 text-xs leading-relaxed font-medium">
+                  <h3 className="text-xl font-bold text-gray-900">Console Feature Locked</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">
                     Access to this console capability is restricted. Complete business compliance documents submission and wait for administrative node verification approvals.
                   </p>
                 </div>
                 <button
                   onClick={() => navigate("dashboard")}
-                  className="w-full py-3.5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition shadow-md text-xs uppercase tracking-wider"
+                  className="w-full py-3 bg-[#065F46] text-white font-bold rounded hover:bg-[#047857] transition-all text-xs uppercase tracking-widest shadow-sm"
                 >
                   Return to Verification Hub
                 </button>
@@ -410,6 +413,23 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
           )}
         </main>
       </div>
+      
+      {/* SELLER GLOBAL SUPPORT CHAT WIDGET */}
+      <button
+        onClick={() => setShowSupport(true)}
+        className="fixed bottom-6 right-6 z-[60] bg-[#065F46] hover:bg-[#047857] text-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group"
+        aria-label="Open Support Chat"
+      >
+        <MessageSquare size={24} className="group-hover:scale-110 transition-transform" />
+      </button>
+
+      {showSupport && (
+        <SupportChat
+          storeId={activeNode}
+          role="seller"
+          onClose={() => setShowSupport(false)}
+        />
+      )}
     </div>
   );
 }

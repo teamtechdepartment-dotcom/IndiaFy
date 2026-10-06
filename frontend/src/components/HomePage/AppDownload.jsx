@@ -6,8 +6,8 @@ export default function AppDownload() {
   return (
     <section className="py-section-mobile md:py-16 bg-brand-primary overflow-hidden relative" id="app-download">
       {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-accent/20 rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[80px] -translate-x-1/3 translate-y-1/3 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-accent/20 rounded-full blur-[100px] trangray-x-1/3 -trangray-y-1/3 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[80px] -trangray-x-1/3 trangray-y-1/3 pointer-events-none" />
 
       <div className="section-container relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -36,7 +36,7 @@ export default function AppDownload() {
               {/* App Store Button (Placeholder) */}
               <a
                 href="#"
-                className="flex items-center gap-3 px-5 py-3 bg-white text-brand-primary rounded-xl hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-3 px-5 py-3 bg-white text-brand-primary rounded hover:bg-gray-100 transition-colors"
                 onClick={(e) => e.preventDefault()}
               >
                 <div className="flex flex-col">
@@ -48,7 +48,7 @@ export default function AppDownload() {
               {/* Play Store Button (Placeholder) */}
               <a
                 href="#"
-                className="flex items-center gap-3 px-5 py-3 bg-white/10 border border-white/20 text-white rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm"
+                className="flex items-center gap-3 px-5 py-3 bg-white/10 border border-white/20 text-white rounded hover:bg-white/20 transition-colors backdrop-blur-sm"
                 onClick={(e) => e.preventDefault()}
               >
                 <div className="flex flex-col">
@@ -76,7 +76,7 @@ export default function AppDownload() {
             viewport={{ once: true }}
             className="relative hidden md:flex justify-center lg:justify-end"
           >
-            <div className="relative w-[280px] h-[580px] bg-brand-primary border-[8px] border-gray-800 rounded-[3rem] shadow-2xl overflow-hidden shadow-brand-accent/20">
+            <div className="relative w-[280px] h-[580px] bg-brand-primary border-[8px] border-gray-800 rounded shadow-2xl overflow-hidden shadow-brand-accent/20">
               {/* Notch */}
               <div className="absolute top-0 inset-x-0 h-6 bg-gray-800 rounded-b-2xl mx-auto w-1/2 z-20" />
               
@@ -87,7 +87,7 @@ export default function AppDownload() {
                 <div className="w-full h-10 bg-white rounded-full shadow-sm" />
                 
                 {/* Promo Card */}
-                <div className="w-full h-32 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl shadow-sm flex items-center justify-center">
+                <div className="w-full h-32 bg-white rounded shadow-sm flex items-center justify-center">
                   <span className="text-white font-bold">UNDER 30-MIN DELIVERY</span>
                 </div>
                 
@@ -95,7 +95,7 @@ export default function AppDownload() {
                 <div className="grid grid-cols-4 gap-2">
                   {[...Array(8)].map((_, i) => (
                     <div key={i} className="flex flex-col items-center gap-1">
-                      <div className="w-12 h-12 bg-white rounded-xl shadow-sm" />
+                      <div className="w-12 h-12 bg-white rounded shadow-sm" />
                       <div className="w-10 h-1.5 bg-gray-200 rounded-full" />
                     </div>
                   ))}
@@ -104,7 +104,7 @@ export default function AppDownload() {
                 {/* Product Card */}
                 <div className="mt-2 flex-1 bg-white rounded-t-3xl shadow-sm border border-gray-100 p-4">
                   <div className="w-24 h-4 bg-gray-200 rounded-full mb-4" />
-                  <div className="w-full h-32 bg-gray-100 rounded-xl mb-3" />
+                  <div className="w-full h-32 bg-gray-100 rounded mb-3" />
                   <div className="w-3/4 h-3 bg-gray-200 rounded-full mb-2" />
                   <div className="w-1/2 h-3 bg-gray-200 rounded-full" />
                 </div>

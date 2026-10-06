@@ -110,8 +110,8 @@ export default function StoreManagement() {
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#10B981]/10 border border-[#10B981]/25 text-[#2874F0] text-xs font-bold uppercase tracking-widest mb-2">
                   <Globe size={14} /> Storefront directory
                 </div>
-                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Store Governance</h1>
-                <p className="text-slate-500 font-medium">
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Store Governance</h1>
+                <p className="text-gray-500 font-medium">
                   Review store status, assign geographical coverage parameters, and configure local delivery SEO.
                 </p>
               </div>
@@ -119,20 +119,20 @@ export default function StoreManagement() {
               <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto shrink-0">
                 <button
                   onClick={fetchStores}
-                  className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-4 py-3 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition shadow-xs"
+                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-3 rounded text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-xs"
                 >
                   <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                   Refresh
                 </button>
 
                 <div className="relative w-full sm:w-72 group shrink-0">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#2874F0] transition-colors" size={18} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#2874F0] transition-colors" size={18} />
                   <input 
                     type="text" 
                     placeholder="Search store names..." 
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-white border border-slate-200 focus:border-[#10B981] rounded-2xl py-3 pl-11 pr-4 text-xs font-medium text-slate-900 outline-none transition-all shadow-xs focus:ring-4 focus:ring-[#10B981]/5"
+                    className="w-full bg-white border border-gray-200 focus:border-[#10B981] rounded py-3 pl-11 pr-4 text-xs font-medium text-gray-900 outline-none transition-all shadow-xs focus:ring-4 focus:ring-[#10B981]/5"
                   />
                 </div>
               </div>
@@ -140,7 +140,7 @@ export default function StoreManagement() {
 
             {/* Error Banner */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl flex items-center justify-between text-xs font-semibold">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-2">
                   <AlertTriangle size={18} className="text-red-500 shrink-0" />
                   <span>{error}</span>
@@ -154,10 +154,10 @@ export default function StoreManagement() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
                   [1, 2, 3].map((idx) => (
-                    <div key={idx} className="h-64 bg-slate-200/60 rounded-[2rem] animate-pulse" />
+                    <div key={idx} className="h-64 bg-gray-200/60 rounded-[2rem] animate-pulse" />
                   ))
                 ) : filteredStores.length === 0 ? (
-                  <div className="col-span-full py-16 text-center text-slate-400 font-semibold bg-white rounded-3xl border">
+                  <div className="col-span-full py-16 text-center text-gray-400 font-semibold bg-white rounded border">
                     No active storefronts found.
                   </div>
                 ) : (
@@ -172,7 +172,7 @@ export default function StoreManagement() {
                     const logoUrl = store?.logo || store?.profileImage || store?.storeFrontPhoto;
 
                     return (
-                      <div key={sId} className="bg-white border border-slate-200/80 rounded-[2rem] p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-300">
+                      <div key={sId} className="bg-white border border-gray-200/80 rounded-[2rem] p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-300">
                         
                         {/* Header */}
                         <div>
@@ -181,12 +181,12 @@ export default function StoreManagement() {
                               <img 
                                 src={logoUrl} 
                                 alt={bName} 
-                                className="w-12 h-12 rounded-xl border border-slate-200 object-cover bg-white shadow-xs"
+                                className="w-12 h-12 rounded border border-gray-200 object-cover bg-white shadow-xs"
                                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                               />
                             ) : null}
                             <div 
-                              className="w-12 h-12 bg-[#10B981]/10 border border-[#10B981]/25 rounded-xl flex items-center justify-center text-[#2874F0] font-extrabold text-lg"
+                              className="w-12 h-12 bg-[#10B981]/10 border border-[#10B981]/25 rounded flex items-center justify-center text-[#2874F0] font-extrabold text-lg"
                               style={{ display: logoUrl ? 'none' : 'flex' }}
                             >
                               {(bName[0] ?? "S").toUpperCase()}
@@ -198,27 +198,27 @@ export default function StoreManagement() {
                             </span>
                           </div>
 
-                          <h3 className="font-extrabold text-slate-800 text-lg leading-tight">{bName}</h3>
-                          <p className="text-xs text-slate-400 font-medium mt-1">
+                          <h3 className="font-extrabold text-gray-800 text-lg leading-tight">{bName}</h3>
+                          <p className="text-xs text-gray-400 font-medium mt-1">
                             Owner: {fName} {lName} {store?.city ? `• ${store.city}` : ""}
                           </p>
                           
-                          <hr className="my-4 border-slate-100" />
+                          <hr className="my-4 border-gray-100" />
 
                           <div className="space-y-2 text-xs">
                             <div className="flex justify-between font-medium">
-                              <span className="text-slate-400">Reputation index:</span>
+                              <span className="text-gray-400">Reputation index:</span>
                               <span className="font-bold flex items-center gap-1">
                                 <Sparkles size={12} className="text-[#2874F0] fill-[#10B981]" />
                                 {store?.indiafyVerifiedBadge ? "Premium" : "Standard"}
                               </span>
                             </div>
                             <div className="flex justify-between font-medium">
-                              <span className="text-slate-400">Merchant Type:</span>
+                              <span className="text-gray-400">Merchant Type:</span>
                               <span className="font-bold uppercase text-slate-750">{store?.sellerType ?? store?.nodeType ?? "Retailer"}</span>
                             </div>
                             <div className="flex justify-between font-medium">
-                              <span className="text-slate-400">Delivery coverage:</span>
+                              <span className="text-gray-400">Delivery coverage:</span>
                               <span className="font-bold text-[#2874F0]">{radius} km</span>
                             </div>
                           </div>
@@ -227,13 +227,13 @@ export default function StoreManagement() {
                         <div className="mt-6 flex items-center gap-2">
                           <button
                             onClick={() => handleOpenEdit(store)}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-900 text-white hover:bg-black font-bold rounded-xl text-xs transition active:scale-95 border border-slate-200 cursor-pointer"
+                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#065F46] text-white hover:bg-black font-bold rounded text-xs transition active:scale-95 border border-gray-200 cursor-pointer"
                           >
                             Configure SEO & Radius
                           </button>
                           <button
                             onClick={() => handleDeleteStore(store._id, bName)}
-                            className="p-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition active:scale-95 cursor-pointer shadow-xs flex items-center justify-center"
+                            className="p-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded text-xs transition active:scale-95 cursor-pointer shadow-xs flex items-center justify-center"
                             title="Delete Store Permanently"
                           >
                             <Trash2 size={16} />
@@ -254,31 +254,31 @@ export default function StoreManagement() {
       {/* SEO Edit Dialog overlay */}
       {editingStore && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-slate-200 rounded-[2rem] max-w-md w-full p-6 shadow-2xl relative space-y-4 text-slate-800">
+          <div className="bg-white border border-gray-200 rounded-[2rem] max-w-md w-full p-6 shadow-2xl relative space-y-4 text-gray-800">
             <div>
-              <h3 className="font-extrabold text-slate-800 text-lg leading-none">Configure Local SEO</h3>
-              <p className="text-xs text-slate-400 mt-1">Configure geographical serving limits and SEO keywords for {editingStore.customerId?.businessName ?? "store"}.</p>
+              <h3 className="font-extrabold text-gray-800 text-lg leading-none">Configure Local SEO</h3>
+              <p className="text-xs text-gray-400 mt-1">Configure geographical serving limits and SEO keywords for {editingStore.customerId?.businessName ?? "store"}.</p>
             </div>
 
-            <div className="space-y-4 text-xs font-semibold text-slate-700">
+            <div className="space-y-4 text-xs font-semibold text-gray-700">
               <div>
-                <label className="block text-slate-400 mb-1">Serving Sectors / Local Keywords (comma separated)</label>
+                <label className="block text-gray-400 mb-1">Serving Sectors / Local Keywords (comma separated)</label>
                 <input 
                   type="text" 
                   value={sectorsInput}
                   onChange={(e) => setSectorsInput(e.target.value)}
                   placeholder="e.g. Sector 49, Cyber City, Golf Course Road"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white focus:border-[#10B981]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white focus:border-[#10B981]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Dispatch Radius Limit (in kilometers)</label>
+                <label className="block text-gray-400 mb-1">Dispatch Radius Limit (in kilometers)</label>
                 <input 
                   type="number" 
                   value={radiusInput}
                   onChange={(e) => setRadiusInput(parseInt(e.target.value) || 0)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none font-medium text-slate-900 focus:bg-white focus:border-[#10B981]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded py-3 px-4 outline-none font-medium text-gray-900 focus:bg-white focus:border-[#10B981]"
                 />
               </div>
             </div>
@@ -286,13 +286,13 @@ export default function StoreManagement() {
             <div className="flex gap-3 pt-2">
               <button 
                 onClick={() => setEditingStore(null)}
-                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded text-xs transition"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleSaveSEO}
-                className="flex-1 py-3 bg-slate-900 text-white font-bold rounded-xl text-xs hover:bg-black transition shadow-sm"
+                className="flex-1 py-3 bg-[#065F46] text-white font-bold rounded text-xs hover:bg-black transition shadow-sm"
               >
                 Save parameters
               </button>

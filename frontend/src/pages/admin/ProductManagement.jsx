@@ -170,8 +170,8 @@ export default function ProductManagement() {
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-widest mb-2">
                   <PackageX size={14} /> Catalog Governance
                 </div>
-                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Product Catalog</h1>
-                <p className="text-slate-500 font-medium">
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Product Catalog</h1>
+                <p className="text-gray-500 font-medium">
                   Review submitted listings, monitor low inventory alerts, and authorize active items.
                 </p>
               </div>
@@ -179,7 +179,7 @@ export default function ProductManagement() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={fetchProducts}
-                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-3 rounded-xl font-bold text-xs hover:bg-slate-100 transition active:scale-95 text-slate-700"
+                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-3 rounded font-bold text-xs hover:bg-gray-100 transition active:scale-95 text-gray-700"
                   title="Refresh Data"
                 >
                   <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
@@ -187,7 +187,7 @@ export default function ProductManagement() {
                 </button>
                 <button
                   onClick={handleExport}
-                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-5 py-3 rounded-xl font-bold text-xs hover:shadow-xs transition active:scale-95 text-slate-800"
+                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-5 py-3 rounded font-bold text-xs hover:shadow-xs transition active:scale-95 text-gray-800"
                 >
                   <Download size={16} className="text-[#D4AF37]" />
                   Export CSV
@@ -197,7 +197,7 @@ export default function ProductManagement() {
 
             {/* Error Banner if API Fails */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl flex items-center justify-between">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <AlertTriangle className="text-red-500 shrink-0" size={20} />
                   <p className="text-sm font-semibold">{error}</p>
@@ -217,7 +217,7 @@ export default function ProductManagement() {
                 {loading ? (
                   <>
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="h-32 bg-slate-200/60 rounded-2xl animate-pulse" />
+                      <div key={i} className="h-32 bg-gray-200/60 rounded animate-pulse" />
                     ))}
                   </>
                 ) : (
@@ -262,13 +262,13 @@ export default function ProductManagement() {
                 {/* Filters header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="relative w-full md:w-80 group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#D4AF37] transition-colors" size={18} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#D4AF37] transition-colors" size={18} />
                     <input
                       type="text"
                       placeholder="Search by name or SKU..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-11 text-xs font-medium text-slate-900 outline-none transition-all focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/5"
+                      className="w-full bg-gray-50 border border-gray-200 rounded py-3 px-11 text-xs font-medium text-gray-900 outline-none transition-all focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/5"
                     />
                   </div>
 
@@ -277,7 +277,7 @@ export default function ProductManagement() {
                     <select
                       value={categoryFilter}
                       onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="h-11 px-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs outline-none"
+                      className="h-11 px-4 bg-gray-50 border border-gray-200 text-gray-700 rounded font-bold text-xs outline-none"
                     >
                       {categories.map(cat => (
                         <option key={cat} value={cat}>{cat === "All" ? "All Categories" : cat}</option>
@@ -288,7 +288,7 @@ export default function ProductManagement() {
                     <select
                       value={stockFilter}
                       onChange={(e) => setStockFilter(e.target.value)}
-                      className="h-11 px-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs outline-none"
+                      className="h-11 px-4 bg-gray-50 border border-gray-200 text-gray-700 rounded font-bold text-xs outline-none"
                     >
                       <option value="All">All Stock Levels</option>
                       <option value="Low">Low Inventory</option>
@@ -300,7 +300,7 @@ export default function ProductManagement() {
                 {/* Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[700px] text-xs text-left">
-                    <thead className="bg-slate-50 text-gray-400 uppercase tracking-widest text-[9px] border-b">
+                    <thead className="bg-gray-50 text-gray-400 uppercase tracking-widest text-[9px] border-b">
                       <tr>
                         <th className="py-3 px-4 font-black">Product & SKU</th>
                         <th className="py-3 px-4 font-black">Category</th>
@@ -317,19 +317,19 @@ export default function ProductManagement() {
                           <tr key={idx} className="animate-pulse">
                             <td className="py-4 px-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-slate-200 rounded-lg shrink-0" />
+                                <div className="w-10 h-10 bg-gray-200 rounded-lg shrink-0" />
                                 <div className="space-y-1">
-                                  <div className="w-32 h-3.5 bg-slate-200 rounded" />
-                                  <div className="w-20 h-2.5 bg-slate-100 rounded" />
+                                  <div className="w-32 h-3.5 bg-gray-200 rounded" />
+                                  <div className="w-20 h-2.5 bg-gray-100 rounded" />
                                 </div>
                               </div>
                             </td>
-                            <td className="py-4 px-4"><div className="w-20 h-3 bg-slate-200 rounded" /></td>
-                            <td className="py-4 px-4 text-right"><div className="w-16 h-3 bg-slate-200 rounded ml-auto" /></td>
-                            <td className="py-4 px-4 text-center"><div className="w-12 h-5 bg-slate-200 rounded-md mx-auto" /></td>
-                            <td className="py-4 px-4 text-center"><div className="w-20 h-3 bg-slate-200 rounded mx-auto" /></td>
-                            <td className="py-4 px-4 text-center"><div className="w-16 h-5 bg-slate-200 rounded-md mx-auto" /></td>
-                            <td className="py-4 px-4 text-right"><div className="w-24 h-6 bg-slate-200 rounded-lg ml-auto" /></td>
+                            <td className="py-4 px-4"><div className="w-20 h-3 bg-gray-200 rounded" /></td>
+                            <td className="py-4 px-4 text-right"><div className="w-16 h-3 bg-gray-200 rounded ml-auto" /></td>
+                            <td className="py-4 px-4 text-center"><div className="w-12 h-5 bg-gray-200 rounded-md mx-auto" /></td>
+                            <td className="py-4 px-4 text-center"><div className="w-20 h-3 bg-gray-200 rounded mx-auto" /></td>
+                            <td className="py-4 px-4 text-center"><div className="w-16 h-5 bg-gray-200 rounded-md mx-auto" /></td>
+                            <td className="py-4 px-4 text-right"><div className="w-24 h-6 bg-gray-200 rounded-lg ml-auto" /></td>
                           </tr>
                         ))
                       ) : filteredProducts.length === 0 ? (
@@ -350,7 +350,7 @@ export default function ProductManagement() {
                           const priceVal = Number(p?.attribute?.salePrice ?? p?.price ?? 0);
 
                           return (
-                            <tr key={safeId} className="hover:bg-slate-50/50 transition-colors">
+                            <tr key={safeId} className="hover:bg-gray-50/50 transition-colors">
                               
                               {/* Product Info */}
                               <td className="py-4 px-4">
@@ -359,7 +359,7 @@ export default function ProductManagement() {
                                     <img
                                       src={imageUrl}
                                       alt={p?.productName ?? "Product"}
-                                      className="w-10 h-10 rounded-lg object-cover border bg-slate-100"
+                                      className="w-10 h-10 rounded-lg object-cover border bg-gray-100"
                                       onError={(e) => {
                                         e.currentTarget.style.display = "none";
                                         if (e.currentTarget.nextSibling) {
@@ -369,7 +369,7 @@ export default function ProductManagement() {
                                     />
                                   ) : null}
                                   <div
-                                    className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 font-bold border"
+                                    className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 font-bold border"
                                     style={{ display: imageUrl ? "none" : "flex" }}
                                   >
                                     {(p?.productName?.[0] ?? "P").toUpperCase()}
@@ -391,7 +391,7 @@ export default function ProductManagement() {
                               </td>
 
                               {/* Price */}
-                              <td className="py-4 px-4 text-right font-black text-slate-800">
+                              <td className="py-4 px-4 text-right font-black text-gray-800">
                                 ₹{priceVal.toLocaleString()}
                               </td>
 
@@ -400,7 +400,7 @@ export default function ProductManagement() {
                                 <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
                                   isLowStock
                                     ? "bg-red-50 text-red-600 border border-red-100 animate-pulse"
-                                    : "bg-slate-100 text-slate-700"
+                                    : "bg-gray-100 text-gray-700"
                                 }`}>
                                   {stockVal} left
                                 </span>

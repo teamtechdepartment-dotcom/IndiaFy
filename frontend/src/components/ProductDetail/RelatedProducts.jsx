@@ -15,7 +15,7 @@ function RelatedProducts({ products, title }) {
             key={p.id} 
             className="w-[160px] md:w-[200px] shrink-0 group cursor-pointer"
           >
-            <div className="bg-gray-50 p-4 flex justify-center items-center h-[160px] md:h-[200px] mb-3 rounded-xl border border-gray-100 hover:border-[#2874F0]/30 transition-colors">
+            <div className="bg-gray-50 p-4 flex justify-center items-center h-[160px] md:h-[200px] mb-3 rounded border border-gray-100 hover:border-[#2874F0]/30 transition-colors">
               <img src={p.img} alt={p.name} className="max-w-full max-h-full object-contain mix-blend-multiply hover:scale-105 transition-transform" />
             </div>
             

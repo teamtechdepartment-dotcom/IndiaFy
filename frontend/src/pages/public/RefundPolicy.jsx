@@ -16,7 +16,7 @@ export default function RefundPolicy() {
   ];
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
+    <div className="bg-[#F8FAFC] min-h-screen font-sans text-gray-900">
       <SEOHead 
         title="Refund & Cancellation Policy | Indiafy"
         description="Understand Indiafy's refund and cancellation policies. Step-by-step guide on how refunds are processed securely via Escrow."
@@ -24,15 +24,15 @@ export default function RefundPolicy() {
       <WebsiteNavbar scrolledByDefault={true} />
 
       {/* HEADER SECTION */}
-      <header className="bg-slate-900 pt-32 pb-24 px-6 relative overflow-hidden">
+      <header className="bg-gray-900 pt-32 pb-24 px-6 relative overflow-hidden">
         <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-6">
             <ShieldCheck size={16} /> Buyer Protection
           </div>
           <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight mb-4">
             Refunds & Cancellations
           </h1>
-          <p className="text-slate-400 text-sm md:text-base font-medium max-w-2xl mx-auto">
+          <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl mx-auto">
             Clear rules. Transparent processes. Secure escrow payouts.
           </p>
         </div>
@@ -44,26 +44,26 @@ export default function RefundPolicy() {
         <section className="mb-20">
           <h2 className="text-2xl font-black mb-8">The Refund Lifecycle</h2>
           
-          <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-sm overflow-x-auto">
+          <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-gray-200 shadow-sm overflow-x-auto">
             <div className="flex items-center justify-between min-w-[700px]">
               {steps.map((step, i) => (
                 <div key={i} className="flex flex-col items-center relative flex-1">
                   
                   {/* Connecting Line */}
                   {i < steps.length - 1 && (
-                    <div className={`absolute top-6 left-[50%] w-full h-[2px] ${step.highlight ? 'bg-emerald-500 border border-emerald-500 border-dashed' : (step.active ? 'bg-slate-800' : 'bg-slate-200')}`} />
+                    <div className={`absolute top-6 left-[50%] w-full h-[2px] ${step.highlight ? 'bg-emerald-500 border border-emerald-500 border-dashed' : (step.active ? 'bg-gray-800' : 'bg-gray-200')}`} />
                   )}
 
                   {/* Icon Node */}
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center relative z-10 border-2 mb-4 transition-all ${
                     step.highlight ? 'bg-emerald-500 text-white border-emerald-600 shadow-[0_0_20px_#10b981]' : 
-                    (step.active ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-200')
+                    (step.active ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-400 border-gray-200')
                   }`}>
                     {step.icon}
                   </div>
                   
                   <p className={`text-xs font-bold uppercase tracking-widest text-center ${
-                    step.highlight ? 'text-emerald-600' : (step.active ? 'text-slate-900' : 'text-slate-400')
+                    step.highlight ? 'text-emerald-600' : (step.active ? 'text-gray-900' : 'text-gray-400')
                   }`}>
                     {step.title}
                   </p>
@@ -74,7 +74,7 @@ export default function RefundPolicy() {
         </section>
 
         {/* POLICY CONTENT */}
-        <div className="prose prose-slate max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-brand-primary">
+        <div className="prose prose-gray max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-brand-primary">
           <h3 className="text-2xl mb-4">1. Order Cancellations</h3>
           <p>
             Because Indiafy operates on a hyperlocal Quick Commerce model, <strong>cancellations are only permitted before the seller marks the order as "Packed".</strong>
@@ -112,12 +112,12 @@ export default function RefundPolicy() {
         </div>
 
         {/* CTA */}
-        <div className="mt-16 p-8 bg-slate-900 text-white rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="mt-16 p-8 bg-gray-900 text-white rounded flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <h4 className="text-xl font-bold mb-2">Need to initiate a return?</h4>
-            <p className="text-slate-400 text-sm">Go to your Order History to start the process.</p>
+            <p className="text-gray-400 text-sm">Go to your Order History to start the process.</p>
           </div>
-          <Link to="/order-history" className="px-6 py-3 bg-white text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors">
+          <Link to="/order-history" className="px-6 py-3 bg-white text-gray-900 rounded font-black text-xs uppercase tracking-widest hover:bg-gray-100 transition-colors">
             Go to Orders
           </Link>
         </div>

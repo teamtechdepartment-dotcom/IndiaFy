@@ -4,7 +4,7 @@ import { Timer, Minus, Plus } from "lucide-react";
 
 export function ProductCard({ p, cartQty, onAdd, onInc, onDec }) {
   return (
-    <div className="bg-[#f4f5f7] border border-gray-200/60 rounded-xl p-2.5 flex flex-col relative shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-[#f4f5f7] border border-gray-200/60 rounded p-2.5 flex flex-col relative shadow-sm hover:shadow-md transition-shadow">
       {p.discountPct > 0 && (
         <div className="absolute top-0 left-0 bg-[#00B55D] text-white text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-tl-xl rounded-br-lg z-10 shadow-sm">
           {p.discountPct}% OFF

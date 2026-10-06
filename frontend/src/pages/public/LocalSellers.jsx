@@ -97,10 +97,10 @@ export default function LocalSellers() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-center gap-2 mb-2"
                 >
-                  <div className="p-1.5 bg-slate-100 rounded-lg">
-                    <Navigation size={14} className="text-slate-500" />
+                  <div className="p-1.5 bg-gray-100 rounded-lg">
+                    <Navigation size={14} className="text-gray-500" />
                   </div>
-                  <span className="text-[10px] font-black tracking-widest uppercase text-slate-500">
+                  <span className="text-[10px] font-black tracking-widest uppercase text-gray-500">
                     Current Node: Sector 45
                   </span>
                 </motion.div>
@@ -108,7 +108,7 @@ export default function LocalSellers() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter"
+                  className="text-3xl md:text-5xl font-black text-gray-900 tracking-tighter"
                 >
                   Local Verified Nodes
                 </motion.h1>
@@ -118,7 +118,7 @@ export default function LocalSellers() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-xs font-bold text-slate-500 bg-slate-100 px-4 py-2.5 rounded-xl flex items-center gap-2 w-fit border border-zinc-200"
+                className="text-xs font-bold text-gray-500 bg-gray-100 px-4 py-2.5 rounded flex items-center gap-2 w-fit border border-zinc-200"
               >
                 <BadgeCheck size={16} className="text-emerald-500" />
                 {filteredSellers.length} Nodes Found
@@ -132,7 +132,7 @@ export default function LocalSellers() {
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                   <Search
                     size={18}
-                    className="text-slate-600 group-focus-within:text-slate-900 transition-colors"
+                    className="text-gray-600 group-focus-within:text-gray-900 transition-colors"
                   />
                 </div>
                 <input
@@ -140,12 +140,12 @@ export default function LocalSellers() {
                   placeholder="Search stores, groceries, hardware..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-100 border border-transparent focus:border-zinc-300 focus:bg-white rounded-2xl py-3.5 pl-12 pr-4 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-500 transition-all outline-none shadow-sm truncate"
+                  className="w-full bg-gray-100 border border-transparent focus:border-zinc-300 focus:bg-white rounded py-3.5 pl-12 pr-4 text-xs sm:text-sm font-bold text-gray-900 placeholder:text-gray-500 transition-all outline-none shadow-sm truncate"
                 />
               </div>
 
               {/* Filter Button */}
-              <button className="hidden md:flex items-center gap-2 bg-white border border-zinc-200 text-slate-900 px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-zinc-50 transition-colors active:scale-95 shadow-sm">
+              <button className="hidden md:flex items-center gap-2 bg-white border border-zinc-200 text-gray-900 px-6 py-3.5 rounded font-bold text-sm hover:bg-zinc-50 transition-colors active:scale-95 shadow-sm">
                 <SlidersHorizontal size={18} /> Filters
               </button>
             </div>
@@ -156,10 +156,10 @@ export default function LocalSellers() {
                 <button
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
-                  className={`shrink-0 whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 ${
+                  className={`shrink-0 whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2.5 rounded text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 ${
                     activeFilter === filter
-                      ? "bg-white shadow-sm border border-slate-200 text-slate-900 shadow-xl shadow-slate-200"
-                      : "bg-white border border-zinc-200 text-slate-500 hover:border-zinc-300 hover:text-slate-900"
+                      ? "bg-white shadow-sm border border-gray-200 text-gray-900 shadow-xl shadow-gray-200"
+                      : "bg-white border border-zinc-200 text-gray-500 hover:border-zinc-300 hover:text-gray-900"
                   }`}
                 >
                   {filter}
@@ -183,10 +183,10 @@ export default function LocalSellers() {
                   transition={{ duration: 0.3 }}
                   /* 🔥 Ye click karke navigate karega (poore card ke liye) */
                   onClick={() => navigate(`/store/${seller.id}`)}
-                  className="bg-white p-3 md:p-4 rounded-[2rem] border border-zinc-100 hover:border-zinc-300 hover:shadow-2xl transition-all duration-500 group flex flex-col h-full cursor-pointer"
+                  className="bg-white p-3 md:p-4 rounded border border-zinc-100 hover:border-zinc-300 hover:shadow-2xl transition-all duration-500 group flex flex-col h-full cursor-pointer"
                 >
                   {/* Card Image area */}
-                  <div className="relative w-full aspect-video md:aspect-[4/3] rounded-[1.5rem] overflow-hidden mb-4 bg-slate-100 shrink-0">
+                  <div className="relative w-full aspect-video md:aspect-[4/3] rounded-[1.5rem] overflow-hidden mb-4 bg-gray-100 shrink-0">
                     <img loading="lazy" decoding="async"
                       src={seller.img}
                       alt={seller.name}
@@ -205,14 +205,14 @@ export default function LocalSellers() {
                         </div>
                       )}
                       {seller.badge && (
-                        <div className="bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-slate-900 text-[9px] font-black uppercase tracking-widest shadow-sm">
+                        <div className="bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-gray-900 text-[9px] font-black uppercase tracking-widest shadow-sm">
                           {seller.badge}
                         </div>
                       )}
                     </div>
 
                     {/* Rating Badge */}
-                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2 py-1 rounded-xl text-slate-900 text-[10px] font-black flex items-center gap-1 shadow-sm">
+                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2 py-1 rounded text-gray-900 text-[10px] font-black flex items-center gap-1 shadow-sm">
                       <Star
                         size={10}
                         fill="currentColor"
@@ -225,30 +225,30 @@ export default function LocalSellers() {
                   {/* Card Content */}
                   <div className="flex-1 flex flex-col px-2">
                     <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-black text-slate-900 text-lg leading-tight line-clamp-1">
+                      <h3 className="font-black text-gray-900 text-lg leading-tight line-clamp-1">
                         {seller.name}
                       </h3>
                     </div>
 
-                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-4">
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-4">
                       {seller.tags}
                     </p>
 
                     {/* Info Pills */}
                     <div className="grid grid-cols-2 gap-2 mb-5 mt-auto">
-                      <div className="bg-zinc-50 rounded-xl p-2.5 flex items-center justify-center gap-1.5 border border-zinc-100">
-                        <MapPin size={12} className="text-slate-600" />
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">
+                      <div className="bg-zinc-50 rounded p-2.5 flex items-center justify-center gap-1.5 border border-zinc-100">
+                        <MapPin size={12} className="text-gray-600" />
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">
                           {seller.distance}
                         </span>
                       </div>
-                      <div className="bg-zinc-50 rounded-xl p-2.5 flex items-center justify-center gap-1.5 border border-zinc-100">
+                      <div className="bg-zinc-50 rounded p-2.5 flex items-center justify-center gap-1.5 border border-zinc-100">
                         {seller.type === "Quick Commerce" ? (
                           <Zap size={12} className="text-emerald-500" />
                         ) : (
                           <Clock size={12} className="text-blue-500" />
                         )}
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">
                           {seller.time}
                         </span>
                       </div>
@@ -260,7 +260,7 @@ export default function LocalSellers() {
                         e.stopPropagation(); // Card ke double click issues rokiyega
                         navigate(`/store/${seller.id}`);
                       }}
-                      className="w-full bg-zinc-50 border border-zinc-200 text-white py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 group-hover:bg-white shadow-sm border border-slate-200 group-hover:border-zinc-900 group-hover:text-slate-900 transition-all active:scale-95"
+                      className="w-full bg-zinc-50 border border-zinc-200 text-white py-3.5 rounded text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 group-hover:bg-white shadow-sm border border-gray-200 group-hover:border-zinc-900 group-hover:text-gray-900 transition-all active:scale-95"
                     >
                       Visit Store <ArrowUpRight size={14} />
                     </button>
@@ -274,12 +274,12 @@ export default function LocalSellers() {
           {filteredSellers.length === 0 && (
             <div className="w-full py-24 flex flex-col items-center justify-center text-center">
               <div className="w-24 h-24 bg-white border border-zinc-200 shadow-sm rounded-full flex items-center justify-center mb-6">
-                <Search size={32} className="text-slate-700" />
+                <Search size={32} className="text-gray-700" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tighter">
+              <h3 className="text-2xl font-black text-gray-900 mb-2 tracking-tighter">
                 No Nodes Found
               </h3>
-              <p className="text-slate-500 font-medium text-sm">
+              <p className="text-gray-500 font-medium text-sm">
                 Try adjusting your filters or searching for something else.
               </p>
               <button
@@ -287,7 +287,7 @@ export default function LocalSellers() {
                   setSearchQuery("");
                   setActiveFilter("All");
                 }}
-                className="mt-6 text-xs font-black uppercase tracking-widest text-slate-900 bg-white border border-zinc-200 px-6 py-3 rounded-full hover:bg-zinc-50 shadow-sm active:scale-95 transition-all"
+                className="mt-6 text-xs font-black uppercase tracking-widest text-gray-900 bg-white border border-zinc-200 px-6 py-3 rounded-full hover:bg-zinc-50 shadow-sm active:scale-95 transition-all"
               >
                 Clear all filters
               </button>

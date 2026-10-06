@@ -12,7 +12,7 @@ function PostRequirement() {
     <section className="py-16 bg-blue-50 border-b border-brand-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="bg-white border border-brand-primary/20 rounded-2xl p-8 lg:p-12 shadow-sm flex flex-col lg:flex-row items-center gap-10">
+        <div className="bg-white border border-brand-primary/20 rounded p-8 lg:p-12 shadow-sm flex flex-col lg:flex-row items-center gap-10">
           
           {/* Left Text */}
           <div className="flex-1">
@@ -61,7 +61,7 @@ function PostRequirement() {
           </div>
 
           {/* Right Visual/Form placeholder */}
-          <div className="flex-1 w-full bg-gray-50 border border-brand-border rounded-xl p-6 lg:p-8">
+          <div className="flex-1 w-full bg-gray-50 border border-brand-border rounded p-6 lg:p-8">
             <h3 className="text-lg font-bold text-brand-text-primary mb-6">Quick RFQ Form</h3>
             <form className="space-y-4" onSubmit={handleToast}>
               <div>

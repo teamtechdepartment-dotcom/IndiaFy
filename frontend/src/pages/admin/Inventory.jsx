@@ -133,7 +133,7 @@ export default function Inventory() {
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                 Inventory & Stock Management
               </h1>
-              <p className="text-xs sm:text-sm font-medium text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-400 mt-1">
                 Real-time multi-vendor warehouse stock levels, buffer alerts, and catalog valuation.
               </p>
             </div>
@@ -142,14 +142,14 @@ export default function Inventory() {
               <button
                 onClick={fetchInventory}
                 disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800/80 text-slate-200 hover:bg-slate-700/80 transition shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-bold border border-slate-700 bg-slate-800/80 text-slate-200 hover:bg-slate-700/80 transition shadow-sm"
               >
                 <RefreshCw size={13} className={loading ? "animate-spin text-[#2874F0]" : ""} />
                 Refresh
               </button>
               <button
                 onClick={handleExport}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#2874F0] text-white hover:bg-blue-600 transition shadow-sm"
+                className="flex items-center gap-1.5 px-4 py-2 rounded text-xs font-bold bg-[#2874F0] text-white hover:bg-blue-600 transition shadow-sm"
               >
                 <Download size={13} />
                 Export CSV
@@ -159,41 +159,41 @@ export default function Inventory() {
 
           {/* Metric KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Catalog Units</p>
+            <div className="p-5 rounded border border-slate-800 bg-[#065F46]/60 backdrop-blur-md">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Total Catalog Units</p>
               <h3 className="text-2xl font-black text-white">{totalStockUnits.toLocaleString()}</h3>
-              <p className="text-[10px] font-semibold text-slate-500 mt-1">{totalProducts} active product lines</p>
+              <p className="text-[10px] font-semibold text-gray-500 mt-1">{totalProducts} active product lines</p>
             </div>
 
-            <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Inventory Valuation</p>
+            <div className="p-5 rounded border border-slate-800 bg-[#065F46]/60 backdrop-blur-md">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Inventory Valuation</p>
               <h3 className="text-2xl font-black text-emerald-400">₹{totalValuation.toLocaleString("en-IN")}</h3>
-              <p className="text-[10px] font-semibold text-slate-500 mt-1">Based on active sale prices</p>
+              <p className="text-[10px] font-semibold text-gray-500 mt-1">Based on active sale prices</p>
             </div>
 
-            <div className="p-5 rounded-2xl border border-amber-500/20 bg-amber-500/5 backdrop-blur-md">
+            <div className="p-5 rounded border border-amber-500/20 bg-amber-500/5 backdrop-blur-md">
               <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">Low Stock Alerts</p>
               <h3 className="text-2xl font-black text-amber-400">{lowStockCount}</h3>
-              <p className="text-[10px] font-semibold text-slate-400 mt-1">Below buffer threshold (&le; 5)</p>
+              <p className="text-[10px] font-semibold text-gray-400 mt-1">Below buffer threshold (&le; 5)</p>
             </div>
 
-            <div className="p-5 rounded-2xl border border-red-500/20 bg-red-500/5 backdrop-blur-md">
+            <div className="p-5 rounded border border-red-500/20 bg-red-500/5 backdrop-blur-md">
               <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-1">Out of Stock</p>
               <h3 className="text-2xl font-black text-red-400">{outOfStockCount}</h3>
-              <p className="text-[10px] font-semibold text-slate-400 mt-1">Zero units available</p>
+              <p className="text-[10px] font-semibold text-gray-400 mt-1">Zero units available</p>
             </div>
           </div>
 
           {/* Search & Filter Toolbar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl border border-slate-800 bg-slate-900/40">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded border border-slate-800 bg-[#065F46]/40">
             <div className="relative w-full sm:w-80">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
                 type="text"
                 placeholder="Search by SKU, product, or category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-[#2874F0]"
+                className="w-full pl-9 pr-4 py-2 text-xs rounded bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-[#2874F0]"
               />
             </div>
 
@@ -207,10 +207,10 @@ export default function Inventory() {
                 <button
                   key={tab.key}
                   onClick={() => setFilter(tab.key)}
-                  className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition ${
+                  className={`px-3.5 py-1.5 text-xs font-bold rounded transition ${
                     filter === tab.key
                       ? "bg-[#2874F0] text-white"
-                      : "bg-slate-800/60 text-slate-400 hover:text-white"
+                      : "bg-slate-800/60 text-gray-400 hover:text-white"
                   }`}
                 >
                   {tab.label}
@@ -220,7 +220,7 @@ export default function Inventory() {
           </div>
 
           {/* Inventory Table */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-md overflow-x-auto">
+          <div className="rounded border border-slate-800 bg-[#065F46]/50 backdrop-blur-md overflow-x-auto">
             {error && (
               <div className="p-4 bg-red-500/10 border-b border-red-500/20 text-red-400 text-xs font-semibold flex items-center gap-2">
                 <AlertTriangle size={14} />
@@ -230,7 +230,7 @@ export default function Inventory() {
 
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800/80 bg-slate-950/40 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <tr className="border-b border-slate-800/80 bg-slate-950/40 text-[10px] font-black uppercase tracking-wider text-gray-400">
                   <th className="py-3.5 px-4">Product Details</th>
                   <th className="py-3.5 px-4">SKU</th>
                   <th className="py-3.5 px-4">Category</th>
@@ -243,14 +243,14 @@ export default function Inventory() {
               <tbody className="divide-y divide-slate-800/40">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-slate-500">
+                    <td colSpan={7} className="py-12 text-center text-gray-500">
                       <RefreshCw size={20} className="animate-spin mx-auto mb-2 text-[#2874F0]" />
                       Synchronizing inventory levels from warehouse cluster...
                     </td>
                   </tr>
                 ) : filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-slate-500">
+                    <td colSpan={7} className="py-12 text-center text-gray-500">
                       No inventory records found matching your filter criteria.
                     </td>
                   </tr>
@@ -273,17 +273,17 @@ export default function Inventory() {
                                 className="w-10 h-10 rounded-lg object-cover bg-slate-800 border border-slate-700"
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500">
+                              <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-gray-500">
                                 <Package size={16} />
                               </div>
                             )}
                             <div className="min-w-0">
                               <p className="font-bold text-slate-200 truncate max-w-xs">{p.productName}</p>
-                              <p className="text-[10px] text-slate-500 truncate">{p.sellerId?.businessName || "Direct Catalog"}</p>
+                              <p className="text-[10px] text-gray-500 truncate">{p.sellerId?.businessName || "Direct Catalog"}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-4 font-mono font-bold text-slate-400 text-[11px]">
+                        <td className="py-3 px-4 font-mono font-bold text-gray-400 text-[11px]">
                           {p.productSkuId || "N/A"}
                         </td>
                         <td className="py-3 px-4 font-semibold text-slate-300">
@@ -296,7 +296,7 @@ export default function Inventory() {
                           <span className={`font-black text-sm ${isOut ? "text-red-400" : isLow ? "text-amber-400" : "text-emerald-400"}`}>
                             {stock}
                           </span>
-                          <span className="text-[10px] text-slate-500 ml-1">units</span>
+                          <span className="text-[10px] text-gray-500 ml-1">units</span>
                         </td>
                         <td className="py-3 px-4">
                           {isOut ? (
@@ -336,21 +336,21 @@ export default function Inventory() {
           {/* Quick Stock Adjustment Modal */}
           {editingProduct && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-              <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
+              <div className="w-full max-w-sm rounded border border-slate-800 bg-[#065F46] p-6 shadow-2xl space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-extrabold text-base text-white">Adjust Stock Level</h3>
                   <button
                     onClick={() => setEditingProduct(null)}
-                    className="p-1 rounded-lg text-slate-400 hover:text-white"
+                    className="p-1 rounded-lg text-gray-400 hover:text-white"
                   >
                     <X size={16} />
                   </button>
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-gray-400">
                   Updating live warehouse inventory for <span className="font-bold text-slate-200">{editingProduct.productName}</span> ({editingProduct.productSkuId}).
                 </p>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 block mb-1.5">
                     Available Units
                   </label>
                   <input
@@ -358,20 +358,20 @@ export default function Inventory() {
                     min="0"
                     value={newStockVal}
                     onChange={(e) => setNewStockVal(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#2874F0]"
+                    className="w-full px-3 py-2 text-sm rounded bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#2874F0]"
                   />
                 </div>
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <button
                     onClick={() => setEditingProduct(null)}
-                    className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white rounded-xl"
+                    className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white rounded"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleUpdateStock}
                     disabled={savingStock}
-                    className="px-4 py-2 text-xs font-bold bg-[#2874F0] text-white hover:bg-blue-600 rounded-xl transition shadow-sm flex items-center gap-1.5"
+                    className="px-4 py-2 text-xs font-bold bg-[#2874F0] text-white hover:bg-blue-600 rounded transition shadow-sm flex items-center gap-1.5"
                   >
                     {savingStock ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle size={12} />}
                     Save Stock

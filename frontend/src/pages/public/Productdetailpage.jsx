@@ -391,21 +391,21 @@ export default function ProductDetailPage() {
       </main>
 
       {/* MOBILE STICKY ACTION BAR */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-40 shadow-2xl flex items-center justify-between gap-3">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 shadow-2xl flex items-center justify-between gap-3">
         <div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Price</span>
-          <span className="text-base font-extrabold text-slate-900">₹{(mappedProduct.currentPrice * quantity).toLocaleString("en-IN")}</span>
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Price</span>
+          <span className="text-lg font-bold text-gray-900">₹{(mappedProduct.currentPrice * quantity).toLocaleString("en-IN")}</span>
         </div>
         <div className="flex items-center gap-2 flex-1 max-w-[240px]">
           <button
             onClick={handleAddToCart}
-            className="flex-1 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-colors shadow-xs"
+            className="flex-1 py-2.5 bg-white border border-[#065F46] text-[#065F46] rounded font-bold text-xs hover:bg-gray-50 transition-colors"
           >
             Add to Cart
           </button>
           <button
             onClick={handleBuyNow}
-            className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 transition-colors shadow-md"
+            className="flex-1 py-2.5 bg-[#065F46] text-white rounded font-bold text-xs hover:bg-[#047857] transition-colors shadow-sm"
           >
             Buy Now
           </button>

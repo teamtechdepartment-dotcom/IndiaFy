@@ -51,7 +51,7 @@ const reviews = [
 ];
 
 const ReviewCard = ({ review }) => (
-  <div className="h-full bg-white rounded-card p-6 border border-brand-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+  <div className="h-full bg-white rounded-card p-6 border border-brand-border shadow-card hover:shadow-card-hover hover:-trangray-y-1 transition-all duration-300 flex flex-col justify-between">
     {/* Stars */}
     <div>
       <div className="flex gap-0.5 mb-4">

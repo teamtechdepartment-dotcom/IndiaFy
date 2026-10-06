@@ -4,7 +4,7 @@ import { Timer, Zap, Minus, Plus } from "lucide-react";
 
 function ProductCard({ p, cartQty, onAdd, onInc, onDec }) {
   return (
-    <div className="w-32 md:w-40 shrink-0 bg-white border border-gray-100 rounded-xl p-2.5 flex flex-col relative shadow-sm">
+    <div className="w-32 md:w-40 shrink-0 bg-white border border-gray-100 rounded p-2.5 flex flex-col relative shadow-sm">
       <div className="absolute top-0 left-0 bg-[#FF4D4F] text-white text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-tl-xl rounded-br-lg z-10 shadow-sm flex items-center gap-0.5">
         <Zap size={10} className="fill-white" /> {p.discountPct}% OFF
       </div>

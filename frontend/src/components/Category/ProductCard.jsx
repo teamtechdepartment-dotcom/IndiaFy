@@ -53,54 +53,57 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
   };
 
   const isList = viewMode === "list";
+  const discountPercent = product.original > product.price 
+    ? Math.round(((product.original - product.price) / product.original) * 100) 
+    : 0;
 
   if (isList) {
     return (
       <div 
         ref={ref}
         onClick={handleCardClick}
-        className="group flex flex-col sm:flex-row gap-4 p-4 bg-[#f4f5f7] border-b border-gray-200/60 hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-shadow cursor-pointer relative rounded-xl"
+        className="group flex flex-col sm:flex-row gap-4 p-4 bg-white border border-gray-200 hover:shadow-md transition-shadow cursor-pointer relative rounded-md"
       >
-        <div className="w-full sm:w-[200px] aspect-square sm:aspect-[3/4] shrink-0 relative bg-[#eef0f2] rounded-lg flex items-center justify-center p-2">
+        <div className="w-full sm:w-[200px] aspect-square shrink-0 relative bg-gray-50 rounded-md flex items-center justify-center p-2">
            <img 
             src={product.img} 
             alt={product.name} 
             loading="lazy"
             decoding="async"
-            width="200"
-            height="200"
-            className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
+            className="max-w-full max-h-full object-contain group-hover:scale-102 transition-transform duration-300 mix-blend-multiply"
           />
           <button 
             onClick={handleWishlistToggle}
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 shadow-sm hover:scale-110 transition-transform"
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-sm hover:scale-105 transition-transform"
           >
-            <Heart size={16} className={wishlisted ? "fill-[#ff4343] text-[#ff4343]" : "text-gray-400"} />
+            <Heart size={16} className={wishlisted ? "fill-[#065F46] text-[#065F46]" : "text-gray-400"} />
           </button>
         </div>
 
         <div className="flex-1 flex flex-col justify-between py-2">
           <div>
-            <h3 className="text-base font-medium text-[#212121] group-hover:text-[#2874F0] leading-tight mb-2">
+            <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              {product.brand || product.categoryName || "IndiaFy"}
+            </div>
+            <h3 className="text-[15px] font-medium text-gray-900 group-hover:text-[#065F46] leading-tight mb-2 line-clamp-2">
               {product.name}
             </h3>
             <div className="flex items-center gap-2 mb-3">
-              <div className="flex items-center gap-1 bg-[#388e3c] text-white px-1.5 py-0.5 rounded text-[11px] font-bold">
+              <div className="flex items-center gap-1 bg-[#065F46] text-white px-1.5 py-0.5 rounded text-[11px] font-bold">
                 {product.rating} <Star size={10} className="fill-white" />
               </div>
-              <span className="text-xs font-medium text-[#878787]">
-                ({product.reviews.toLocaleString()} Ratings)
+              <span className="text-[12px] font-medium text-gray-500">
+                ({product.reviews?.toLocaleString()})
               </span>
             </div>
-            <ul className="text-xs text-[#212121] space-y-1.5 list-disc pl-4 mb-4">
-              <li>Premium Quality</li>
-              <li>High Performance</li>
-              <li>1 Year Warranty</li>
+            <ul className="text-[12px] text-gray-600 space-y-1.5 list-disc pl-4 mb-4">
+              <li>High Quality Product</li>
+              <li>Verified Seller</li>
             </ul>
           </div>
         </div>
 
-        <div className="w-full sm:w-[250px] shrink-0 flex flex-col sm:items-start py-2 sm:pl-4 sm:border-l border-gray-100">
+        <div className="w-full sm:w-[220px] shrink-0 flex flex-col sm:items-start py-2 sm:pl-4 sm:border-l border-gray-100">
            {product.campaign && (
              <div className="mb-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[11px] font-black shadow-sm tracking-wide">
                <span>🔥</span>
@@ -108,20 +111,20 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
              </div>
            )}
            <div className="flex items-baseline gap-2 mb-1">
-             <span className="text-2xl font-bold text-[#212121]">₹{product.price.toLocaleString("en-IN")}</span>
+             <span className="text-[20px] font-bold text-gray-900">₹{product.price.toLocaleString("en-IN")}</span>
            </div>
            {product.original > product.price && (
-             <div className="flex items-center gap-2 text-sm font-medium mb-2">
-               <span className="text-[#878787] line-through">₹{product.original.toLocaleString("en-IN")}</span>
-               <span className={`font-bold ${product.campaign ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded text-xs' : 'text-[#388e3c]'}`}>
-                 {product.campaign ? `${product.campaign.discountValue}% OFF` : `${Math.round(((product.original - product.price) / product.original) * 100)}% off`}
+             <div className="flex items-center gap-2 text-[13px] font-medium mb-2">
+               <span className="text-gray-500 line-through">₹{product.original.toLocaleString("en-IN")}</span>
+               <span className={product.campaign ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded text-xs font-bold' : 'text-[#065F46] font-bold'}>
+                 {product.campaign ? `${product.campaign.discountValue}% OFF` : `${discountPercent}% off`}
                </span>
              </div>
            )}
-           <p className="text-[11px] text-[#212121] mb-1">Free delivery</p>
+           <p className="text-[12px] text-gray-700 mb-1">Free delivery</p>
            {product.eta && (
-             <p className="text-[11px] font-bold text-[#212121] mb-3">
-               Delivery by <span className="font-extrabold">{product.eta}</span>
+             <p className="text-[12px] font-bold text-gray-900 mb-3">
+               Delivery in <span className="text-[#ea580c]">{product.eta}</span>
              </p>
            )}
         </div>
@@ -134,88 +137,101 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
     <div 
       ref={ref}
       onClick={handleCardClick}
-      className="group flex flex-col bg-[#f4f5f7] border border-gray-200/60 hover:border-[#2874F0]/30 hover:shadow-xl transition-all duration-300 cursor-pointer relative h-full rounded-2xl overflow-hidden"
+      className="group flex flex-col bg-white border border-gray-200 hover:border-gray-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer relative h-full rounded-md overflow-hidden"
     >
-      {/* Top: Image */}
-      <div className="relative w-full aspect-[4/5] bg-[#eef0f2] p-6 flex items-center justify-center overflow-hidden group-hover:bg-[#e4e7ea] transition-colors">
+      {/* Top: Image Area */}
+      <div className="relative w-full aspect-[4/5] bg-gray-50/80 p-4 flex items-center justify-center overflow-hidden">
+        {/* Badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+          {product.campaign ? (
+            <span className="bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+              <span>🔥</span>
+              <span>{product.campaign.badgeText || product.campaign.name}</span>
+            </span>
+          ) : (
+            discountPercent > 0 && (
+              <span className="bg-[#ea580c] text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                {discountPercent}% OFF
+              </span>
+            )
+          )}
+          {product.badge === "Best Seller" && (
+            <span className="bg-[#065F46] text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+              Bestseller
+            </span>
+          )}
+        </div>
+
+        {/* Wishlist Button */}
+        <button 
+          onClick={handleWishlistToggle}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm hover:scale-105 transition-transform z-10 text-gray-400 hover:text-[#065F46]"
+        >
+          <Heart size={16} className={wishlisted ? "fill-[#065F46] text-[#065F46]" : ""} />
+        </button>
+
         <img 
           src={product.img} 
           alt={product.name} 
           loading="lazy"
           decoding="async"
-          width="200"
-          height="200"
-          className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500 mix-blend-multiply"
+          className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-300 mix-blend-multiply"
         />
-        
-        {/* Wishlist Button */}
-        <button 
-          onClick={handleWishlistToggle}
-          className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-md hover:scale-110 transition-transform z-10 text-gray-400 hover:text-[#FB641B]"
-        >
-          <Heart size={18} className={wishlisted ? "fill-[#FB641B] text-[#FB641B]" : ""} />
-        </button>
-
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1 z-10">
-          {product.campaign ? (
-            <span className="bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded shadow-md uppercase tracking-wider flex items-center gap-1">
-              <span>🔥</span>
-              <span>{product.campaign.badgeText || product.campaign.name}</span>
-            </span>
-          ) : (
-            <>
-              {product.badge === "Best Seller" && (
-                <span className="bg-[#2874F0] text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">
-                  Bestseller
-                </span>
-              )}
-              {product.badge === "Hot Deal" && (
-                <span className="bg-[#FB641B] text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider">
-                  Hot Deal
-                </span>
-              )}
-            </>
-          )}
-        </div>
       </div>
 
-      {/* Middle & Bottom: Info */}
-      <div className="p-4 flex flex-col flex-1 bg-[#f4f5f7]">
-        {/* Brand & Name */}
-        <div className="text-[11px] font-bold text-[#2874F0] mb-1.5 uppercase tracking-widest break-words">
-          {product.brand}
-        </div>
-        <h3 className="text-sm font-semibold text-[#212121] group-hover:text-[#2874F0] line-clamp-2 mb-2 transition-colors break-words">
+      {/* Info Area */}
+      <div className="p-3 flex flex-col flex-1">
+        {/* Brand */}
+        {product.brand && (
+          <div className="text-[11px] font-semibold text-gray-500 mb-0.5 uppercase tracking-wide truncate">
+            {product.brand}
+          </div>
+        )}
+        
+        {/* Title */}
+        <h3 className="text-[14px] font-medium text-gray-900 group-hover:text-[#065F46] line-clamp-2 mb-1.5 leading-snug">
           {product.name}
         </h3>
 
         {/* Ratings */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex items-center gap-1 bg-[#10B981] text-white px-1.5 py-0.5 rounded text-[11px] font-bold shadow-sm">
-            {product.rating} <Star size={10} className="fill-white" />
+        <div className="flex items-center gap-1.5 mb-2">
+          <div className="flex items-center gap-0.5 bg-[#065F46] text-white px-1 py-0.5 rounded text-[10px] font-bold">
+            {product.rating} <Star size={9} className="fill-white" />
           </div>
-          <span className="text-xs font-medium text-gray-500">
-            ({product.reviews.toLocaleString()})
+          <span className="text-[11px] font-medium text-gray-500">
+            ({product.reviews?.toLocaleString()})
           </span>
         </div>
 
-        {/* Pricing */}
-        <div className="mt-auto pt-3 border-t border-gray-100">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-lg font-bold text-[#212121]">₹{product.price.toLocaleString("en-IN")}</span>
+        {/* Pricing & Delivery (Pushed to bottom) */}
+        <div className="mt-auto pt-2">
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-[16px] font-bold text-gray-900">₹{product.price.toLocaleString("en-IN")}</span>
             {product.original > product.price && (
-              <>
-                <span className="text-xs font-medium text-gray-400 line-through">₹{product.original.toLocaleString("en-IN")}</span>
-                <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${product.campaign ? 'text-rose-600 bg-rose-50 border border-rose-200' : 'text-[#10B981] bg-[#10B981]/10'}`}>
-                  {product.campaign ? `${product.campaign.discountValue}% OFF` : `${Math.round(((product.original - product.price) / product.original) * 100)}% off`}
-                </span>
-              </>
+              <span className="text-[12px] font-medium text-gray-500 line-through">₹{product.original.toLocaleString("en-IN")}</span>
+            )}
+            {product.campaign ? (
+              <span className="text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
+                {product.campaign.discountValue}% OFF
+              </span>
+            ) : (
+              discountPercent > 0 && (
+                <span className="text-[12px] font-bold text-[#065F46]">{discountPercent}% off</span>
+              )
             )}
           </div>
-          <div className="text-[11px] text-gray-500 mt-2 font-medium flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-            Free delivery
+          
+          <div className="text-[11px] mt-1.5 font-medium flex items-center">
+            {product.eta ? (
+              <span className="text-[#ea580c] font-semibold flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-[#ea580c]"></span>
+                Delivery by {product.eta}
+              </span>
+            ) : (
+              <span className="text-gray-600 flex items-center gap-1">
+                Free delivery
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -224,3 +240,4 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
 }
 
 export default memo(ProductCard);
+

@@ -104,15 +104,15 @@ export default function RoleManagement() {
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#10B981]/10 border border-[#10B981]/25 text-[#2874F0] text-xs font-bold uppercase tracking-widest mb-1">
                   <ShieldCheck size={14} /> Security Compliance
                 </div>
-                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Access Control & Role Policies</h1>
-                <p className="text-slate-500 font-medium">
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Access Control & Role Policies</h1>
+                <p className="text-gray-500 font-medium">
                   Configure fine-grained resource limits, assign action keys, and audit administrative role groups.
                 </p>
               </div>
 
               <button
                 onClick={fetchRoles}
-                className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-4 py-3 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition shadow-xs self-start sm:self-auto"
+                className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-3 rounded text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-xs self-start sm:self-auto"
               >
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                 Refresh Roles
@@ -121,7 +121,7 @@ export default function RoleManagement() {
 
             {/* Error Banner */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl flex items-center justify-between text-xs font-semibold">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-2">
                   <AlertTriangle size={18} className="text-red-500 shrink-0" />
                   <span>{error}</span>
@@ -136,12 +136,12 @@ export default function RoleManagement() {
                 
                 {/* Left Role List */}
                 <div className="lg:col-span-1 space-y-4">
-                  <div className="rounded-3xl p-5 space-y-3" style={{background:"linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",border:"1px solid rgba(255,255,255,0.07)",boxShadow:"0 0 0 1px rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.4)",backdropFilter:"blur(16px)"}}>
+                  <div className="rounded p-5 space-y-3" style={{background:"linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",border:"1px solid rgba(255,255,255,0.07)",boxShadow:"0 0 0 1px rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.4)",backdropFilter:"blur(16px)"}}>
                     <h3 className="font-extrabold text-[#2874F0] text-sm">System Roles</h3>
                     
                     <div className="space-y-2">
                       {loading ? (
-                         <p className="text-xs text-slate-400 text-center py-8">Loading roles...</p>
+                         <p className="text-xs text-gray-400 text-center py-8">Loading roles...</p>
                       ) : safeRolesList.length === 0 ? (
                         <>
                           <RoleItem name="SUPER_ADMIN" desc="Full wildcard root access" active={selectedRole?.roleName === "SUPER_ADMIN"} onClick={() => handleSelectRole({ roleName: "SUPER_ADMIN", permissions: ["*"] })} />
@@ -166,21 +166,21 @@ export default function RoleManagement() {
                 {/* Right Permissions Matrix Editor */}
                 <div className="lg:col-span-2">
                   {selectedRole ? (
-                    <div className="bg-white border border-slate-200/80 rounded-[2rem] p-6 shadow-xs space-y-6">
+                    <div className="bg-white border border-gray-200/80 rounded-[2rem] p-6 shadow-xs space-y-6">
                       
                       {/* Header */}
-                      <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+                      <div className="flex justify-between items-center border-b border-gray-100 pb-4">
                         <div>
                           <div className="flex items-center gap-2">
                             <Award size={18} className="text-[#2874F0]" />
-                            <h3 className="font-extrabold text-slate-800 text-lg uppercase tracking-wider">{selectedRole.roleName ?? "ROLE"}</h3>
+                            <h3 className="font-extrabold text-gray-800 text-lg uppercase tracking-wider">{selectedRole.roleName ?? "ROLE"}</h3>
                           </div>
-                          <p className="text-xs text-slate-400 mt-1">Configure feature-level restrictions for this role.</p>
+                          <p className="text-xs text-gray-400 mt-1">Configure feature-level restrictions for this role.</p>
                         </div>
 
                         <button
                           onClick={handleSavePermissions}
-                          className="flex items-center justify-center gap-2 bg-slate-900 text-white font-bold text-xs rounded-xl py-3 px-5 hover:bg-black transition active:scale-95 shadow-xs"
+                          className="flex items-center justify-center gap-2 bg-[#065F46] text-white font-bold text-xs rounded py-3 px-5 hover:bg-black transition active:scale-95 shadow-xs"
                         >
                           <Save size={14} /> Save Privileges
                         </button>
@@ -194,13 +194,13 @@ export default function RoleManagement() {
                             <div 
                               key={p}
                               onClick={() => handleTogglePermission(p)}
-                              className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:border-[#10B981]/30 transition ${
-                                isGranted ? "bg-[#10B981]/10 border-[#10B981]/30 text-slate-800" : "bg-slate-50/50 border-slate-200 text-slate-600"
+                              className={`flex items-center justify-between p-3 border rounded cursor-pointer hover:border-[#10B981]/30 transition ${
+                                isGranted ? "bg-[#10B981]/10 border-[#10B981]/30 text-gray-800" : "bg-gray-50/50 border-gray-200 text-gray-600"
                               }`}
                             >
                               <span className="text-xs font-bold">{p}</span>
                               <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition ${
-                                isGranted ? "bg-slate-900 border-slate-900 text-white" : "border-slate-300"
+                                isGranted ? "bg-[#065F46] border-slate-900 text-white" : "border-slate-300"
                               }`}>
                                 {isGranted && <Check size={12} />}
                               </div>
@@ -211,7 +211,7 @@ export default function RoleManagement() {
 
                     </div>
                   ) : (
-                    <div className="bg-white border border-slate-200/60 rounded-[2rem] p-10 text-center text-xs text-slate-400 min-h-[300px] flex flex-col items-center justify-center">
+                    <div className="bg-white border border-gray-200/60 rounded-[2rem] p-10 text-center text-xs text-gray-400 min-h-[300px] flex flex-col items-center justify-center">
                       Select a security role from the left list to edit permission flags.
                     </div>
                   )}
@@ -232,13 +232,13 @@ function RoleItem({ name = "ROLE", desc = "", active = false, onClick }) {
   return (
     <div 
       onClick={onClick}
-      className={`p-3.5 border rounded-2xl cursor-pointer transition flex justify-between items-center ${
-        active ? "bg-slate-900 border-[#10B981] text-white shadow-xs" : "bg-white border-slate-200 text-slate-700 hover:border-slate-350"
+      className={`p-3.5 border rounded cursor-pointer transition flex justify-between items-center ${
+        active ? "bg-[#065F46] border-[#10B981] text-white shadow-xs" : "bg-white border-gray-200 text-gray-700 hover:border-slate-350"
       }`}
     >
       <div>
         <p className="font-extrabold text-xs tracking-wider uppercase">{safeName.replace("_", " ")}</p>
-        <p className={`text-[10px] mt-0.5 ${active ? "text-slate-300" : "text-slate-500"}`}>{desc}</p>
+        <p className={`text-[10px] mt-0.5 ${active ? "text-slate-300" : "text-gray-500"}`}>{desc}</p>
       </div>
       {active && <Star size={14} className="text-[#2874F0] fill-[#10B981]" />}
     </div>

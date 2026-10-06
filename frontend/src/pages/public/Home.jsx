@@ -59,7 +59,7 @@ const Home = memo(() => {
   ];
 
   return (
-    <>
+    <div className="bg-[#f1f2f4] min-h-screen">
       <SEO 
         title="IndiaFy — Buy Products Online from Local & Trusted Sellers"
         description="IndiaFy is an ecommerce platform connecting customers with local retail, wholesale, and quick-commerce sellers. Discover a local marketplace with quick delivery."
@@ -68,14 +68,15 @@ const Home = memo(() => {
       <JsonLd data={homeSchemas} />
       <WebsiteNavbar />
 
-      <main className="overflow-hidden">
-        {/* 02 Hero */}
-        <Hero />
-
-        {/* 03 Categories */}
+      {/* Adjust pt to account for fixed navbar height */}
+      <main className="overflow-hidden pt-[64px] lg:pt-[120px] pb-8 flex flex-col gap-3">
+        {/* 03 Categories (moved above Hero) */}
         <Suspense fallback={<SectionLoader />}>
           <BrowseCategories />
         </Suspense>
+
+        {/* 02 Hero */}
+        <Hero />
 
         {/* 04 Trending Products */}
         <Suspense fallback={<SectionLoader />}>
@@ -86,10 +87,15 @@ const Home = memo(() => {
         <Suspense fallback={<SectionLoader />}>
           <FlashSale />
         </Suspense>
-
-        {/* 06 Featured Stores */}
+        
+        {/* 09.5 Personalized Recommendations */}
         <Suspense fallback={<SectionLoader />}>
-          <VerifiedStores />
+          <PersonalizedRecommendations />
+        </Suspense>
+
+        {/* 09 Recommended Products (Recently Viewed) */}
+        <Suspense fallback={<SectionLoader />}>
+          <RecentlyViewed />
         </Suspense>
 
         {/* 07 Quick Commerce */}
@@ -102,19 +108,14 @@ const Home = memo(() => {
           <WholesaleStrip />
         </Suspense>
 
-        {/* 09 Recommended Products (Recently Viewed) */}
-        <Suspense fallback={<SectionLoader />}>
-          <RecentlyViewed />
-        </Suspense>
-
-        {/* 09.5 Personalized Recommendations */}
-        <Suspense fallback={<SectionLoader />}>
-          <PersonalizedRecommendations />
-        </Suspense>
-
         {/* 10 Nearby Stores */}
         <Suspense fallback={<SectionLoader />}>
           <NearbyStores />
+        </Suspense>
+
+        {/* 06 Featured Stores */}
+        <Suspense fallback={<SectionLoader />}>
+          <VerifiedStores />
         </Suspense>
 
         {/* 11 Trust Section */}
@@ -135,7 +136,7 @@ const Home = memo(() => {
 
       {/* 14 Footer */}
       <Footer />
-    </>
+    </div>
   );
 });
 

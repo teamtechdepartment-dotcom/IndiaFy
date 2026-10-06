@@ -100,10 +100,10 @@ export default function Analytics() {
             {/* Header */}
             <div className="flex justify-between items-center flex-wrap gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
                   Analytics & Business Intelligence
                 </h1>
-                <p className="text-slate-550 dark:text-slate-400 mt-1 text-xs md:text-sm font-medium">
+                <p className="text-slate-550 dark:text-gray-400 mt-1 text-xs md:text-sm font-medium">
                   Track performance, revenue trends, and traffic distribution metrics.
                 </p>
               </div>
@@ -173,8 +173,8 @@ export default function Analytics() {
             {/* Traffic + Calendar Wrapped in Error Boundary */}
             <AdminErrorBoundary title="Unable to load traffic sources and calendar">
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
-                <div className="bg-white border rounded-3xl p-5 md:p-6 shadow-xs">
-                  <h2 className="font-extrabold text-slate-800 text-sm mb-4">Payment Distribution</h2>
+                <div className="bg-white border rounded p-5 md:p-6 shadow-xs">
+                  <h2 className="font-extrabold text-gray-800 text-sm mb-4">Payment Distribution</h2>
                   <div className="h-[240px] md:h-[260px]">
                     {trafficData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
@@ -199,7 +199,7 @@ export default function Analytics() {
                         </PieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-slate-400 text-sm font-medium">
+                      <div className="h-full flex items-center justify-center text-gray-400 text-sm font-medium">
                         No transactions registered yet
                       </div>
                     )}
@@ -207,29 +207,29 @@ export default function Analytics() {
                 </div>
 
                 {/* Calendar */}
-                <div className="bg-white border rounded-3xl p-5 md:p-6 shadow-xs flex flex-col justify-between">
+                <div className="bg-white border rounded p-5 md:p-6 shadow-xs flex flex-col justify-between">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="font-extrabold text-slate-800 text-sm">
+                    <h2 className="font-extrabold text-gray-800 text-sm">
                       {currentDate.toLocaleString("default", { month: "long" })}{" "}
                       {year}
                     </h2>
                     <div className="flex gap-2">
                       <button
                         onClick={prevMonth}
-                        className="p-2 border rounded-xl hover:bg-slate-50 transition"
+                        className="p-2 border rounded hover:bg-gray-50 transition"
                       >
                         <ChevronLeft size={16} />
                       </button>
                       <button
                         onClick={nextMonth}
-                        className="p-2 border rounded-xl hover:bg-slate-50 transition"
+                        className="p-2 border rounded hover:bg-gray-50 transition"
                       >
                         <ChevronRight size={16} />
                       </button>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-7 text-center text-xs font-bold text-slate-400 mb-2">
+                  <div className="grid grid-cols-7 text-center text-xs font-bold text-gray-400 mb-2">
                     {weekDays.map((d) => (
                       <div key={d}>{d}</div>
                     ))}
@@ -248,8 +248,8 @@ export default function Analytics() {
                       return (
                         <div
                           key={day}
-                          className={`p-2.5 rounded-xl font-bold transition ${
-                            isToday ? "bg-slate-900 text-white shadow-xs" : "hover:bg-slate-100 text-slate-700"
+                          className={`p-2.5 rounded font-bold transition ${
+                            isToday ? "bg-[#065F46] text-white shadow-xs" : "hover:bg-gray-100 text-gray-700"
                           }`}
                         >
                           {day}

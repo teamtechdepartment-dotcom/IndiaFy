@@ -232,25 +232,25 @@ const UserSignup = () => {
     return (
       <div className="relative group mt-2" key={name}>
         <div
-          className={`relative rounded-xl border transition-all duration-300 bg-slate-50 overflow-hidden
+          className={`relative rounded border transition-all duration-300 bg-gray-50 overflow-hidden
             ${hasError
               ? "border-red-400 shadow-[0_0_0_2px_rgba(248,113,113,0.12)]"
               : isFocused
               ? "border-brand-accent shadow-[0_0_0_2px_rgba(16,185,129,0.1)]"
-              : "border-slate-200 hover:border-slate-300"}
+              : "border-gray-200 hover:border-gray-300"}
           `}
         >
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             {hasError
               ? <AlertCircle className="h-[20px] w-[20px] text-red-400" aria-hidden="true" />
-              : <Icon className={`h-[20px] w-[20px] transition-colors duration-300 ${isFocused ? "text-brand-accent" : "text-slate-400"}`} aria-hidden="true" />
+              : <Icon className={`h-[20px] w-[20px] transition-colors duration-300 ${isFocused ? "text-brand-accent" : "text-gray-400"}`} aria-hidden="true" />
             }
           </div>
 
           <label
             htmlFor={inputId}
-            className={`absolute left-[44px] top-[14px] text-slate-500 font-medium origin-left pointer-events-none transition-all duration-200
-              ${(isFocused || hasValue) ? "translate-y-[-12px] scale-75 opacity-100" : "translate-y-0 scale-100 opacity-80"}`}
+            className={`absolute left-[44px] top-[14px] text-gray-500 font-medium origin-left pointer-events-none transition-all duration-200
+              ${(isFocused || hasValue) ? "trangray-y-[-12px] scale-75 opacity-100" : "trangray-y-0 scale-100 opacity-80"}`}
           >
             {label}
           </label>
@@ -276,7 +276,7 @@ const UserSignup = () => {
               onClick={onToggle}
               disabled={loading}
               aria-label={isVisible ? "Hide password" : "Show password"}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-accent p-2 rounded-lg hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-accent/40"
+              className="absolute right-2 top-1/2 -trangray-y-1/2 text-gray-400 hover:text-brand-accent p-2 rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-accent/40"
             >
               {isVisible ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -303,7 +303,7 @@ const UserSignup = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 px-4 py-6 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 px-4 py-6 sm:p-8 font-sans transition-colors duration-500 relative overflow-hidden">
       <SEOHead title="Create Account | Indiafy" noindex={true} />
 
       {/* Background blobs */}
@@ -316,7 +316,7 @@ const UserSignup = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded-2xl sm:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-slate-200 overflow-hidden flex flex-col lg:flex-row min-h-[600px]"
+        className="relative z-10 w-full max-w-[1100px] bg-white backdrop-blur-2xl rounded sm:rounded shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-gray-200 overflow-hidden flex flex-col lg:flex-row min-h-[600px]"
       >
         {/* ── Form side ──────────────────────────────────────────── */}
         <div className="w-full lg:w-7/12 p-6 sm:p-10 lg:p-14 flex flex-col relative z-20">
@@ -334,9 +334,9 @@ const UserSignup = () => {
             {/* Progress steps */}
             <div className="mb-10" aria-label="Signup progress">
               <div className="flex justify-between relative">
-                <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-100 -z-10 rounded-full translate-y-[-50%]" />
+                <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-100 -z-10 rounded-full trangray-y-[-50%]" />
                 <motion.div
-                  className="absolute top-1/2 left-0 h-1 bg-brand-accent -z-10 rounded-full translate-y-[-50%]"
+                  className="absolute top-1/2 left-0 h-1 bg-brand-accent -z-10 rounded-full trangray-y-[-50%]"
                   initial={{ width: "0%" }}
                   animate={{ width: `${((step - 1) / 1) * 100}%` }}
                   transition={{ duration: 0.4 }}
@@ -354,7 +354,7 @@ const UserSignup = () => {
                     >
                       {step > s.id ? <CheckCircle size={14} /> : s.id}
                     </motion.div>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${step >= s.id ? "text-brand-primary" : "text-slate-400"}`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${step >= s.id ? "text-brand-primary" : "text-gray-400"}`}>
                       {s.title}
                     </span>
                   </div>
@@ -456,7 +456,7 @@ const UserSignup = () => {
                     type="button"
                     disabled={loading}
                     aria-label="Go back to personal details"
-                    className="px-5 py-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-brand-primary font-bold text-sm transition-colors flex items-center justify-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-4 rounded border border-gray-200 hover:bg-gray-50 text-brand-primary font-bold text-sm transition-colors flex items-center justify-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft size={20} />
                   </motion.button>
@@ -469,7 +469,7 @@ const UserSignup = () => {
                     onClick={handleNext}
                     type="button"
                     disabled={loading}
-                    className="flex-grow bg-brand-accent text-white rounded-xl py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex-grow bg-brand-accent text-white rounded py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     Continue <ArrowRight size={18} />
                   </motion.button>
@@ -481,7 +481,7 @@ const UserSignup = () => {
                     disabled={loading}
                     aria-busy={loading}
                     aria-label={loading ? "Creating your account, please wait" : "Create your account"}
-                    className="flex-grow bg-brand-accent hover:bg-brand-accent-hover text-white rounded-xl py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex-grow bg-brand-accent hover:bg-brand-accent-hover text-white rounded py-4 font-bold text-[15px] transition-all shadow-lg shadow-brand-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <>
@@ -499,7 +499,7 @@ const UserSignup = () => {
         </div>
 
         {/* ── Trust / info side ──────────────────────────────────── */}
-        <div className="hidden lg:flex lg:w-5/12 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border-l border-slate-100 relative flex-col justify-center p-12 overflow-hidden shrink-0" aria-hidden="true">
+        <div className="hidden lg:flex lg:w-5/12 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border-l border-gray-100 relative flex-col justify-center p-12 overflow-hidden shrink-0" aria-hidden="true">
           <div className="relative z-10 space-y-12">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-accent/10 text-brand-accent text-[10px] font-bold uppercase tracking-widest border border-brand-accent/20">
@@ -524,7 +524,7 @@ const UserSignup = () => {
                   key={idx}
                   className="flex gap-4 items-start"
                 >
-                  <div className="mt-1 bg-white p-2.5 rounded-xl shadow-sm border border-slate-200">
+                  <div className="mt-1 bg-white p-2.5 rounded shadow-sm border border-gray-200">
                     <item.icon size={20} className="text-brand-accent" />
                   </div>
                   <div>

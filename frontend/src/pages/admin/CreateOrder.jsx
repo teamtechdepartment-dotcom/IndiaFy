@@ -132,7 +132,7 @@ export default function CreateOrder() {
 
   return (
     <div
-      className="flex min-h-screen text-slate-900 dark:text-slate-100"
+      className="flex min-h-screen text-gray-900 dark:text-slate-100"
       style={{
         background:
           "radial-gradient(ellipse at 20% 50%, rgba(40,116,240,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(251,100,27,0.04) 0%, transparent 60%), linear-gradient(135deg, #050811 0%, #080C1A 50%, #050811 100%)",
@@ -150,8 +150,8 @@ export default function CreateOrder() {
               className="flex items-center gap-3 cursor-pointer select-none"
               onClick={() => navigate("/admin/orders")}
             >
-              <ChevronLeft className="text-slate-400" />
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              <ChevronLeft className="text-gray-400" />
+              <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
                 Create New Manual Order
               </h1>
             </div>
@@ -159,14 +159,14 @@ export default function CreateOrder() {
             <div className="flex gap-3">
               <button
                 onClick={() => navigate("/admin/orders")}
-                className="px-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                className="px-4 py-2.5 rounded border border-gray-200 dark:border-slate-800 text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition cursor-pointer"
               >
                 Discard Draft
               </button>
               <button
                 disabled={loading}
                 onClick={handleCreateOrder}
-                className="px-5 py-2.5 rounded-2xl bg-[#2874F0] hover:bg-blue-600 text-white text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer"
+                className="px-5 py-2.5 rounded bg-[#2874F0] hover:bg-blue-600 text-white text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer"
               >
                 {loading ? "Processing..." : "Submit Order"}
               </button>
@@ -180,7 +180,7 @@ export default function CreateOrder() {
               <Card title="Customer Identity & Contact">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 block">
                       Customer Full Name
                     </label>
                     <input
@@ -188,11 +188,11 @@ export default function CreateOrder() {
                       placeholder="e.g. Ramesh Patel"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
+                      className="w-full rounded border border-gray-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 block">
                       Customer Email *
                     </label>
                     <input
@@ -200,13 +200,13 @@ export default function CreateOrder() {
                       placeholder="ramesh@example.com"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
+                      className="w-full rounded border border-gray-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 block">
                     Phone Contact
                   </label>
                   <input
@@ -214,56 +214,56 @@ export default function CreateOrder() {
                     placeholder="+91 98765 43210"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
+                    className="w-full rounded border border-gray-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
                   />
                 </div>
               </Card>
 
               <Card title="Delivery & Shipping Destination">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 block">
                     Street Address
                   </label>
                   <input
                     type="text"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
+                    className="w-full rounded border border-gray-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 block">
                       City
                     </label>
                     <input
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
+                      className="w-full rounded border border-gray-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 block">
                       PIN Code
                     </label>
                     <input
                       type="text"
                       value={zipCode}
                       onChange={(e) => setZipCode(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
+                      className="w-full rounded border border-gray-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 block">
                       Country
                     </label>
                     <input
                       type="text"
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
+                      className="w-full rounded border border-gray-200 dark:border-slate-800 px-4 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
                     />
                   </div>
                 </div>
@@ -284,7 +284,7 @@ export default function CreateOrder() {
                 }
               >
                 {items.length === 0 ? (
-                  <div className="py-8 text-center text-slate-400 text-xs font-semibold border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <div className="py-8 text-center text-gray-400 text-xs font-semibold border border-dashed border-gray-200 dark:border-slate-800 rounded">
                     No items attached. Click &quot;Add Products&quot; above.
                   </div>
                 ) : (
@@ -292,43 +292,43 @@ export default function CreateOrder() {
                     {items.map((it, idx) => (
                       <div
                         key={it._id || idx}
-                        className="flex items-center justify-between p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40"
+                        className="flex items-center justify-between p-3 rounded border border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-950/40"
                       >
                         <div className="min-w-0 flex-1 pr-3">
-                          <p className="font-bold text-xs truncate text-slate-900 dark:text-white">
+                          <p className="font-bold text-xs truncate text-gray-900 dark:text-white">
                             {it.name}
                           </p>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] text-gray-400">
                             {it.sku} • ₹{it.price.toLocaleString()} each
                           </p>
                         </div>
 
                         <div className="flex items-center gap-3 shrink-0">
-                          <div className="flex items-center border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+                          <div className="flex items-center border border-gray-200 dark:border-slate-800 rounded overflow-hidden bg-white dark:bg-[#065F46]">
                             <button
                               onClick={() => updateQuantity(idx, -1)}
-                              className="px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                              className="px-2.5 py-1 text-xs font-bold text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
                             >
                               −
                             </button>
-                            <span className="px-2 text-xs font-black text-slate-900 dark:text-white">
+                            <span className="px-2 text-xs font-black text-gray-900 dark:text-white">
                               {it.quantity}
                             </span>
                             <button
                               onClick={() => updateQuantity(idx, 1)}
-                              className="px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                              className="px-2.5 py-1 text-xs font-bold text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
                             >
                               +
                             </button>
                           </div>
 
-                          <span className="text-xs font-black text-slate-900 dark:text-white min-w-[60px] text-right">
+                          <span className="text-xs font-black text-gray-900 dark:text-white min-w-[60px] text-right">
                             ₹{(it.price * it.quantity).toLocaleString()}
                           </span>
 
                           <button
                             onClick={() => removeItem(idx)}
-                            className="p-1 text-slate-400 hover:text-red-500 transition cursor-pointer"
+                            className="p-1 text-gray-400 hover:text-red-500 transition cursor-pointer"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -339,22 +339,22 @@ export default function CreateOrder() {
                 )}
 
                 {/* Calculation Summary */}
-                <div className="text-xs space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
-                  <div className="flex justify-between text-slate-500">
+                <div className="text-xs space-y-2 pt-4 border-t border-gray-200 dark:border-slate-800">
+                  <div className="flex justify-between text-gray-500">
                     <span>Subtotal</span>
-                    <span className="font-bold text-slate-700 dark:text-slate-300">
+                    <span className="font-bold text-gray-700 dark:text-slate-300">
                       ₹{subtotal.toLocaleString()}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-500">
+                  <div className="flex justify-between text-gray-500">
                     <span>Shipping Fee</span>
-                    <span className="font-bold text-slate-700 dark:text-slate-300">
+                    <span className="font-bold text-gray-700 dark:text-slate-300">
                       {shippingFee === 0 ? "FREE" : `₹${shippingFee}`}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-500">
+                  <div className="flex justify-between text-gray-500">
                     <span>GST / Sales Tax (5%)</span>
-                    <span className="font-bold text-slate-700 dark:text-slate-300">
+                    <span className="font-bold text-gray-700 dark:text-slate-300">
                       ₹{estimatedTax.toLocaleString()}
                     </span>
                   </div>
@@ -365,8 +365,8 @@ export default function CreateOrder() {
                     </div>
                   )}
 
-                  <div className="flex justify-between font-black pt-3 border-t border-slate-200 dark:border-slate-800 text-sm">
-                    <span className="text-slate-900 dark:text-white">Total Amount</span>
+                  <div className="flex justify-between font-black pt-3 border-t border-gray-200 dark:border-slate-800 text-sm">
+                    <span className="text-gray-900 dark:text-white">Total Amount</span>
                     <span className="text-[#2874F0] dark:text-[#FB641B] text-base">
                       ₹{totalAmount.toLocaleString()}
                     </span>
@@ -378,13 +378,13 @@ export default function CreateOrder() {
               <Card title="Payment & Coupon">
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 block">
                       Payment Settlement
                     </label>
                     <select
                       value={paymentStatus}
                       onChange={(e) => setPaymentStatus(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none"
+                      className="w-full rounded border border-gray-200 dark:border-slate-800 px-3 py-2.5 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none"
                     >
                       <option value="Paid">Mark as Paid (Prepaid)</option>
                       <option value="Pending">Payment Pending</option>
@@ -398,11 +398,11 @@ export default function CreateOrder() {
                       placeholder="Coupon (e.g. LUXE2024)"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
-                      className="flex-1 rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2 text-xs font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 uppercase"
+                      className="flex-1 rounded border border-gray-200 dark:border-slate-800 px-3 py-2 text-xs font-semibold bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 uppercase"
                     />
                     <button
                       onClick={handleApplyPromo}
-                      className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                      className="px-4 py-2 bg-slate-800 hover:bg-[#065F46] text-white rounded text-xs font-bold transition cursor-pointer"
                     >
                       Apply
                     </button>
@@ -417,27 +417,27 @@ export default function CreateOrder() {
       {/* PRODUCT SELECTOR MODAL */}
       {showProducts && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-3xl rounded-3xl p-6 max-h-[85vh] flex flex-col shadow-2xl">
+          <div className="bg-white dark:bg-[#065F46] border border-gray-200 dark:border-slate-800 w-full max-w-3xl rounded p-6 max-h-[85vh] flex flex-col shadow-2xl">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-black text-lg text-slate-900 dark:text-white">
+              <h2 className="font-black text-lg text-gray-900 dark:text-white">
                 Catalog Product Selector
               </h2>
               <button
                 onClick={() => setShowProducts(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 cursor-pointer"
               >
                 <X size={20} />
               </button>
             </div>
 
             <div className="relative mb-4">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
                 placeholder="Search products by title or SKU..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-medium bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-slate-800 rounded text-xs font-medium bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 outline-none focus:border-[#2874F0]"
               />
             </div>
 
@@ -457,22 +457,22 @@ export default function CreateOrder() {
                   return (
                     <div
                       key={prod._id}
-                      className="pt-2 flex items-center justify-between py-2 px-2 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl"
+                      className="pt-2 flex items-center justify-between py-2 px-2 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded"
                     >
                       <div>
-                        <p className="font-bold text-xs text-slate-900 dark:text-white">{prName}</p>
-                        <p className="text-[10px] text-slate-400">
+                        <p className="font-bold text-xs text-gray-900 dark:text-white">{prName}</p>
+                        <p className="text-[10px] text-gray-400">
                           SKU: {sku} • Stock: {stock} units
                         </p>
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <span className="font-black text-xs text-slate-900 dark:text-white">
+                        <span className="font-black text-xs text-gray-900 dark:text-white">
                           ₹{price.toLocaleString()}
                         </span>
                         <button
                           onClick={() => handleAddItem(prod)}
-                          className="px-3 py-1.5 bg-[#2874F0] hover:bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1 transition cursor-pointer"
+                          className="px-3 py-1.5 bg-[#2874F0] hover:bg-blue-600 text-white rounded text-xs font-bold flex items-center gap-1 transition cursor-pointer"
                         >
                           <Plus size={14} /> Add
                         </button>
@@ -482,10 +482,10 @@ export default function CreateOrder() {
                 })}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+            <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-800 flex justify-end">
               <button
                 onClick={() => setShowProducts(false)}
-                className="px-5 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer"
+                className="px-5 py-2 rounded text-xs font-bold border border-gray-200 dark:border-slate-800 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 cursor-pointer"
               >
                 Close
               </button>
@@ -499,9 +499,9 @@ export default function CreateOrder() {
 
 function Card({ title, children, right }) {
   return (
-    <section className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+    <section className="bg-white/80 dark:bg-[#065F46]/80 backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded p-6 shadow-sm space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="font-black text-sm text-slate-900 dark:text-white">{title}</h3>
+        <h3 className="font-black text-sm text-gray-900 dark:text-white">{title}</h3>
         {right}
       </div>
       {children}

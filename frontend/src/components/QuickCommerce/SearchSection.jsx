@@ -50,7 +50,7 @@ export default function SearchSection({ onSearch }) {
     <div ref={wrapperRef} className="relative px-4 py-3 bg-white border-b border-zinc-100">
       <div className="max-w-[1440px] mx-auto">
         <div
-          className={`relative flex items-center bg-zinc-100 rounded-2xl transition-all duration-200 ${
+          className={`relative flex items-center bg-zinc-100 rounded transition-all duration-200 ${
             focused ? "ring-2 ring-brand-accent/30 bg-white shadow-md" : ""
           }`}
         >
@@ -85,7 +85,7 @@ export default function SearchSection({ onSearch }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-0 right-0 mx-4 mt-2 bg-white rounded-2xl border border-zinc-100 shadow-xl z-50 overflow-hidden"
+              className="absolute left-0 right-0 mx-4 mt-2 bg-white rounded border border-zinc-100 shadow-xl z-50 overflow-hidden"
             >
               {/* Recent */}
               <div className="px-4 pt-4 pb-2">
@@ -111,7 +111,7 @@ export default function SearchSection({ onSearch }) {
               {/* Trending */}
               <div className="px-4 pt-3 pb-4 border-t border-zinc-50">
                 <div className="flex items-center gap-1.5 mb-2.5">
-                  <TrendingUp size={12} className="text-orange-500" />
+                  <TrendingUp size={12} className="text-[#065F46]" />
                   <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                     Trending
                   </span>

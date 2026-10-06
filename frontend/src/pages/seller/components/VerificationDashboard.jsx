@@ -49,7 +49,7 @@ const STATUS_STYLES = {
     desc: "Compliance check failed. Please contact partner helpline."
   },
   SUSPENDED: {
-    bg: "bg-slate-100 text-slate-700 border-slate-200",
+    bg: "bg-gray-100 text-gray-700 border-gray-200",
     icon: ShieldAlert,
     desc: "This store is suspended by admin review."
   }
@@ -70,20 +70,20 @@ function PreviewModal({ fileUrl, onClose }) {
   if (!fileUrl) return null;
   return (
     <div className="fixed inset-0 z-[10005] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
-      <div className="relative max-w-3xl w-full bg-white rounded-3xl overflow-hidden p-2 flex flex-col items-center">
+      <div className="relative max-w-3xl w-full bg-white rounded overflow-hidden p-2 flex flex-col items-center">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-slate-900/60 hover:bg-slate-900 transition-colors text-white rounded-full z-10"
+          className="absolute top-4 right-4 p-2 bg-gray-900/60 hover:bg-gray-900 transition-colors text-white rounded-full z-10"
         >
           <X size={20} />
         </button>
         {fileUrl.startsWith("data:application/pdf") || fileUrl.endsWith(".pdf") ? (
-          <div className="w-full h-[70vh] flex flex-col items-center justify-center bg-slate-100 text-slate-500 font-bold p-6">
-            <FileText size={48} className="text-slate-400 mb-2" />
+          <div className="w-full h-[70vh] flex flex-col items-center justify-center bg-gray-100 text-gray-500 font-bold p-6">
+            <FileText size={48} className="text-gray-400 mb-2" />
             PDF document preview. Download to view.
           </div>
         ) : (
-          <img src={fileUrl} alt="Preview" className="max-h-[80vh] w-auto max-w-full object-contain rounded-2xl" />
+          <img src={fileUrl} alt="Preview" className="max-h-[80vh] w-auto max-w-full object-contain rounded" />
         )}
       </div>
     </div>
@@ -253,8 +253,8 @@ export default function VerificationDashboard({ node }) {
 
   if (loadingApp) {
     return (
-      <div className="py-20 text-center text-slate-400 font-semibold flex items-center justify-center gap-2">
-        <RefreshCw className="animate-spin text-slate-500" size={20} />
+      <div className="py-20 text-center text-gray-400 font-semibold flex items-center justify-center gap-2">
+        <RefreshCw className="animate-spin text-gray-500" size={20} />
         Loading verification pipeline...
       </div>
     );
@@ -268,32 +268,32 @@ export default function VerificationDashboard({ node }) {
       {previewFile && <PreviewModal fileUrl={previewFile} onClose={() => setPreviewFile(null)} />}
 
       {/* CORE HEADER SECTION */}
-      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+      <div className="bg-white/70 backdrop-blur-xl border border-gray-200 rounded p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+          <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
             {node.logo ? (
               <img src={node.logo} alt="Store Logo" className="w-full h-full object-cover" />
             ) : (
-              <Package size={28} className="text-slate-400" />
+              <Package size={28} className="text-gray-400" />
             )}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black text-slate-900">{node.storeName || "Onboarding Verification"}</h1>
+              <h1 className="text-xl font-black text-gray-900">{node.storeName || "Onboarding Verification"}</h1>
               <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${currentStyle.bg}`}>
                 {appStatus.replace(/_/g, " ")}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1 leading-normal font-medium max-w-md">
-              Node Type: <span className="font-bold text-slate-750">{node.nodeType?.replace(/_/g, " ")}</span> • ID: {node._id}
+            <p className="text-xs text-gray-500 mt-1 leading-normal font-medium max-w-md">
+              Node Type: <span className="font-bold text-gray-750">{node.nodeType?.replace(/_/g, " ")}</span> • ID: {node._id}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 border-t border-slate-100 pt-4 md:border-none md:pt-0">
+        <div className="flex items-center gap-2 shrink-0 border-t border-gray-100 pt-4 md:border-none md:pt-0">
           <button
             onClick={() => window.location.href = "/seller-hub"}
-            className="px-4 py-2 border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-white shadow-sm"
+            className="px-4 py-2 border border-gray-200 text-gray-650 hover:bg-gray-50 rounded text-xs font-bold transition flex items-center gap-1.5 bg-white shadow-sm"
           >
             <ArrowLeft size={14} /> Exit to Hub
           </button>
@@ -301,18 +301,18 @@ export default function VerificationDashboard({ node }) {
       </div>
 
       {/* SUBMISSION NOTIFICATION CARD */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+      <div className="bg-white border border-gray-200 rounded p-6 shadow-sm space-y-4">
         <div className="flex items-start gap-4">
-          <div className="p-3 bg-amber-50 text-amber-500 rounded-2xl shrink-0">
+          <div className="p-3 bg-amber-50 text-amber-500 rounded shrink-0">
             <StatusIcon size={24} />
           </div>
           <div className="space-y-1.5">
-            <h3 className="text-lg font-black text-slate-900">Application Submitted Successfully</h3>
-            <p className="text-sm font-semibold text-slate-600">Status: <span className="text-amber-600 font-bold">{appStatus.replace(/_/g, " ")}</span></p>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium">
+            <h3 className="text-lg font-black text-gray-900">Application Submitted Successfully</h3>
+            <p className="text-sm font-semibold text-gray-600">Status: <span className="text-amber-600 font-bold">{appStatus.replace(/_/g, " ")}</span></p>
+            <p className="text-xs text-gray-500 leading-relaxed font-medium">
               Admin is reviewing your application. Our compliance team is verifying your registration, bank routing details, and tax documentation.
             </p>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold mt-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold mt-2">
               <Clock size={12} /> Estimated review time: 24-48 hours
             </div>
           </div>
@@ -320,13 +320,13 @@ export default function VerificationDashboard({ node }) {
 
         {/* REJECTION / REQUEST MORE INFO BLOCK */}
         {comments && (
-          <div className="mt-4 p-4 bg-rose-50/50 border border-rose-100 rounded-2xl space-y-1.5">
+          <div className="mt-4 p-4 bg-rose-50/50 border border-rose-100 rounded space-y-1.5">
             <p className="text-xs font-black text-rose-700 uppercase tracking-wider flex items-center gap-1">
               <AlertTriangle size={14} /> Note From Compliance Auditor:
             </p>
-            <p className="text-xs font-bold text-slate-700 italic">"{comments}"</p>
+            <p className="text-xs font-bold text-gray-700 italic">"{comments}"</p>
             {appStatus === "CHANGES_REQUESTED" && (
-              <p className="text-[10px] font-medium text-slate-500 pt-1">
+              <p className="text-[10px] font-medium text-gray-500 pt-1">
                 Please visit the **Document Management Center** tab below to replace and correct the invalid file(s).
               </p>
             )}
@@ -335,32 +335,32 @@ export default function VerificationDashboard({ node }) {
       </div>
 
       {/* STEPS TIMELINE TRACKER */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
-        <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">
+      <div className="bg-white border border-gray-200 rounded p-6 shadow-sm space-y-6">
+        <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">
           Store Onboarding Tracker
         </h3>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative px-4">
           {/* Horizontal line for connecting nodes (Desktop) */}
-          <div className="hidden md:block absolute top-[22px] left-[10%] right-[10%] h-0.5 bg-slate-100 z-0" />
+          <div className="hidden md:block absolute top-[22px] left-[10%] right-[10%] h-0.5 bg-gray-100 z-0" />
           
           {steps.map((step, idx) => (
             <div key={idx} className="flex md:flex-col items-center gap-4 md:gap-2 relative z-10 flex-1 text-left md:text-center">
               <div 
                 className={`w-11 h-11 rounded-full flex items-center justify-center shadow-md font-bold text-xs transition-colors
                   ${step.isDone 
-                    ? "bg-slate-900 text-white" 
+                    ? "bg-gray-900 text-white" 
                     : step.isCurrent 
-                    ? "bg-amber-400 text-slate-900 border-2 border-amber-500" 
-                    : "bg-slate-100 text-slate-400 border border-slate-200"}`}
+                    ? "bg-amber-400 text-gray-900 border-2 border-amber-500" 
+                    : "bg-gray-100 text-gray-400 border border-gray-200"}`}
               >
                 {step.isDone ? <CheckCircle2 size={16} /> : (idx + 1)}
               </div>
               <div className="space-y-0.5">
-                <p className={`text-xs font-black ${step.isDone || step.isCurrent ? "text-slate-800" : "text-slate-400"}`}>
+                <p className={`text-xs font-black ${step.isDone || step.isCurrent ? "text-gray-800" : "text-gray-400"}`}>
                   {step.label}
                 </p>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">
                   {idx === 0 ? "Application Sent" :
                    idx === 1 ? (appStatus === "CHANGES_REQUESTED" ? "Action Required" : "Audit In Progress") :
                    idx === 2 ? "Final Validated" : "Marketplace Sync"}
@@ -372,7 +372,7 @@ export default function VerificationDashboard({ node }) {
       </div>
 
       {/* TABS FOR MORE ACTIONS */}
-      <div className="flex gap-2 border-b border-slate-200 pb-px">
+      <div className="flex gap-2 border-b border-gray-200 pb-px">
         {[
           { id: "tracker", label: "Verification Guidelines", icon: Activity },
           { id: "document", label: "Document Management Center", icon: FileText }
@@ -384,7 +384,7 @@ export default function VerificationDashboard({ node }) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-3 text-xs font-bold transition-all relative border-b-2
-                ${active ? "border-slate-900 text-slate-900" : "border-transparent text-slate-400 hover:text-slate-755"}`}
+                ${active ? "border-gray-900 text-gray-900" : "border-transparent text-gray-400 hover:text-gray-755"}`}
             >
               <Icon size={14} /> {tab.label}
             </button>
@@ -402,15 +402,15 @@ export default function VerificationDashboard({ node }) {
             exit={{ opacity: 0, y: -10 }}
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
           >
-            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
-              <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5"><Building2 size={16} /> Guidelines</h3>
-              <p className="text-slate-500 text-xs leading-relaxed font-medium">
+            <div className="bg-white border border-gray-200 rounded p-5 shadow-sm space-y-3">
+              <h3 className="font-extrabold text-gray-800 text-sm flex items-center gap-1.5"><Building2 size={16} /> Guidelines</h3>
+              <p className="text-gray-500 text-xs leading-relaxed font-medium">
                 To guarantee onboarding approvals, ensure that your GST certificate shows matching business entity details. PAN & Aadhaar details must correspond to the registration owner.
               </p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
-              <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5"><Shield size={16} /> Security & KYC</h3>
-              <p className="text-slate-500 text-xs leading-relaxed font-medium">
+            <div className="bg-white border border-gray-200 rounded p-5 shadow-sm space-y-3">
+              <h3 className="font-extrabold text-gray-800 text-sm flex items-center gap-1.5"><Shield size={16} /> Security & KYC</h3>
+              <p className="text-gray-500 text-xs leading-relaxed font-medium">
                 All sensitive identifiers (PAN, Aadhaar, Bank Details) are securely encrypted. Your business is protected by isolated store node namespaces.
               </p>
             </div>
@@ -423,23 +423,23 @@ export default function VerificationDashboard({ node }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-white border border-slate-200 rounded-3xl p-6 space-y-6 shadow-sm"
+            className="bg-white border border-gray-200 rounded p-6 space-y-6 shadow-sm"
           >
             <div>
-              <h3 className="text-sm font-black text-slate-900">Document Management Center</h3>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Re-upload or replace blurry files to complete verification reviews.</p>
+              <h3 className="text-sm font-black text-gray-900">Document Management Center</h3>
+              <p className="text-xs text-gray-400 mt-1 font-medium">Re-upload or replace blurry files to complete verification reviews.</p>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-semibold text-slate-700">
+              <table className="w-full text-left text-xs font-semibold text-gray-700">
                 <thead>
-                  <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px] pb-2">
+                  <tr className="border-b border-gray-100 text-gray-400 font-bold uppercase tracking-wider text-[10px] pb-2">
                     <th className="pb-3">Document Name</th>
                     <th className="pb-3">Upload Status</th>
                     <th className="pb-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-gray-100">
                   {[
                     { label: "GST Certificate", key: "gstCertificate" },
                     { label: "PAN Card Document", key: "panCard" },
@@ -452,14 +452,14 @@ export default function VerificationDashboard({ node }) {
                     const fileUrl = application.documents[doc.key];
                     const hasFile = !!fileUrl;
                     return (
-                      <tr key={idx} className="hover:bg-slate-50/50 transition duration-150">
+                      <tr key={idx} className="hover:bg-gray-50/50 transition duration-150">
                         <td className="py-4">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-550 shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-550 shrink-0">
                               <FileText size={16} />
                             </div>
                             <div>
-                              <p className="font-extrabold text-slate-800 text-[12px]">{doc.label}</p>
+                              <p className="font-extrabold text-gray-800 text-[12px]">{doc.label}</p>
                             </div>
                           </div>
                         </td>
@@ -476,7 +476,7 @@ export default function VerificationDashboard({ node }) {
                               <button
                                 type="button"
                                 onClick={() => setPreviewFile(fileUrl)}
-                                className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-650 rounded-lg hover:text-slate-900 transition-colors border border-slate-100"
+                                className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-650 rounded-lg hover:text-gray-900 transition-colors border border-gray-100"
                                 title="Preview File"
                               >
                                 <Eye size={13} />
@@ -484,7 +484,7 @@ export default function VerificationDashboard({ node }) {
                               <button
                                 type="button"
                                 onClick={() => handleDownload(fileUrl, `${doc.key}.png`)}
-                                className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-650 rounded-lg hover:text-slate-900 transition-colors border border-slate-100"
+                                className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-650 rounded-lg hover:text-gray-900 transition-colors border border-gray-100"
                                 title="Download File"
                               >
                                 <Download size={13} />
@@ -492,7 +492,7 @@ export default function VerificationDashboard({ node }) {
                             </>
                           )}
                           {(appStatus === "CHANGES_REQUESTED" || appStatus === "REJECTED") && (
-                            <label className="p-2 bg-slate-50 hover:bg-slate-100 text-emerald-600 rounded-lg cursor-pointer transition-colors border border-slate-100 inline-block font-bold" title="Replace Document">
+                            <label className="p-2 bg-gray-50 hover:bg-gray-100 text-emerald-600 rounded-lg cursor-pointer transition-colors border border-gray-100 inline-block font-bold" title="Replace Document">
                               <RefreshCw size={13} className="inline" />
                               <input
                                 type="file"

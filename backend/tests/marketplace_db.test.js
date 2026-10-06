@@ -8,7 +8,7 @@ import ProductModel from "../models/products/product.model.js";
 
 describe("Indiafy Database-Driven Marketplace Tests", () => {
     let seller, activeNode, inactiveNode, productFromActiveStore, productFromInactiveStore;
-    const securityKey = process.env.SecurityKey || "kishan@3322";
+    const securityKey = process.env.SecurityKey || "test_dummy_key_2026";
 
     beforeAll(async () => {
         const { databaseConfig } = await import("../config/db.config.js");

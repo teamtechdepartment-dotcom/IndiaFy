@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
+import { initSupportSocket } from "./support.socket.js";
 
 let io;
 
@@ -132,6 +133,9 @@ export const initSocket = (server) => {
         socket.on("disconnect", () => {
             console.log(`Socket disconnected: ${socket.id}`);
         });
+
+        // Initialize support features for this socket
+        initSupportSocket(io, socket, getSocketUser(socket));
     });
 
     return io;

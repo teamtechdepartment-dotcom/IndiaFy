@@ -70,7 +70,7 @@ const ProductCard = ({ product, quantity, onAdd, onInc, onDec }) => {
   const discount = getDiscount(product.mrp, product.price);
 
   return (
-    <div className="group flex flex-col h-full border border-zinc-200 hover:border-brand-primary/40 hover:shadow-lg rounded-xl overflow-hidden transition-all duration-200 p-2.5 sm:p-3 bg-white relative">
+    <div className="group flex flex-col h-full border border-zinc-200 hover:border-brand-primary/40 hover:shadow-lg rounded overflow-hidden transition-all duration-200 p-2.5 sm:p-3 bg-white relative">
       <div
         onClick={() => navigate(`/product/${product.id}`)}
         className="relative aspect-square w-full overflow-hidden cursor-pointer bg-zinc-50 rounded-lg mb-3 flex items-center justify-center"
@@ -153,7 +153,7 @@ const ProductSection = ({ title, products, cart, onAdd, onInc, onDec, onViewAll 
 
   return (
     <section className="px-2 py-3">
-      <div className="w-full bg-white shadow-sm rounded-xl p-4 sm:p-5 border border-zinc-100">
+      <div className="w-full bg-white shadow-sm rounded p-4 sm:p-5 border border-zinc-100">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg md:text-xl font-extrabold text-zinc-900 capitalize">
             {title}
@@ -220,11 +220,11 @@ function CartDrawer({ isOpen, onClose, cartItems, totalPrice, totalSaved, onInc,
                 cartItems.map((item) => {
                   const pId = item.productId?._id || item.productId;
                   return (
-                    <div key={pId} className="flex gap-3 bg-zinc-50 p-3 rounded-2xl border border-zinc-100">
+                    <div key={pId} className="flex gap-3 bg-zinc-50 p-3 rounded border border-zinc-100">
                       <img
                         src={item.productId?.productImage?.[0] || "https://placehold.co/100"}
                         alt={item.productId?.productName}
-                        className="w-14 h-14 object-cover rounded-xl border bg-white"
+                        className="w-14 h-14 object-cover rounded border bg-white"
                       />
                       <div className="flex-1 min-w-0">
                         <h4 className="text-xs font-bold text-zinc-800 truncate">{item.productId?.productName || "Product"}</h4>
@@ -235,7 +235,7 @@ function CartDrawer({ isOpen, onClose, cartItems, totalPrice, totalSaved, onInc,
                         <button onClick={() => onRemove(pId)} className="text-zinc-400 hover:text-red-500">
                           <Trash2 size={14} />
                         </button>
-                        <div className="flex items-center bg-white border border-zinc-200 rounded-xl h-7 shadow-sm">
+                        <div className="flex items-center bg-white border border-zinc-200 rounded h-7 shadow-sm">
                           <button onClick={() => onDec(pId)} className="p-1.5 hover:bg-zinc-100 rounded-l-xl"><Minus size={10} strokeWidth={3} /></button>
                           <span className="w-5 text-center text-[10px] font-extrabold">{item.quantity}</span>
                           <button onClick={() => onInc(pId)} className="p-1.5 hover:bg-zinc-100 rounded-r-xl"><Plus size={10} strokeWidth={3} /></button>
@@ -263,7 +263,7 @@ function CartDrawer({ isOpen, onClose, cartItems, totalPrice, totalSaved, onInc,
                   </div>
                   <button
                     onClick={() => navigate("/checkout")}
-                    className="bg-brand-accent text-white px-6 py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-brand-accent/20 hover:bg-brand-accent-hover"
+                    className="bg-brand-accent text-white px-6 py-3 rounded text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-brand-accent/20 hover:bg-brand-accent-hover"
                   >
                     Checkout <ChevronRight size={14} strokeWidth={3} />
                   </button>

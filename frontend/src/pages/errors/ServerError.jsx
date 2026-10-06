@@ -16,7 +16,7 @@ export default function ServerError() {
           <div className="absolute top-[-50%] left-[-10%] w-64 h-64 bg-[#D4AF37]/15 rounded-full blur-[80px] pointer-events-none" />
           
           <div className="relative z-10 flex flex-col items-center">
-            <div className="w-20 h-20 bg-[#D4AF37]/10 backdrop-blur-md rounded-2xl border border-[#D4AF37]/25 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(212,175,55,0.15)]">
+            <div className="w-20 h-20 bg-[#D4AF37]/10 backdrop-blur-md rounded border border-[#D4AF37]/25 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(212,175,55,0.15)]">
               <ServerCrash size={40} className="text-[#D4AF37]" />
             </div>
             <h1 className="text-4xl font-display font-black text-white tracking-tight mb-2">
@@ -32,7 +32,7 @@ export default function ServerError() {
             We encountered an unexpected issue on our backend services. Our systems operations command center has been notified.
           </p>
 
-          <div className="w-full max-w-xs bg-[#0B1528] border border-[#D4AF37]/15 rounded-xl p-4 mb-10 flex items-center justify-between">
+          <div className="w-full max-w-xs bg-[#0B1528] border border-[#D4AF37]/15 rounded p-4 mb-10 flex items-center justify-between">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Error ID</span>
             <span className="text-xs font-mono font-bold text-[#D4AF37]">{errorId}</span>
           </div>
@@ -40,14 +40,14 @@ export default function ServerError() {
           <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
             <button
               onClick={() => window.location.reload()}
-              className="flex-1 flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-[#AA7C11] to-[#D4AF37] text-black rounded-2xl font-bold uppercase tracking-widest text-[11px] hover:opacity-90 transition-all shadow-lg shadow-[#D4AF37]/10 active:scale-[0.98]"
+              className="flex-1 flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-[#AA7C11] to-[#D4AF37] text-black rounded font-bold uppercase tracking-widest text-[11px] hover:opacity-90 transition-all shadow-lg shadow-[#D4AF37]/10 active:scale-[0.98]"
             >
               <RefreshCw size={16} />
               Retry Request
             </button>
             <Link
               to="/"
-              className="flex-1 flex items-center justify-center gap-2 py-4 bg-transparent text-[#D4AF37] border-2 border-[#D4AF37]/30 rounded-2xl font-bold uppercase tracking-widest text-[11px] hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all active:scale-[0.98]"
+              className="flex-1 flex items-center justify-center gap-2 py-4 bg-transparent text-[#D4AF37] border-2 border-[#D4AF37]/30 rounded font-bold uppercase tracking-widest text-[11px] hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all active:scale-[0.98]"
             >
               <Home size={16} />
               Return Home

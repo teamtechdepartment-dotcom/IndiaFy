@@ -145,7 +145,7 @@ function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Follow Indiafy on ${label}`}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-brand-border text-brand-text-secondary hover:text-white hover:bg-brand-accent hover:border-brand-accent hover:-translate-y-1 transition-all duration-300 shadow-sm"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-brand-border text-brand-text-secondary hover:text-white hover:bg-brand-accent hover:border-brand-accent hover:-trangray-y-1 transition-all duration-300 shadow-sm"
               >
                 <Icon size={16} />
               </a>

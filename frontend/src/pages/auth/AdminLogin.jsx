@@ -83,12 +83,12 @@ function FloatingNode({ delay, icon: Icon, color, label, position }) {
         repeatType: "reverse", 
         ease: "easeInOut" 
       }}
-      className={`absolute ${position} z-10 flex items-center gap-2 p-3 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md shadow-lg border border-slate-200/50 dark:border-slate-800/80`}
+      className={`absolute ${position} z-10 flex items-center gap-2 p-3 rounded bg-white/75 dark:bg-gray-900/75 backdrop-blur-md shadow-lg border border-gray-200/50 dark:border-gray-800/80`}
     >
-      <div className={`p-2 rounded-xl flex items-center justify-center`} style={{ backgroundColor: `${color}15`, color }}>
+      <div className={`p-2 rounded flex items-center justify-center`} style={{ backgroundColor: `${color}15`, color }}>
         <Icon size={16} />
       </div>
-      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">{label}</span>
+      <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 whitespace-nowrap">{label}</span>
     </motion.div>
   );
 }
@@ -99,7 +99,7 @@ export default function AdminLogin() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [securityKey, setSecurityKey] = useState(import.meta.env.VITE_ADMIN_SECURITY_KEY || "");
+  const [securityKey, setSecurityKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -162,7 +162,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen w-full font-sans selection:bg-orange-500 selection:text-white flex items-center justify-center relative overflow-hidden transition-colors duration-350 bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen w-full font-sans selection:bg-[#065F46] selection:text-white flex items-center justify-center relative overflow-hidden transition-colors duration-350 bg-gray-50 dark:bg-gray-950">
       
       {/* ── BACKGROUND LAYERS & AURORA EFFECTS ─────────────────────── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
@@ -209,7 +209,7 @@ export default function AdminLogin() {
 
         {/* Center Accent Radial Glow */}
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
+          className="absolute top-1/2 left-1/2 -trangray-x-1/2 -trangray-y-1/2 w-[600px] h-[600px] rounded-full"
           style={{
             background: isDark
               ? "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 65%)"
@@ -234,9 +234,9 @@ export default function AdminLogin() {
           onClick={handleThemeToggle}
           type="button"
           aria-label="Toggle theme"
-          className="p-3 rounded-full bg-white/70 dark:bg-slate-900/70 border border-slate-200/50 dark:border-slate-800/80 backdrop-blur-md text-slate-700 dark:text-slate-300 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer animate-none"
+          className="p-3 rounded-full bg-white/70 dark:bg-gray-900/70 border border-gray-200/50 dark:border-gray-800/80 backdrop-blur-md text-gray-700 dark:text-gray-300 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer animate-none"
         >
-          {isDark ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-800" />}
+          {isDark ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-gray-800" />}
         </button>
       </div>
 
@@ -246,11 +246,11 @@ export default function AdminLogin() {
           initial={{ opacity: 0, y: 40, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-[750px] shadow-2xl rounded-[32px] border border-slate-200/60 dark:border-slate-800/40 bg-white/60 dark:bg-slate-950/65 backdrop-blur-2xl"
+          className="grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-[750px] shadow-2xl rounded-[32px] border border-gray-200/60 dark:border-gray-800/40 bg-white/60 dark:bg-gray-950/65 backdrop-blur-2xl"
         >
           
           {/* ─── LEFT SIDE — INDIAFY BRAND EXPERIENCE (7 Columns on Large, 6 Columns on Tablet) ─── */}
-          <div className="col-span-1 lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/50 dark:border-slate-800/30">
+          <div className="col-span-1 lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-gray-200/50 dark:border-gray-800/30">
             {/* Background Light Beam effect */}
             <div 
               className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full pointer-events-none opacity-40"
@@ -265,19 +265,19 @@ export default function AdminLogin() {
               <AuthLogo className="mb-6" />
 
               <div className="space-y-4 max-w-xl mt-8">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-orange-100 dark:bg-orange-950/40 border border-orange-200/50 dark:border-orange-900/30 text-orange-600 dark:text-orange-400 shadow-sm">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-orange-100 dark:bg-orange-950/40 border border-orange-200/50 dark:border-orange-900/30 text-[#065F46] dark:text-orange-400 shadow-sm">
                   <Sparkles size={11} className="animate-pulse" />
                   Indiafy Administrative Center v2.5
                 </div>
 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.08]">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.08]">
                   Exclusive <br />
                   <span className="bg-gradient-to-r from-[#2874F0] via-orange-500 to-[#FB641B] bg-clip-text text-transparent">
                     Command Suite
                   </span>
                 </h1>
 
-                <p className="text-slate-600 dark:text-slate-400 text-sm font-medium leading-relaxed max-w-lg mt-3">
+                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium leading-relaxed max-w-lg mt-3">
                   Supervise verified sellers, manage catalog operations, process orders, track platform metrics, and control security workflows across local commerce nodes.
                 </p>
               </div>
@@ -338,7 +338,7 @@ export default function AdminLogin() {
                   ]
                 }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute w-16 h-16 rounded-2xl bg-gradient-to-br from-[#2874F0] to-indigo-600 flex items-center justify-center text-white shadow-xl z-20"
+                className="absolute w-16 h-16 rounded bg-gradient-to-br from-[#2874F0] to-indigo-600 flex items-center justify-center text-white shadow-xl z-20"
               >
                 <ShieldCheck size={28} />
               </motion.div>
@@ -352,7 +352,7 @@ export default function AdminLogin() {
 
             {/* Platform statistics footer */}
             <div className="space-y-4 relative z-10 mt-4">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 block">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 block">
                 Platform Performance Metrics
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -365,10 +365,10 @@ export default function AdminLogin() {
                 ].map((stat, i) => (
                   <div 
                     key={stat.label}
-                    className="p-3 rounded-2xl bg-white/40 dark:bg-slate-900/30 border border-slate-200/40 dark:border-slate-800/40 backdrop-blur-md flex flex-col justify-between"
+                    className="p-3 rounded bg-white/40 dark:bg-gray-900/30 border border-gray-200/40 dark:border-gray-800/40 backdrop-blur-md flex flex-col justify-between"
                   >
-                    <p className="text-sm font-extrabold text-slate-855 dark:text-slate-400 uppercase tracking-wide">{stat.label}</p>
-                    <p className="text-xl font-black text-slate-900 dark:text-white mt-1">
+                    <p className="text-sm font-extrabold text-gray-855 dark:text-gray-400 uppercase tracking-wide">{stat.label}</p>
+                    <p className="text-xl font-black text-gray-900 dark:text-white mt-1">
                       <AnimatedCounter value={stat.value} duration={1.6 + i * 0.1} />
                     </p>
                   </div>
@@ -377,14 +377,14 @@ export default function AdminLogin() {
             </div>
 
             {/* Platform Trust Tagline */}
-            <div className="flex items-center justify-between pt-6 text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-200/50 dark:border-slate-800/30 mt-8">
+            <div className="flex items-center justify-between pt-6 text-[11px] text-gray-500 dark:text-gray-400 border-t border-gray-200/50 dark:border-gray-800/30 mt-8">
               <span className="font-bold uppercase tracking-widest text-[#FB641B]">Empowering India's Local Commerce</span>
               <span className="font-bold opacity-60">ISO 27001 Certified Suite</span>
             </div>
           </div>
 
           {/* ─── RIGHT SIDE — AUTHENTICATION FORM (5 Columns on Large, 6 Columns on Tablet) ─── */}
-          <div className="col-span-1 lg:col-span-5 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-slate-50/50 dark:bg-slate-950/30">
+          <div className="col-span-1 lg:col-span-5 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-gray-50/50 dark:bg-gray-950/30">
             <div>
               {/* Form Header */}
               <div className="mb-8">
@@ -392,10 +392,10 @@ export default function AdminLogin() {
                   <Lock size={12} />
                   Authentication Hub
                 </div>
-                <h2 className="text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">
+                <h2 className="text-3xl font-extrabold text-gray-950 dark:text-white tracking-tight">
                   Welcome Back
                 </h2>
-                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1.5">
+                <p className="text-gray-500 dark:text-gray-400 text-xs font-medium mt-1.5">
                   Sign in to the Indiafy Administration Platform
                 </p>
               </div>
@@ -404,12 +404,12 @@ export default function AdminLogin() {
               <form onSubmit={handleLogin} className="space-y-5">
                 {/* EMAIL */}
                 <div>
-                  <label htmlFor="admin-email" className="block text-[10px] font-black tracking-widest uppercase mb-2 text-slate-600 dark:text-slate-400">
+                  <label htmlFor="admin-email" className="block text-[10px] font-black tracking-widest uppercase mb-2 text-gray-600 dark:text-gray-400">
                     Admin Email Address
                   </label>
                   <div className="relative group">
                     <Mail 
-                      className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 text-slate-400 dark:text-slate-600 group-focus-within:text-[#2874F0]" 
+                      className="absolute left-4 top-1/2 -trangray-y-1/2 transition-colors duration-200 text-gray-400 dark:text-gray-600 group-focus-within:text-[#2874F0]" 
                       size={16} 
                     />
                     <input
@@ -419,7 +419,7 @@ export default function AdminLogin() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="w-full rounded-2xl py-3.5 pl-11 pr-4 text-xs font-medium placeholder-slate-400 dark:placeholder-slate-600 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:border-[#2874F0] focus:ring-4 focus:ring-[#2874F0]/10 dark:focus:ring-[#2874F0]/5"
+                      className="w-full rounded py-3.5 pl-11 pr-4 text-xs font-medium placeholder-gray-400 dark:placeholder-gray-600 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-gray-900 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-[#2874F0] focus:ring-4 focus:ring-[#2874F0]/10 dark:focus:ring-[#2874F0]/5"
                     />
                   </div>
                 </div>
@@ -427,7 +427,7 @@ export default function AdminLogin() {
                 {/* PASSWORD */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label htmlFor="admin-password" className="text-[10px] font-black tracking-widest uppercase text-slate-600 dark:text-slate-400">
+                    <label htmlFor="admin-password" className="text-[10px] font-black tracking-widest uppercase text-gray-600 dark:text-gray-400">
                       Password
                     </label>
                     <a
@@ -440,7 +440,7 @@ export default function AdminLogin() {
                   </div>
                   <div className="relative group">
                     <Lock 
-                      className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 text-slate-400 dark:text-slate-600 group-focus-within:text-[#2874F0]" 
+                      className="absolute left-4 top-1/2 -trangray-y-1/2 transition-colors duration-200 text-gray-400 dark:text-gray-600 group-focus-within:text-[#2874F0]" 
                       size={16} 
                     />
                     <input
@@ -450,12 +450,12 @@ export default function AdminLogin() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="w-full rounded-2xl py-3.5 pl-11 pr-12 text-xs font-medium placeholder-slate-400 dark:placeholder-slate-600 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:border-[#2874F0] focus:ring-4 focus:ring-[#2874F0]/10 dark:focus:ring-[#2874F0]/5"
+                      className="w-full rounded py-3.5 pl-11 pr-12 text-xs font-medium placeholder-gray-400 dark:placeholder-gray-600 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-gray-900 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-[#2874F0] focus:ring-4 focus:ring-[#2874F0]/10 dark:focus:ring-[#2874F0]/5"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 transition-colors rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400 cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -trangray-y-1/2 p-1.5 transition-colors rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 cursor-pointer"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -465,7 +465,7 @@ export default function AdminLogin() {
                 {/* ADMIN SECURITY KEY */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label htmlFor="admin-security-key" className="text-[10px] font-black tracking-widest uppercase text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                    <label htmlFor="admin-security-key" className="text-[10px] font-black tracking-widest uppercase text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
                       <KeyRound size={12} className="text-[#FB641B]" />
                       Admin Security Key
                     </label>
@@ -475,7 +475,7 @@ export default function AdminLogin() {
                   </div>
                   <div className="relative group">
                     <KeyRound 
-                      className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 text-slate-400 dark:text-slate-600 group-focus-within:text-[#FB641B]" 
+                      className="absolute left-4 top-1/2 -trangray-y-1/2 transition-colors duration-200 text-gray-400 dark:text-gray-600 group-focus-within:text-[#FB641B]" 
                       size={16} 
                     />
                     <input
@@ -485,12 +485,12 @@ export default function AdminLogin() {
                       onChange={(e) => setSecurityKey(e.target.value)}
                       required
                       autoComplete="off"
-                      className="w-full rounded-2xl py-3.5 pl-11 pr-12 text-xs font-medium placeholder-slate-400 dark:placeholder-slate-600 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:border-[#FB641B] focus:ring-4 focus:ring-[#FB641B]/10 dark:focus:ring-[#FB641B]/5"
+                      className="w-full rounded py-3.5 pl-11 pr-12 text-xs font-medium placeholder-gray-400 dark:placeholder-gray-600 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-gray-900 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-[#FB641B] focus:ring-4 focus:ring-[#FB641B]/10 dark:focus:ring-[#FB641B]/5"
                     />
                     <button
                       type="button"
                       onClick={() => setShowSecurityKey((p) => !p)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 transition-colors rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400 cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -trangray-y-1/2 p-1.5 transition-colors rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 cursor-pointer"
                     >
                       {showSecurityKey ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -504,10 +504,10 @@ export default function AdminLogin() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded cursor-pointer border-slate-300 dark:border-slate-800 text-[#2874F0] focus:ring-[#2874F0]/20"
+                    className="w-4 h-4 rounded cursor-pointer border-gray-300 dark:border-gray-800 text-[#2874F0] focus:ring-[#2874F0]/20"
                     style={{ accentColor: "#2874F0" }}
                   />
-                  <label htmlFor="remember-me" className="text-xs font-bold cursor-pointer select-none text-slate-500 dark:text-slate-400">
+                  <label htmlFor="remember-me" className="text-xs font-bold cursor-pointer select-none text-gray-500 dark:text-gray-400">
                     Keep me signed in
                   </label>
                 </div>
@@ -520,7 +520,7 @@ export default function AdminLogin() {
                       animate={{ opacity: 1, y: 0, scale: 1, x: [0, -6, 6, -4, 4, 0] }}
                       exit={{ opacity: 0, y: -8 }}
                       transition={{ duration: 0.4 }}
-                      className="p-4 rounded-2xl flex items-center gap-3 text-xs font-semibold bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 text-red-600 dark:text-red-400"
+                      className="p-4 rounded flex items-center gap-3 text-xs font-semibold bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 text-red-600 dark:text-red-400"
                     >
                       <ShieldAlert size={16} className="shrink-0" />
                       <span>{error}</span>
@@ -533,7 +533,7 @@ export default function AdminLogin() {
                   type="submit"
                   disabled={loading}
                   whileTap={{ scale: 0.98 }}
-                  className="relative overflow-hidden w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-white bg-gradient-to-r from-[#FB641B] via-orange-500 to-[#F0570F] shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer border-0"
+                  className="relative overflow-hidden w-full py-4 rounded text-xs font-black uppercase tracking-widest text-white bg-gradient-to-r from-[#FB641B] via-orange-500 to-[#F0570F] shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer border-0"
                 >
                   {loading ? (
                     <>
@@ -555,15 +555,15 @@ export default function AdminLogin() {
             </div>
 
             {/* Footer Control Info */}
-            <div className="mt-8 pt-6 flex justify-between items-center text-[11px] border-t border-slate-200/50 dark:border-slate-800/30">
+            <div className="mt-8 pt-6 flex justify-between items-center text-[11px] border-t border-gray-200/50 dark:border-gray-800/30">
               <Link
                 to="/"
-                className="font-bold flex items-center gap-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors"
+                className="font-bold flex items-center gap-1.5 text-gray-500 hover:text-gray-900 dark:text-gray-500 dark:hover:text-white transition-colors"
               >
                 <ArrowLeft size={12} />
                 Back to Marketplace
               </Link>
-              <span className="font-extrabold text-slate-400 dark:text-slate-600">v2.5.0-Enterprise</span>
+              <span className="font-extrabold text-gray-400 dark:text-gray-600">v2.5.0-Enterprise</span>
             </div>
           </div>
           

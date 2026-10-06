@@ -3,13 +3,13 @@ import React from "react";
 export function Skeleton({ className = "", ...props }) {
   return (
     <div
-      className={`relative overflow-hidden bg-slate-200 dark:bg-slate-800 rounded-xl ${className}`}
+      className={`relative overflow-hidden bg-gray-200 dark:bg-gray-800 rounded ${className}`}
       aria-busy="true"
       role="status"
       {...props}
     >
       <div
-        className="absolute inset-0 -translate-x-full"
+        className="absolute inset-0 -trangray-x-full"
         style={{
           backgroundImage:
             "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",

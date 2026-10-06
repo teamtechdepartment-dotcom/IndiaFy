@@ -95,7 +95,7 @@ function Hero() {
   const currentBanner = bannersList[currentIndex] || bannersList[0] || defaultBanners[0];
 
   return (
-    <div className="relative w-full max-w-[1600px] mx-auto mt-[104px] md:mt-[68px] lg:mt-[116px] bg-brand-background px-2 sm:px-4 py-2 group">
+    <div className="relative w-full max-w-[1600px] mx-auto bg-[#f1f2f4] px-2 sm:px-4 group">
       {/* Carousel Container */}
       <div className="relative h-[200px] sm:h-[300px] md:h-[400px] lg:h-[450px] w-full overflow-hidden rounded-md shadow-sm bg-gray-200">
         <AnimatePresence initial={false} mode="wait">
@@ -116,7 +116,7 @@ function Hero() {
             
             {/* Banner Content */}
             <div className="absolute inset-0 z-20 flex flex-col justify-center items-start px-4 sm:px-8 md:px-16 lg:px-24">
-              <span className="px-3 py-1 bg-brand-accent text-white text-xs font-bold uppercase rounded-sm mb-3 md:mb-4 shadow-sm flex items-center gap-1.5">
+              <span className="px-3 py-1 bg-[#ea580c] text-white text-xs font-bold uppercase rounded-sm mb-3 md:mb-4 shadow-sm flex items-center gap-1.5">
                 {currentBanner.badgeText || "Limited Time Offer"}
               </span>
               <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 max-w-2xl leading-tight">
@@ -127,7 +127,7 @@ function Hero() {
               </p>
               <button 
                 onClick={() => navigate(currentBanner.link || '/search')}
-                className="bg-white text-brand-primary px-6 sm:px-8 py-2.5 sm:py-3 rounded-sm font-bold shadow-md hover:bg-gray-100 transition-colors text-sm sm:text-base cursor-pointer hover:scale-105 active:scale-95 duration-150"
+                className="bg-white text-[#065F46] px-6 sm:px-8 py-2.5 sm:py-3 rounded-sm font-bold shadow-md hover:bg-gray-100 transition-colors text-sm sm:text-base cursor-pointer hover:scale-105 active:scale-95 duration-150"
               >
                 Shop Now
               </button>

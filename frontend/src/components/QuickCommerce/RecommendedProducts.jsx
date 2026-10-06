@@ -33,9 +33,9 @@ export default function RecommendedProducts({ cart, onAdd, onInc, onDec, items =
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="shrink-0 w-[140px] sm:w-[160px] bg-zinc-50 rounded-2xl p-2.5 border border-zinc-100 hover:border-brand-accent/20 hover:shadow-sm transition-all group"
+                className="shrink-0 w-[140px] sm:w-[160px] bg-zinc-50 rounded p-2.5 border border-zinc-100 hover:border-brand-accent/20 hover:shadow-sm transition-all group"
               >
-                <div className="w-full aspect-square bg-white rounded-xl mb-2 overflow-hidden border border-zinc-100/50 relative">
+                <div className="w-full aspect-square bg-white rounded mb-2 overflow-hidden border border-zinc-100/50 relative">
                   <img
                     src={item.img}
                     alt={item.name}

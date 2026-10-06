@@ -17,7 +17,7 @@ export function HeroSkeleton() {
             
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <SkeletonButton className="h-14 w-full sm:w-48" />
-              <SkeletonButton className="h-14 w-full sm:w-40 bg-slate-100" />
+              <SkeletonButton className="h-14 w-full sm:w-40 bg-gray-100" />
             </div>
 
             <div className="pt-8 flex items-center gap-6">
@@ -29,12 +29,12 @@ export function HeroSkeleton() {
 
           {/* Right Content Area / Images */}
           <div className="relative">
-            <Skeleton className="w-full aspect-[4/3] lg:aspect-square rounded-[2rem]" />
+            <Skeleton className="w-full aspect-[4/3] lg:aspect-square rounded" />
             <div className="absolute -bottom-8 -left-8 hidden md:block">
-              <Skeleton className="w-64 h-48 rounded-2xl shadow-xl" />
+              <Skeleton className="w-64 h-48 rounded shadow-xl" />
             </div>
             <div className="absolute -top-8 -right-8 hidden md:block">
-              <Skeleton className="w-48 h-48 rounded-2xl shadow-xl" />
+              <Skeleton className="w-48 h-48 rounded shadow-xl" />
             </div>
           </div>
         </div>

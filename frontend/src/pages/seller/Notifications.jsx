@@ -52,11 +52,11 @@ const timeAgo = (dateStr) => {
 
 const getIcon = (type) => {
   const base =
-    "p-3 rounded-2xl border flex items-center justify-center shadow-sm shrink-0";
+    "p-3 rounded border flex items-center justify-center shadow-sm shrink-0";
   switch (type) {
     case "order":
       return (
-        <div className={`${base} bg-blue-50 border-blue-100 text-blue-600`}>
+        <div className={`${base} bg-blue-50 border-blue-100 text-[#065F46]`}>
           <Package size={20} />
         </div>
       );
@@ -85,7 +85,7 @@ const getIcon = (type) => {
     case "system":
       return (
         <div
-          className={`${base} bg-purple-50 border-purple-100 text-purple-600`}
+          className={`${base} bg-purple-50 border-purple-100 text-[#065F46]`}
         >
           <Megaphone size={20} />
         </div>
@@ -100,7 +100,7 @@ const getIcon = (type) => {
       );
     default:
       return (
-        <div className={`${base} bg-slate-50 border-slate-200 text-slate-600`}>
+        <div className={`${base} bg-gray-50 border-gray-200 text-gray-600`}>
           <Bell size={20} />
         </div>
       );
@@ -268,19 +268,19 @@ export default function Notifications() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sticky top-0 bg-slate-50/80 backdrop-blur-xl py-4 z-20 border-b border-slate-200/60 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sticky top-0 bg-gray-50/80 backdrop-blur-xl py-4 z-20 border-b border-gray-200/60 -mx-4 px-4 sm:mx-0 sm:px-0">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
             Notifications
             {unreadCount > 0 && (
-              <span className="bg-slate-900 text-white text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-widest">
+              <span className="bg-[#065F46] text-white text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-widest">
                 {unreadCount} New
               </span>
             )}
           </h1>
-          <p className="text-slate-500 text-sm mt-1 font-medium">
+          <p className="text-gray-500 text-sm mt-1 font-medium">
             Live activity for{" "}
-            <span className="font-bold text-slate-700">
+            <span className="font-bold text-gray-700">
               {activeNode?.storeName || "this node"}
             </span>
             .
@@ -291,7 +291,7 @@ export default function Notifications() {
           <button
             onClick={refresh}
             disabled={refreshing || ordersLoading}
-            className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 hover:text-slate-900 rounded-xl font-bold text-xs shadow-sm transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 text-gray-600 hover:text-gray-900 rounded font-bold text-xs shadow-sm transition-all disabled:opacity-50"
           >
             <RefreshCw
               size={12}
@@ -302,7 +302,7 @@ export default function Notifications() {
           <button
             onClick={markAllAsRead}
             disabled={unreadCount === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-bold text-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded font-bold text-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Check size={14} />
             Mark all read
@@ -312,11 +312,11 @@ export default function Notifications() {
 
       {/* LOADING */}
       {(ordersLoading || refreshing) && allNotifications.length === 0 && (
-        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/60 overflow-hidden">
-          <div className="divide-y divide-slate-100">
+        <div className="bg-white rounded shadow-sm ring-1 ring-gray-200/60 overflow-hidden">
+          <div className="divide-y divide-gray-100">
              {[...Array(3)].map((_, i) => (
                 <div key={i} className="p-5 sm:p-6 flex items-start gap-4 sm:gap-5">
-                   <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
+                   <Skeleton className="w-12 h-12 rounded shrink-0" />
                    <div className="flex-1 space-y-3">
                       <Skeleton className="w-1/3 h-5" />
                       <Skeleton className="w-full h-4" />
@@ -329,8 +329,8 @@ export default function Notifications() {
       )}
 
       {/* NOTIFICATIONS LIST */}
-      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/60 overflow-hidden">
-        <div className="divide-y divide-slate-100">
+      <div className="bg-white rounded shadow-sm ring-1 ring-gray-200/60 overflow-hidden">
+        <div className="divide-y divide-gray-100">
           {allNotifications.length > 0 ? (
             allNotifications.map((notif) => {
               const isUnread = notif.unread;
@@ -341,7 +341,7 @@ export default function Notifications() {
                   className={`p-5 sm:p-6 flex items-start gap-4 sm:gap-5 transition-colors cursor-pointer ${
                     isUnread
                       ? "bg-blue-50/30 hover:bg-blue-50/60"
-                      : "bg-white hover:bg-slate-50/40"
+                      : "bg-white hover:bg-gray-50/40"
                   }`}
                 >
                   {/* Icon with badge */}
@@ -357,18 +357,18 @@ export default function Notifications() {
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-4 mb-1.5">
                       <h3
                         className={`text-base font-bold ${
-                          isUnread ? "text-slate-900" : "text-slate-700"
+                          isUnread ? "text-gray-900" : "text-gray-700"
                         }`}
                       >
                         {notif.title}
                       </h3>
-                      <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 whitespace-nowrap">
+                      <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider shrink-0 whitespace-nowrap">
                         <Clock size={12} />
                         {notif.time}
                       </span>
                     </div>
 
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-2xl">
+                    <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-2xl">
                       {notif.desc}
                     </p>
 
@@ -380,12 +380,12 @@ export default function Notifications() {
                           markAsRead(notif.id);
                           navigate("orders");
                         }}
-                        className="mt-3 flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 px-3 py-1.5 rounded-xl shadow-sm transition-all group"
+                        className="mt-3 flex items-center gap-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 px-3 py-1.5 rounded shadow-sm transition-all group"
                       >
                         View Order
                         <ArrowRight
                           size={12}
-                          className="group-hover:translate-x-0.5 transition-transform"
+                          className="group-hover:trangray-x-0.5 transition-transform"
                         />
                       </button>
                     )}
@@ -397,12 +397,12 @@ export default function Notifications() {
                           markAsRead(notif.id);
                           navigate("inventory");
                         }}
-                        className="mt-3 flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200/60 hover:bg-amber-100 px-3 py-1.5 rounded-xl shadow-sm transition-all group"
+                        className="mt-3 flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200/60 hover:bg-amber-100 px-3 py-1.5 rounded shadow-sm transition-all group"
                       >
                         Update Inventory
                         <ArrowRight
                           size={12}
-                          className="group-hover:translate-x-0.5 transition-transform"
+                          className="group-hover:trangray-x-0.5 transition-transform"
                         />
                       </button>
                     )}
@@ -412,11 +412,11 @@ export default function Notifications() {
             })
           ) : (
             <div className="p-12 text-center">
-              <Bell className="mx-auto text-slate-300 mb-4" size={40} />
-              <h3 className="text-lg font-bold text-slate-900">
+              <Bell className="mx-auto text-gray-300 mb-4" size={40} />
+              <h3 className="text-lg font-bold text-gray-900">
                 You're all caught up!
               </h3>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 No new notifications at the moment.
               </p>
             </div>
@@ -427,11 +427,11 @@ export default function Notifications() {
       {/* End indicator */}
       {allNotifications.length > 0 && (
         <div className="flex items-center justify-center gap-4 pt-2 pb-4 pointer-events-none">
-          <div className="h-px bg-slate-200 flex-1 max-w-[100px]" />
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="h-px bg-gray-200 flex-1 max-w-[100px]" />
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
             End of notifications
           </p>
-          <div className="h-px bg-slate-200 flex-1 max-w-[100px]" />
+          <div className="h-px bg-gray-200 flex-1 max-w-[100px]" />
         </div>
       )}
     </div>

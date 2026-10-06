@@ -49,9 +49,9 @@ function StoreCard({ store, onClick, index }) {
           {/* Store Logo */}
           <div className="absolute bottom-3 left-3">
             {store.logo ? (
-              <img loading="lazy" decoding="async" src={store.logo} alt={store.storeName} className="w-10 h-10 rounded-xl object-cover bg-white border-2 border-white shadow-md" />
+              <img loading="lazy" decoding="async" src={store.logo} alt={store.storeName} className="w-10 h-10 rounded object-cover bg-white border-2 border-white shadow-md" />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-white border-2 border-white shadow-md flex items-center justify-center text-sm font-bold text-brand-primary">
+              <div className="w-10 h-10 rounded bg-white border-2 border-white shadow-md flex items-center justify-center text-sm font-bold text-brand-primary">
                 {store.storeName?.[0]}
               </div>
             )}
@@ -166,7 +166,7 @@ export default function VerifiedStores() {
       <section className="py-section-mobile md:py-section-tablet lg:py-20 bg-white">
         <div className="section-container text-center">
           <div className="max-w-sm mx-auto">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-brand-background flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded bg-brand-background flex items-center justify-center">
               <Store size={28} className="text-brand-text-secondary" />
             </div>
             <h2 className="text-xl font-bold text-brand-primary mb-2">No stores yet</h2>
@@ -223,7 +223,7 @@ export default function VerifiedStores() {
         {/* Mobile View All */}
         <button
           onClick={() => navigate("/stores")}
-          className="md:hidden flex items-center justify-center gap-2 w-full mt-6 py-3 text-sm font-semibold text-brand-accent border border-brand-accent/20 rounded-xl hover:bg-emerald-50 transition-colors"
+          className="md:hidden flex items-center justify-center gap-2 w-full mt-6 py-3 text-sm font-semibold text-brand-accent border border-brand-accent/20 rounded hover:bg-emerald-50 transition-colors"
         >
           View All Stores <ArrowRight size={16} />
         </button>

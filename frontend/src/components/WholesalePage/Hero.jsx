@@ -64,7 +64,7 @@ function Hero() {
 
           {/* Right Sourcing Widget */}
           <div className="lg:col-span-5 w-full">
-            <div className="bg-white rounded-xl shadow-lg border border-brand-border p-6 relative">
+            <div className="bg-white rounded shadow-lg border border-brand-border p-6 relative">
                <div className="absolute top-0 left-0 w-full h-1 bg-brand-primary rounded-t-xl"></div>
                <h2 className="text-xl font-bold text-brand-text-primary mb-6">Quick Sourcing</h2>
                
@@ -72,7 +72,7 @@ function Hero() {
                  <div>
                    <label className="block text-xs font-semibold text-brand-text-secondary uppercase mb-1.5">What are you looking for?</label>
                    <div className="relative">
-                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                     <Search size={18} className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
                      <input type="text" placeholder="Search suppliers, products or brands..." className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-brand-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary focus:bg-white transition-colors" />
                    </div>
                  </div>
@@ -81,7 +81,7 @@ function Hero() {
                    <div>
                      <label className="block text-xs font-semibold text-brand-text-secondary uppercase mb-1.5">Category</label>
                      <div className="relative">
-                       <Grid size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                       <Grid size={18} className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
                        <select className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-brand-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary focus:bg-white transition-colors appearance-none">
                          <option value="">All Categories</option>
                          <option value="fmcg">FMCG</option>
@@ -94,7 +94,7 @@ function Hero() {
                    <div>
                      <label className="block text-xs font-semibold text-brand-text-secondary uppercase mb-1.5">Min MOQ</label>
                      <div className="relative">
-                       <Package size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                       <Package size={18} className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
                        <input type="number" placeholder="e.g. 50" className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-brand-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary focus:bg-white transition-colors" />
                      </div>
                    </div>
@@ -103,7 +103,7 @@ function Hero() {
                  <div>
                    <label className="block text-xs font-semibold text-brand-text-secondary uppercase mb-1.5">Delivery Location</label>
                    <div className="relative">
-                     <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                     <MapPin size={18} className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
                      <input type="text" placeholder="Enter Pincode or City" className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-brand-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary focus:bg-white transition-colors" />
                    </div>
                  </div>

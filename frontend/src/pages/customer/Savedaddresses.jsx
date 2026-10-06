@@ -79,24 +79,20 @@ export default function SavedAddresses() {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-[#f1f2f4] min-h-screen text-gray-700 font-sans">
       <WebsiteNavbar />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-32 pb-24">
-
-      {/* Background Blobs for Hero Theme */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-0">
-        <div className="absolute top-[-10%] right-[10%] w-[50vw] h-[50vw] bg-gradient-to-br from-emerald-100/50 to-teal-100/30 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[20%] left-[-10%] w-[40vw] h-[40vw] bg-gradient-to-tr from-blue-100/40 to-indigo-100/20 rounded-full blur-[100px]" />
-      </div>
+      
+      {/* Background Blobs Removed for Flat UI */}
       
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <h1 className="text-5xl font-black text-slate-900 tracking-tighter">
-              My <span className="text-slate-700 italic">Locations</span>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+              My <span className="text-[#065F46]">Locations</span>
             </h1>
-            <p className="mt-2 font-medium text-slate-500">
+            <p className="mt-2 text-sm font-medium text-gray-500">
               Manage your verified sector-mapped delivery addresses.
             </p>
           </div>
@@ -105,7 +101,7 @@ export default function SavedAddresses() {
               setEditingAddr(null);
               setIsModalOpen(true);
             }}
-            className="flex items-center justify-center gap-3 px-8 py-4 bg-white shadow-sm border border-slate-200 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl hover:bg-slate-100 border border-slate-200 transition-all"
+            className="flex items-center justify-center gap-3 px-6 py-3 bg-[#065F46] text-white rounded font-bold uppercase tracking-widest text-xs shadow-sm hover:bg-[#047857] transition-all"
           >
             <Plus size={18} /> Add New Address
           </button>
@@ -121,56 +117,56 @@ export default function SavedAddresses() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className={`group relative p-8 rounded-[2.5rem] border-2 transition-all ${index === 0 ? "border-zinc-900 bg-zinc-50" : "border-zinc-100 hover:border-zinc-300"}`}
+                className={`group relative p-6 bg-white shadow-sm rounded border transition-all ${index === 0 ? "border-[#065F46] hover:border-[#065F46]" : "border-gray-200 hover:border-[#065F46]/30"}`}
               >
-                <div className="flex justify-between items-start mb-6">
+                <div className="flex justify-between items-start mb-4">
                   <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center ${index === 0 ? "bg-white shadow-sm border border-slate-200 text-slate-900" : "bg-slate-100 text-slate-600"}`}
+                    className={`w-10 h-10 rounded flex items-center justify-center border ${index === 0 ? "bg-[#065F46]/10 border-[#065F46]/20 text-[#065F46]" : "bg-gray-50 border-gray-200 text-gray-500"}`}
                   >
                     <MapPin size={18} />
                   </div>
                   {index === 0 && (
-                    <span className="px-3 py-1 bg-white shadow-sm border border-slate-200 text-slate-900 text-[9px] font-black uppercase rounded-full tracking-widest">
+                    <span className="px-3 py-1 bg-[#065F46]/10 text-[#065F46] text-[10px] font-bold uppercase rounded tracking-widest border border-[#065F46]/20">
                       Default
                     </span>
                   )}
                 </div>
 
-                <div className="space-y-1 mb-8">
-                  <h3 className="text-xl font-bold text-slate-900">
+                <div className="space-y-1 mb-6">
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">
                     {addr.nearBy}
                   </h3>
-                  <p className="text-sm font-bold text-slate-600 uppercase tracking-tighter">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
                     {profile?.firstName}
                   </p>
-                  <p className="text-sm text-slate-500 leading-relaxed mt-2">
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">
                     {addr.street}, {addr.city}, {addr.state}
                   </p>
-                  <p className="text-xs font-black text-slate-900 mt-2">
+                  <p className="text-xs font-bold text-gray-900 mt-2">
                     {profile?.contact}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 pt-6 border-t border-zinc-200/50">
+                <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
                   <button
                     onClick={() => handleDelete(addr._id)}
-                    className="p-3 text-slate-600 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    className="p-2 text-gray-500 hover:text-red-500 transition-colors"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} />
                   </button>
                   <button
                     onClick={() => {
                       setEditingAddr(addr);
                       setIsModalOpen(true);
                     }}
-                    className="p-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                    className="p-2 text-gray-500 hover:text-[#065F46] transition-colors"
                   >
-                    <Edit3 size={18} />
+                    <Edit3 size={16} />
                   </button>
                   {index !== 0 && (
                     <button
                       onClick={() => setAsDefault(addr._id)}
-                      className="ml-auto text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-900 transition-all"
+                      className="ml-auto text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#065F46] transition-colors"
                     >
                       Set Default
                     </button>
@@ -186,41 +182,18 @@ export default function SavedAddresses() {
               setEditingAddr(null);
               setIsModalOpen(true);
             }}
-            className="flex flex-col items-center justify-center p-8 rounded-[2.5rem] border-2 border-dashed border-zinc-200 hover:border-zinc-400 hover:bg-zinc-50 transition-all group min-h-[300px]"
+            className="flex flex-col items-center justify-center p-6 bg-white shadow-sm rounded border border-dashed border-gray-300 hover:border-[#065F46] hover:bg-gray-50 transition-all group min-h-[250px]"
           >
-            <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 group-hover:scale-110 transition-transform mb-4">
-              <Plus size={32} />
+            <div className="w-10 h-10 rounded bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 group-hover:text-[#065F46] transition-colors mb-3">
+              <Plus size={24} />
             </div>
-            <p className="text-sm font-black uppercase tracking-widest text-slate-600">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
               Add Location
             </p>
           </button>
         </div>
 
-        {/* Verification Banner */}
-        <div className="mt-20 p-10 bg-white rounded-[3rem] text-slate-900 overflow-hidden relative shadow-2xl">
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="max-w-lg">
-              <div className="flex items-center gap-3 mb-4">
-                <ShieldCheck size={32} className="text-emerald-400" />
-                <h4 className="text-xl font-black uppercase tracking-widest">
-                  Sector Verification
-                </h4>
-              </div>
-              <p className="text-slate-600 font-medium leading-relaxed">
-                Indiafy uses automated sector-mapping to ensure every address is
-                within our 10-25 mins operational territory. Verified locations
-                get priority logistics assignment.
-              </p>
-            </div>
-            <button className="px-10 py-5 bg-white text-slate-900 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all">
-              Learn More
-            </button>
-          </div>
-          <div className="absolute right-0 top-0 opacity-10 -rotate-12 translate-x-10 translate-y-[-20%]">
-            <Navigation size={300} />
-          </div>
-        </div>
+        {/* Verification Banner Removed For Cleanliness */}
       </main>
 
       {/* MODAL OVERLAY */}
@@ -235,58 +208,58 @@ export default function SavedAddresses() {
               className="absolute inset-0 bg-white/60 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, y: 100, scale: 0.9 }}
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 100, scale: 0.9 }}
-              className="relative w-full max-w-xl bg-white rounded-[3rem] p-10 md:p-14 overflow-hidden"
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              className="relative w-full max-w-xl bg-white shadow-lg border border-gray-200 rounded p-6 md:p-8 overflow-hidden"
             >
-              <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-8">
+              <h2 className="text-lg font-bold text-gray-900 tracking-widest uppercase mb-6">
                 {editingAddr ? "Edit Location" : "New Location"}
               </h2>
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input
                     value={label}
                     onChange={e => setLabel(e.target.value)}
                     placeholder="Label (e.g. Home)"
-                    className="w-full bg-zinc-50 border-0 rounded-2xl px-6 py-4 font-bold text-sm focus:ring-2 focus:ring-zinc-900"
+                    className="w-full bg-white border border-gray-200 rounded px-4 py-3 font-medium text-sm text-gray-900 focus:outline-none focus:border-[#065F46] transition-colors"
                   />
                   <input
                     value={city}
                     onChange={e => setCity(e.target.value)}
                     placeholder="City"
-                    className="w-full bg-zinc-50 border-0 rounded-2xl px-6 py-4 font-bold text-sm focus:ring-2 focus:ring-zinc-900"
+                    className="w-full bg-white border border-gray-200 rounded px-4 py-3 font-medium text-sm text-gray-900 focus:outline-none focus:border-[#065F46] transition-colors"
                   />
                 </div>
                 <input
                   value={street}
                   onChange={e => setStreet(e.target.value)}
                   placeholder="Street Address / Building"
-                  className="w-full bg-zinc-50 border-0 rounded-2xl px-6 py-4 font-bold text-sm focus:ring-2 focus:ring-zinc-900"
+                  className="w-full bg-white border border-gray-200 rounded px-4 py-3 font-medium text-sm text-gray-900 focus:outline-none focus:border-[#065F46] transition-colors"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input
                     value={pin}
                     onChange={e => setPin(e.target.value)}
                     placeholder="PIN Code"
-                    className="w-full bg-zinc-50 border-0 rounded-2xl px-6 py-4 font-bold text-sm focus:ring-2 focus:ring-zinc-900"
+                    className="w-full bg-white border border-gray-200 rounded px-4 py-3 font-medium text-sm text-gray-900 focus:outline-none focus:border-[#065F46] transition-colors"
                   />
                   <input
                     value={stateForm}
                     onChange={e => setStateForm(e.target.value)}
                     placeholder="State"
-                    className="w-full bg-zinc-50 border-0 rounded-2xl px-6 py-4 font-bold text-sm focus:ring-2 focus:ring-zinc-900"
+                    className="w-full bg-white border border-gray-200 rounded px-4 py-3 font-medium text-sm text-gray-900 focus:outline-none focus:border-[#065F46] transition-colors"
                   />
                 </div>
-                <button onClick={handleSave} className="w-full py-5 bg-white shadow-sm border border-slate-200 text-slate-900 rounded-[2rem] font-black uppercase tracking-widest text-xs mt-4 shadow-xl">
-                  {editingAddr ? "Update Address" : "Verify & Save Address"}
+                <button onClick={handleSave} className="w-full py-3 bg-[#065F46] text-white rounded font-bold uppercase tracking-widest text-xs shadow-sm hover:bg-[#047857] transition-all mt-4">
+                  {editingAddr ? "Update Address" : "Save Address"}
                 </button>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-10 right-10 text-slate-700 hover:text-slate-900 transition-colors"
+                className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 transition-colors"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </motion.div>
           </div>
