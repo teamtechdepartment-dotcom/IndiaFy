@@ -34,7 +34,12 @@ router.post(
   supportCtrl.createConversation
 );
 router.get("/conversations", supportCtrl.getConversations);
-router.get("/conversations/:id", supportCtrl.getConversationDetails);
+router.get(
+  "/conversations/:id",
+  supportValidator.validateGetConversation,
+  validateResult,
+  supportCtrl.getConversationDetails
+);
 
 // Messages (Pagination & Create)
 router.get(
@@ -72,6 +77,8 @@ router.put(
 router.post(
   "/conversations/:id/callback",
   conversationLimiter,
+  supportValidator.validateRequestCallback,
+  validateResult,
   supportCtrl.requestCallback
 );
 
@@ -84,18 +91,24 @@ router.get(
 
 router.put(
   "/callbacks/:id/status",
+  supportValidator.validateUpdateCallbackStatus,
+  validateResult,
   supportCtrl.updateCallbackStatus
 );
 
 router.post(
   "/callbacks/:id/assign",
   permissionGuard("tickets:write"),
+  supportValidator.validateAssignCallback,
+  validateResult,
   supportCtrl.assignCallback
 );
 
 router.post(
   "/callbacks/:id/start-call",
   permissionGuard("tickets:write"),
+  supportValidator.validateStartCallbackCall,
+  validateResult,
   supportCtrl.startCallbackCall
 );
 

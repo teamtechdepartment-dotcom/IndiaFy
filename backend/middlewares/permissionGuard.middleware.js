@@ -54,6 +54,53 @@ const fallbackRolePermissions = {
   ]
 };
 
+export const checkUserPermission = async (user, requiredPermission) => {
+  if (!user) return false;
+
+  // Check user role from JWT token or user object
+  const rawRole = (user.role || "").trim();
+  const userRole = rawRole.toUpperCase().replace(/\s+/g, "_");
+
+  // If user has super admin role, grant full access bypass
+  if (
+    userRole === "SUPER_ADMIN" ||
+    userRole === "SUPERADMIN" ||
+    user.isSuperAdmin
+  ) {
+    return true;
+  }
+
+  const writeEquivalent = requiredPermission.replace(":read", ":write");
+
+  // If explicit permissions array is provided on user object, enforce it directly
+  if (Array.isArray(user.permissions)) {
+    const hasImpliedRead = requiredPermission.endsWith(":read") && user.permissions.includes(writeEquivalent);
+    return user.permissions.includes("*") || user.permissions.includes(requiredPermission) || hasImpliedRead;
+  }
+
+  // Otherwise, determine permissions from DB AdminRole
+  try {
+    const dbRole = await AdminRole.findOne({
+      roleName: { $regex: new RegExp(`^${userRole}$`, "i") },
+    });
+
+    if (dbRole && Array.isArray(dbRole.permissions)) {
+      const hasImpliedRead = requiredPermission.endsWith(":read") && dbRole.permissions.includes(writeEquivalent);
+      return dbRole.permissions.includes("*") || dbRole.permissions.includes(requiredPermission) || hasImpliedRead;
+    }
+  } catch (dbErr) {
+    console.warn("[PermissionGuard] DB role query failed, using fallback:", dbErr.message);
+  }
+
+  // Fallback defaults for standard operational roles
+  const fallback =
+    fallbackRolePermissions[userRole] ||
+    (userRole.includes("ADMIN") ? fallbackRolePermissions.ADMIN : []);
+
+  const hasImpliedRead = requiredPermission.endsWith(":read") && fallback.includes(writeEquivalent);
+  return fallback.includes("*") || fallback.includes(requiredPermission) || hasImpliedRead;
+};
+
 const permissionGuard = (requiredPermission) => {
   return async (req, res, next) => {
     try {
@@ -61,42 +108,8 @@ const permissionGuard = (requiredPermission) => {
         return res.status(401).json(new ApiError(401, "Authentication required"));
       }
 
-      // Check user role from JWT token
-      const rawRole = (req.user.role || "").trim();
-      const userRole = rawRole.toUpperCase().replace(/\s+/g, "_");
-
-      // If user has super admin role, grant full access bypass
-      if (
-        userRole === "SUPER_ADMIN" ||
-        userRole === "SUPERADMIN" ||
-        req.user.isSuperAdmin
-      ) {
-        return next();
-      }
-
-      // Determine fallback permissions for this role
-      const fallback =
-        fallbackRolePermissions[userRole] ||
-        (userRole.includes("ADMIN") ? fallbackRolePermissions.ADMIN : []);
-
-      // Start with fallback defaults to ensure existing admins receive new fallback permissions (e.g. campaigns:read/write)
-      let permissions = [...fallback];
-
-      try {
-        const dbRole = await AdminRole.findOne({
-          roleName: { $regex: new RegExp(`^${userRole}$`, "i") },
-        });
-
-        if (dbRole && Array.isArray(dbRole.permissions)) {
-          // Merge database permissions with fallback permissions
-          permissions = Array.from(new Set([...permissions, ...dbRole.permissions]));
-        }
-      } catch (dbErr) {
-        console.warn("[PermissionGuard] DB role query failed, using fallback:", dbErr.message);
-      }
-
-      // If user has super admin wildcard or the required permission, grant access
-      if (permissions.includes("*") || permissions.includes(requiredPermission)) {
+      const hasPerm = await checkUserPermission(req.user, requiredPermission);
+      if (hasPerm) {
         return next();
       }
 

@@ -1,15 +1,16 @@
 import SupportConversation from "../models/support/supportConversation.model.js";
 import SupportMessage from "../models/support/supportMessage.model.js";
 import { createSupportMessage } from "../services/support.service.js";
+import { checkUserPermission } from "../middlewares/permissionGuard.middleware.js";
 import mongoose from "mongoose";
 
-// Simple in-memory rate limiter per socket
+// Simple in-memory rate limiter keyed by user/socket identity
 const rateLimits = new Map();
 let socketIoInstance = null;
 
 export const getSocketIo = () => socketIoInstance;
-const checkRateLimit = (socketId, event, limit, windowMs) => {
-    const key = `${socketId}:${event}`;
+const checkRateLimit = (identity, event, limit, windowMs) => {
+    const key = `${identity}:${event}`;
     const now = Date.now();
     let data = rateLimits.get(key) || { count: 0, resetAt: now + windowMs };
     
@@ -46,15 +47,20 @@ export const initSupportSocket = (io, socket, socketUser) => {
             }
             
             const role = (socketUser.role || "customer").toLowerCase();
-            const isAdmin = role === "admin" || role === "support_manager";
+            const isCustomerOrSeller = role === "customer" || role === "seller";
+            const isAdmin = !isCustomerOrSeller;
             
             if (!isAdmin && conv.customerId.toString() !== socketUser._id.toString()) {
                 return emitError("SUPPORT_FORBIDDEN", "Not authorized for this conversation");
             }
             
-            // Agent authorization check
-            if (isAdmin && socketUser.permissions && !socketUser.permissions.includes("tickets:write") && !socketUser.permissions.includes("tickets:read")) {
-                return emitError("SUPPORT_FORBIDDEN", "Agent unauthorized for support");
+            // Agent authorization check (P0-02 & P0-03 audit fix)
+            if (isAdmin) {
+                const hasRead = await checkUserPermission(socketUser, "tickets:read");
+                const hasWrite = await checkUserPermission(socketUser, "tickets:write");
+                if (!hasRead && !hasWrite) {
+                    return emitError("SUPPORT_FORBIDDEN", "Agent unauthorized for support");
+                }
             }
 
             const roomName = `support_conversation:${conversationId}`;
@@ -83,7 +89,8 @@ export const initSupportSocket = (io, socket, socketUser) => {
     socket.on("support:message:send", async (payload) => {
         if (!socketUser) return emitError("SUPPORT_AUTH_REQUIRED", "Authentication required");
         
-        if (checkRateLimit(socket.id, "message:send", 30, 60000)) {
+        const userKey = socketUser._id?.toString() || socket.id;
+        if (checkRateLimit(userKey, "message:send", 30, 60000)) {
             return emitError("SUPPORT_RATE_LIMITED", "Too many messages");
         }
         
@@ -92,6 +99,16 @@ export const initSupportSocket = (io, socket, socketUser) => {
         
         if (!socket.rooms.has(roomName)) {
             return emitError("SUPPORT_FORBIDDEN", "You must join the conversation room first");
+        }
+
+        const role = (socketUser.role || "customer").toLowerCase();
+        const isCustomerOrSeller = role === "customer" || role === "seller";
+        const isAdmin = !isCustomerOrSeller;
+        if (isAdmin) {
+            const hasWrite = await checkUserPermission(socketUser, "tickets:write");
+            if (!hasWrite) {
+                return emitError("SUPPORT_FORBIDDEN", "Missing tickets:write permission");
+            }
         }
         
         try {
@@ -117,7 +134,8 @@ export const initSupportSocket = (io, socket, socketUser) => {
 
     socket.on("support:typing:start", (payload) => {
         if (!socketUser) return;
-        if (checkRateLimit(socket.id, "typing", 20, 10000)) return;
+        const userKey = socketUser._id?.toString() || socket.id;
+        if (checkRateLimit(userKey, "typing", 20, 10000)) return;
         
         const { conversationId } = payload || {};
         const roomName = `support_conversation:${conversationId}`;
@@ -133,7 +151,8 @@ export const initSupportSocket = (io, socket, socketUser) => {
 
     socket.on("support:typing:stop", (payload) => {
         if (!socketUser) return;
-        if (checkRateLimit(socket.id, "typing", 20, 10000)) return;
+        const userKey = socketUser._id?.toString() || socket.id;
+        if (checkRateLimit(userKey, "typing", 20, 10000)) return;
         
         const { conversationId } = payload || {};
         const roomName = `support_conversation:${conversationId}`;
@@ -164,7 +183,7 @@ export const initSupportSocket = (io, socket, socketUser) => {
             const updated = await SupportMessage.findOneAndUpdate(
                 { _id: messageId, conversationId, readAt: null },
                 { $set: { readAt: new Date() } },
-                { new: true }
+                { returnDocument: 'after' }
             );
 
             if (updated) {
@@ -181,6 +200,9 @@ export const initSupportSocket = (io, socket, socketUser) => {
     });
     
     socket.on("disconnect", () => {
+        const userKey = socketUser?._id?.toString() || socket.id;
+        rateLimits.delete(`${userKey}:message:send`);
+        rateLimits.delete(`${userKey}:typing`);
         rateLimits.delete(`${socket.id}:message:send`);
         rateLimits.delete(`${socket.id}:typing`);
     });

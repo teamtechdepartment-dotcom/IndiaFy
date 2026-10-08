@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import SupportConversation from "../models/support/supportConversation.model.js";
 import SupportMessage from "../models/support/supportMessage.model.js";
 import AuditLog from "../models/admins/auditLog.model.js";
+import { checkUserPermission } from "../middlewares/permissionGuard.middleware.js";
 
 export const createSupportMessage = async (conversationId, user, payload) => {
   const { body, clientMessageId, attachments, messageType } = payload;
@@ -38,13 +39,18 @@ export const createSupportMessage = async (conversationId, user, payload) => {
   
   // Auth Check
   let senderType = "customer";
-  if (userRole === "admin" || userRole === "support_manager") {
+  if (userRole === "admin" || userRole === "super_admin" || userRole === "support_manager") {
     senderType = "admin";
   } else if (userRole === "seller") {
     senderType = "seller";
   }
 
-  if (senderType !== "admin" && conversation.customerId.toString() !== user._id.toString()) {
+  if (senderType === "admin") {
+    const hasWrite = await checkUserPermission(user, "tickets:write");
+    if (!hasWrite) {
+      throw { status: 403, message: "Access denied: Missing tickets:write permission", code: "SUPPORT_FORBIDDEN" };
+    }
+  } else if (conversation.customerId.toString() !== user._id.toString()) {
     throw { status: 403, message: "Access denied", code: "SUPPORT_FORBIDDEN" };
   }
 

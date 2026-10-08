@@ -18,6 +18,8 @@ let customerToken;
 let agentToken;
 let agent2Token;
 
+import CustomerProfile from "../models/customers/profile.model.js";
+
 beforeAll(async () => {
   const { databaseConfig } = await import("../config/db.config.js");
   await databaseConfig();
@@ -27,7 +29,8 @@ beforeAll(async () => {
   agentToken = jwt.sign({ _id: MOCK_AGENT_ID, role: "admin", permissions: ["tickets:read", "tickets:write"] }, process.env.SecurityKey || "test-key");
   agent2Token = jwt.sign({ _id: MOCK_AGENT_2_ID, role: "admin", permissions: ["tickets:read", "tickets:write"] }, process.env.SecurityKey || "test-key");
 
-  await CustomerAuth.create({ _id: MOCK_CUSTOMER_ID, email: "c1@test.com", password: "password", securityKeyId: new mongoose.Types.ObjectId() }).catch(() => {});
+  await CustomerAuth.create({ _id: MOCK_CUSTOMER_ID, firstName: "Test", lastName: "Customer", email: "c1@test.com", password: "password", securityKeyId: new mongoose.Types.ObjectId() }).catch(() => {});
+  await CustomerProfile.create({ customerId: MOCK_CUSTOMER_ID, firstName: "Test", lastName: "Customer", contact: 1234567890, address: [] }).catch(() => {});
   await AdminModel.create({ _id: MOCK_AGENT_ID, email: "agent1@test.com", password: "password", role: "admin", permissions: ["tickets:read", "tickets:write"], securityKeyId: new mongoose.Types.ObjectId() }).catch(() => {});
   await AdminModel.create({ _id: MOCK_AGENT_2_ID, email: "agent2@test.com", password: "password", role: "admin", permissions: ["tickets:read", "tickets:write"], securityKeyId: new mongoose.Types.ObjectId() }).catch(() => {});
 
@@ -48,6 +51,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await SupportConversation.deleteMany({ _id: MOCK_CONV_ID });
   await SupportCallLog.deleteMany({ conversationId: MOCK_CONV_ID });
+  await CustomerProfile.deleteMany({ customerId: MOCK_CUSTOMER_ID });
   await AdminModel.deleteMany({ _id: { $in: [MOCK_AGENT_ID, MOCK_AGENT_2_ID] } });
 });
 

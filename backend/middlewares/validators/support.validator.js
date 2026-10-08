@@ -64,3 +64,41 @@ export const validateGetMessages = [
   query("before").optional().isMongoId().withMessage("Invalid cursor format"),
   query("limit").optional().isInt({ min: 1, max: 100 }).withMessage("Limit must be between 1 and 100")
 ];
+
+export const validateGetConversation = [
+  param("id").isMongoId().withMessage("Invalid conversation ID")
+];
+
+export const validateRequestCallback = [
+  param("id").isMongoId().withMessage("Invalid conversation ID"),
+  body("phone").optional().trim(),
+  body("requestedTimeWindow").optional().trim(),
+  body("preferredTime").optional().trim(),
+  body("notes").optional().trim()
+];
+
+export const validateUpdateCallbackStatus = [
+  param("id").isMongoId().withMessage("Invalid callback ID"),
+  body("status")
+    .notEmpty().withMessage("Status is required")
+    .isIn([
+      "requested",
+      "queued",
+      "assigned",
+      "calling",
+      "connected",
+      "completed",
+      "failed",
+      "missed",
+      "cancelled"
+    ]).withMessage("Invalid callback status")
+];
+
+export const validateAssignCallback = [
+  param("id").isMongoId().withMessage("Invalid callback ID"),
+  body("agentId").optional().isMongoId().withMessage("Invalid agent ID format")
+];
+
+export const validateStartCallbackCall = [
+  param("id").isMongoId().withMessage("Invalid callback ID")
+];

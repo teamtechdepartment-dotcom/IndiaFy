@@ -7,6 +7,10 @@ import SupportCallLog from "../../models/support/supportCallLog.model.js";
 import OrderModel from "../../models/orders/order.model.js";
 import AdminModel from "../../models/admins/auth.model.js";
 import AuditLog from "../../models/admins/auditLog.model.js";
+import CustomerProfile from "../../models/customers/profile.model.js";
+import CustomerModel from "../../models/customers/auth.model.js";
+import SellerModel from "../../models/sellers/auth.model.js";
+import { checkUserPermission } from "../../middlewares/permissionGuard.middleware.js";
 import { createSupportMessage } from "../../services/support.service.js";
 import telephonyService from "../../services/telephony/telephony.service.js";
 import { getSocketIo } from "../../utils/support.socket.js";
@@ -70,10 +74,17 @@ export const createConversation = async (req, res, next) => {
 
 export const getConversations = async (req, res, next) => {
   try {
-    const userRole = (req.user?.role || "").toLowerCase();
+    const userRole = (req.user?.role || "customer").toLowerCase();
     let filter = {};
 
-    if (userRole === "admin" || userRole === "support_manager") {
+    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const isAdmin = !isCustomerOrSeller;
+
+    if (isAdmin) {
+      const hasRead = await checkUserPermission(req.user, "tickets:read");
+      if (!hasRead) {
+        return res.status(403).json(new ApiError(403, "Access Denied: Missing tickets:read permission"));
+      }
       // Agents can see all or filter by assignedAgentId
       if (req.query.assignedToMe === "true") {
         filter.assignedAgentId = req.user._id;
@@ -110,7 +121,7 @@ export const getConversationDetails = async (req, res, next) => {
         select: "orderItems totalPrice status paymentMethod createdAt shippingAddress",
         populate: {
           path: "orderItems.product",
-          select: "name images price"
+          select: "name images price seller sellerId"
         }
       })
       .lean();
@@ -119,14 +130,37 @@ export const getConversationDetails = async (req, res, next) => {
       return res.status(404).json(new ApiError(404, "Conversation not found"));
     }
 
-    const userRole = (req.user?.role || "").toLowerCase();
+    const userRole = (req.user?.role || "customer").toLowerCase();
     
     // Authorization
-    const isAdmin = userRole === "admin" || userRole === "support_manager";
-    if (!isAdmin) {
+    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const isAdmin = !isCustomerOrSeller;
+    if (isAdmin) {
+      const hasRead = await checkUserPermission(req.user, "tickets:read");
+      if (!hasRead) {
+        return res.status(403).json(new ApiError(403, "Access Denied: Missing tickets:read permission"));
+      }
+    } else {
       const convUserId = conversation.customerId?._id?.toString() || conversation.customerId?.toString();
       if (convUserId !== req.user._id.toString()) {
         return res.status(403).json(new ApiError(403, "Access denied to this conversation"));
+      }
+    }
+
+    // P1-04: Multi-vendor order privacy isolation for sellers
+    if (userRole === "seller" && conversation.orderId) {
+      if (Array.isArray(conversation.orderId.orderItems)) {
+        conversation.orderId.orderItems = conversation.orderId.orderItems.filter((item) => {
+          const itemSeller = item.seller?.toString() || item.product?.seller?.toString() || item.product?.sellerId?.toString();
+          return itemSeller === req.user._id.toString();
+        });
+      }
+      if (conversation.orderId.shippingAddress) {
+        conversation.orderId.shippingAddress = {
+          city: conversation.orderId.shippingAddress.city || "",
+          state: conversation.orderId.shippingAddress.state || "",
+          postalCode: conversation.orderId.shippingAddress.postalCode || ""
+        };
       }
     }
 
@@ -147,9 +181,15 @@ export const getMessages = async (req, res, next) => {
       return res.status(404).json(new ApiError(404, "Conversation not found"));
     }
 
-    const userRole = (req.user?.role || "").toLowerCase();
-    const isAdmin = userRole === "admin" || userRole === "support_manager";
-    if (!isAdmin) {
+    const userRole = (req.user?.role || "customer").toLowerCase();
+    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const isAdmin = !isCustomerOrSeller;
+    if (isAdmin) {
+      const hasRead = await checkUserPermission(req.user, "tickets:read");
+      if (!hasRead) {
+        return res.status(403).json(new ApiError(403, "Access Denied: Missing tickets:read permission"));
+      }
+    } else {
       if (conversation.customerId.toString() !== req.user._id.toString()) {
         return res.status(403).json(new ApiError(403, "Access denied"));
       }
@@ -185,14 +225,28 @@ export const sendMessage = async (req, res, next) => {
     const { id } = req.params;
     const { body, clientMessageId, attachments, messageType } = req.body;
 
+    const userRole = (req.user?.role || "customer").toLowerCase();
+    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const isAdmin = !isCustomerOrSeller;
+    if (isAdmin) {
+      const hasWrite = await checkUserPermission(req.user, "tickets:write");
+      if (!hasWrite) {
+        return res.status(403).json(new ApiError(403, "Access Denied: Missing tickets:write permission"));
+      }
+    }
+
     const { message, isDuplicate } = await createSupportMessage(id, req.user, { body, clientMessageId, attachments, messageType });
 
-    // Note: We could emit a socket broadcast here if we wanted to broadcast from REST,
-    // but typically the client can listen to the Socket itself or rely on REST response.
-    // For Phase 2, the requirement is to persist first, then broadcast. 
-    // We will handle socket broadcasts inside the socket handler itself or emit from here.
-    // The requirement: "Broadcast persisted message". We'll do it in socket.js for socket events.
-    // For REST, if we need to emit to socket, we would need `getIO()`.
+    // Realtime socket synchronization (P2-03)
+    const io = getSocketIo();
+    if (io) {
+      const roomName = `support_conversation:${id}`;
+      if (message.messageType === "internal_note") {
+        io.to(`${roomName}:agents`).emit("support:message:new", { message, isDuplicate });
+      } else {
+        io.to(roomName).emit("support:message:new", { message, isDuplicate });
+      }
+    }
 
     res.status(isDuplicate ? 200 : 201).json({ success: true, message, duplicate: isDuplicate });
   } catch (error) {
@@ -295,7 +349,7 @@ export const updateStatus = async (req, res, next) => {
     const conversation = await SupportConversation.findOneAndUpdate(
       { _id: id },
       { $set: updates },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (status === "closed" || status === "resolved") {
@@ -328,11 +382,7 @@ export const updateStatus = async (req, res, next) => {
 export const requestCallback = async (req, res, next) => {
   try {
     const { id } = req.params; // conversationId
-    const { phone, requestedTimeWindow = "ASAP", preferredTime, notes } = req.body;
-
-    if (!phone) {
-      return res.status(400).json(new ApiError(400, "Phone number is required"));
-    }
+    const { requestedTimeWindow = "ASAP", preferredTime, notes } = req.body;
 
     const conversation = await SupportConversation.findById(id);
     if (!conversation) {
@@ -341,12 +391,34 @@ export const requestCallback = async (req, res, next) => {
 
     const userRole = (req.user?.role || "customer").toLowerCase();
     const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const isAdmin = !isCustomerOrSeller;
     
     if (isCustomerOrSeller) {
       const convUserId = conversation.customerId?._id?.toString() || conversation.customerId?.toString();
       if (convUserId !== req.user._id.toString()) {
         return res.status(403).json(new ApiError(403, "Access denied"));
       }
+    }
+
+    // Resolve authoritative phone number server-side (P0-02 fix)
+    let authoritativePhone = null;
+    if (userRole === "seller") {
+      const seller = await SellerModel.findById(req.user._id).select("phone").lean();
+      authoritativePhone = seller?.phone || req.user.phone;
+    } else if (userRole === "customer") {
+      const profile = await CustomerProfile.findOne({ customerId: req.user._id }).select("contact").lean();
+      const customer = await CustomerModel.findById(req.user._id).select("phone").lean();
+      authoritativePhone = profile?.contact ? String(profile.contact) : (customer?.phone || req.user.phone);
+    } else if (isAdmin) {
+      const hasWrite = await checkUserPermission(req.user, "tickets:write");
+      if (!hasWrite) {
+        return res.status(403).json(new ApiError(403, "Access Denied: Missing tickets:write permission"));
+      }
+      authoritativePhone = req.body.phone || req.user.phone;
+    }
+
+    if (!authoritativePhone) {
+      return res.status(400).json(new ApiError(400, "No verified phone number found on account. Please add a phone number to your profile before requesting a callback."));
     }
 
     // Check for existing active callback to prevent duplicates
@@ -373,14 +445,14 @@ export const requestCallback = async (req, res, next) => {
           $setOnInsert: {
             customerId: req.user._id,
             customerTypeModel: userRole === "seller" ? "seller" : "customer",
-            phone,
+            phone: String(authoritativePhone),
             requestedTimeWindow,
             preferredTime,
             notes,
             status: "requested"
           }
         },
-        { upsert: true, new: true, returnDocument: 'after' }
+        { upsert: true, returnDocument: 'after' }
       );
 
       // We don't easily know if it was inserted or found via Mongoose easily, but it's idempotent.
@@ -409,9 +481,17 @@ export const requestCallback = async (req, res, next) => {
 
 export const getCallbacks = async (req, res, next) => {
   try {
-    const userRole = (req.user?.role || "").toLowerCase();
-    const isAdmin = userRole === "admin" || userRole === "support_manager";
+    const userRole = (req.user?.role || "customer").toLowerCase();
+    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const isAdmin = !isCustomerOrSeller;
     
+    if (isAdmin) {
+      const hasRead = await checkUserPermission(req.user, "tickets:read");
+      if (!hasRead) {
+        return res.status(403).json(new ApiError(403, "Access Denied: Missing tickets:read permission"));
+      }
+    }
+
     let filter = {};
     if (isAdmin) {
       if (req.query.status) {
@@ -442,8 +522,9 @@ export const updateCallbackStatus = async (req, res, next) => {
     const { id } = req.params;
     const { status, notes } = req.body;
     
-    const userRole = (req.user?.role || "").toLowerCase();
-    const isAdmin = userRole === "admin" || userRole === "support_manager";
+    const userRole = (req.user?.role || "customer").toLowerCase();
+    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const isAdmin = !isCustomerOrSeller;
 
     const callbackLog = await SupportCallLog.findById(id);
     if (!callbackLog) {
@@ -461,13 +542,19 @@ export const updateCallbackStatus = async (req, res, next) => {
       if (["calling", "connected", "completed", "failed", "missed"].includes(callbackLog.status)) {
         return res.status(400).json(new ApiError(400, "Cannot cancel a callback that is already processed"));
       }
+    } else {
+      // Admin must have tickets:write permission (P0-03 & P0-01 audit fix)
+      const hasWrite = await checkUserPermission(req.user, "tickets:write");
+      if (!hasWrite) {
+        return res.status(403).json(new ApiError(403, "Access Denied: Missing tickets:write permission"));
+      }
     }
 
     // Define valid transitions for agents
     const validTransitions = {
       requested: ["queued", "assigned", "cancelled"],
       queued: ["assigned", "cancelled"],
-      assigned: ["calling", "cancelled", "missed"],
+      assigned: ["calling", "cancelled", "missed", "completed"],
       calling: ["connected", "missed", "failed"],
       connected: ["completed", "failed"],
       completed: [],
@@ -488,7 +575,7 @@ export const updateCallbackStatus = async (req, res, next) => {
     const updatedCallback = await SupportCallLog.findByIdAndUpdate(
       id,
       { $set: updates },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     // Update conversation SLA metadata if completed
@@ -535,7 +622,7 @@ export const assignCallback = async (req, res, next) => {
           status: "assigned" 
         } 
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!callbackLog) {
@@ -583,7 +670,7 @@ export const startCallbackCall = async (req, res, next) => {
           startedAt: new Date()
         } 
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!callbackLog) {
@@ -609,7 +696,7 @@ export const startCallbackCall = async (req, res, next) => {
             providerName: telephonyService.providerName
           }
         },
-        { new: true }
+        { returnDocument: 'after' }
       ).populate("customerId", "firstName lastName email").populate("agentId", "firstName lastName email");
 
       // Notify the room
@@ -692,7 +779,7 @@ export const handleTelephonyWebhook = async (req, res, next) => {
     const finalLog = await SupportCallLog.findByIdAndUpdate(
       callbackLog._id,
       { $set: updates },
-      { new: true }
+      { returnDocument: 'after' }
     ).populate("customerId", "firstName lastName email").populate("agentId", "firstName lastName email");
 
     const io = getSocketIo();

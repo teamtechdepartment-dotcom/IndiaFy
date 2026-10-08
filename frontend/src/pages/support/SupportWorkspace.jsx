@@ -58,7 +58,7 @@ const SupportWorkspace = () => {
         params.search = search;
       }
       
-      const res = await axiosInstance.get('/admin/support/conversations', { params });
+      const res = await axiosInstance.get('/support/conversations', { params });
       setConversations(res.data.conversations || []);
     } catch (err) {
       console.error(err);
@@ -72,7 +72,7 @@ const SupportWorkspace = () => {
   const loadCallbacks = useCallback(async () => {
     try {
       setQueueLoading(true);
-      const res = await axiosInstance.get('/admin/support/callbacks');
+      const res = await axiosInstance.get('/support/callbacks');
       setCallbacks(res.data.callbacks || []);
     } catch (err) {
       console.error(err);
@@ -99,11 +99,11 @@ const SupportWorkspace = () => {
       try {
         setChatLoading(true);
         // Load Details
-        const detailRes = await axiosInstance.get(`/admin/support/conversations/${activeConvId}`);
+        const detailRes = await axiosInstance.get(`/support/conversations/${activeConvId}`);
         setActiveConvDetails(detailRes.data.conversation);
         
         // Load Messages
-        const msgRes = await axiosInstance.get(`/admin/support/conversations/${activeConvId}/messages?limit=50`);
+        const msgRes = await axiosInstance.get(`/support/conversations/${activeConvId}/messages?limit=50`);
         setMessages(msgRes.data.messages || []);
         setHasMoreMessages(msgRes.data.hasMore);
         setMessageCursor(msgRes.data.cursor);
@@ -142,7 +142,7 @@ const SupportWorkspace = () => {
         // preserve scroll pos
         const oldScrollHeight = messagesContainerRef.current.scrollHeight;
         
-        const msgRes = await axiosInstance.get(`/admin/support/conversations/${activeConvId}/messages?limit=50&before=${messageCursor}`);
+        const msgRes = await axiosInstance.get(`/support/conversations/${activeConvId}/messages?limit=50&before=${messageCursor}`);
         
         const newMessages = msgRes.data.messages || [];
         setMessages(prev => [...newMessages, ...prev]);
@@ -259,7 +259,7 @@ const SupportWorkspace = () => {
   const handleAssignToMe = async () => {
     if (!activeConvId) return;
     try {
-      await axiosInstance.post(`/admin/support/conversations/${activeConvId}/assign`, { agentId: user._id });
+      await axiosInstance.post(`/support/conversations/${activeConvId}/assign`, { agentId: user._id });
       toast.success("Assigned to you");
       loadQueue();
       setActiveConvDetails(prev => ({ ...prev, assignedAgentId: user._id }));
@@ -531,7 +531,7 @@ const SupportWorkspace = () => {
                          <button 
                            onClick={async () => {
                              try {
-                               await axiosInstance.post(`/admin/support/callbacks/${activeCallback._id}/start-call`);
+                               await axiosInstance.post(`/support/callbacks/${activeCallback._id}/start-call`);
                                loadCallbacks();
                                toast.success("Calling customer\u2026");
                              } catch(err) { const code = err?.response?.data?.message || "Failed to initiate call"; toast.error(code); }
@@ -543,7 +543,7 @@ const SupportWorkspace = () => {
                          <button 
                            onClick={async () => {
                              try {
-                               await axiosInstance.put(`/admin/support/callbacks/${activeCallback._id}/status`, { status: "completed" });
+                               await axiosInstance.put(`/support/callbacks/${activeCallback._id}/status`, { status: "completed" });
                                loadCallbacks();
                                toast.success("Callback marked completed");
                              } catch(err) { toast.error("Failed"); }

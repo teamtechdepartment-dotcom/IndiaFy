@@ -12,10 +12,10 @@ const SupportGuard = () => {
   const role = (adminAuth.user.role || "").toLowerCase();
   const permissions = adminAuth.user.permissions || [];
 
-  const isAllowedAdmin = role.includes("admin") || role.includes("manager");
-  const hasSupportPerm = permissions.includes("tickets:write") || permissions.includes("tickets:read");
+  const isSuperAdmin = role === "super_admin" || role === "superadmin";
+  const hasSupportPerm = permissions.includes("tickets:write") || permissions.includes("tickets:read") || permissions.includes("*") || isSuperAdmin;
 
-  if (!isAllowedAdmin && !hasSupportPerm) {
+  if (!hasSupportPerm) {
     return <Navigate to="/403" replace />;
   }
 

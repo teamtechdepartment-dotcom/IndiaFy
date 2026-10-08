@@ -125,7 +125,7 @@ export default function SupportChat({
       try {
         setLoading(true);
         // 1. Check existing
-        let endpoint = `/indiafy/support/conversations`;
+        let endpoint = `/support/conversations`;
         const params = [];
         if (orderId) params.push(`orderId=${orderId}`);
         if (storeId) params.push(`storeId=${storeId}`);
@@ -136,7 +136,7 @@ export default function SupportChat({
 
         // 2. Create new if missing
         if (!conv) {
-          const createRes = await axiosInstance.post(`/indiafy/support/conversations`, {
+          const createRes = await axiosInstance.post(`/support/conversations`, {
             subject: orderId ? `Order #${orderId.slice(-6)} Support` : defaultSubject,
             orderId,
             storeId,
@@ -165,7 +165,7 @@ export default function SupportChat({
   const fetchMessages = async (convId, pageNum = 1) => {
     try {
       const res = await axiosInstance.get(
-        `/indiafy/support/conversations/${convId}/messages?page=${pageNum}&limit=30`
+        `/support/conversations/${convId}/messages?page=${pageNum}&limit=30`
       );
       // Filter out internal notes just in case, though backend should do this
       const validMessages = res.data.messages.filter(m => m.messageType !== 'internal_note');
@@ -241,7 +241,7 @@ export default function SupportChat({
     if (!callbackPhone.trim() || !activeConvId) return;
     setCallbackLoading(true);
     try {
-      await axiosInstance.post(`/indiafy/support/conversations/${activeConvId}/callback`, {
+      await axiosInstance.post(`/support/conversations/${activeConvId}/callback`, {
         phone: callbackPhone.trim(),
       });
       setCallbackRequested(true);

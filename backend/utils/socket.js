@@ -12,16 +12,18 @@ const getCookieValue = (cookieHeader = "", name) => {
     return cookie ? decodeURIComponent(cookie.split("=").slice(1).join("=")) : null;
 };
 
-const getSocketUser = (socket) => {
+export const getSocketUser = (socket) => {
     const securityKey = process.env.SecurityKey;
     if (!securityKey) return null;
 
     const authHeader = socket.handshake.headers?.authorization || "";
     const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
-    const sellerCookieToken = getCookieValue(socket.handshake.headers?.cookie, "SellerAccessToken");
-    const adminCookieToken = getCookieValue(socket.handshake.headers?.cookie, "AccessToken");
+    const cookieHeader = socket.handshake.headers?.cookie;
+    const customerCookieToken = getCookieValue(cookieHeader, "CustomerAccessToken") || getCookieValue(cookieHeader, "customerAccessToken");
+    const sellerCookieToken = getCookieValue(cookieHeader, "SellerAccessToken") || getCookieValue(cookieHeader, "sellerAccessToken");
+    const adminCookieToken = getCookieValue(cookieHeader, "AccessToken") || getCookieValue(cookieHeader, "adminAccessToken");
     const authToken = socket.handshake.auth?.token;
-    const token = authToken || bearerToken || sellerCookieToken || adminCookieToken;
+    const token = authToken || bearerToken || customerCookieToken || sellerCookieToken || adminCookieToken;
 
     if (!token) return null;
 
@@ -34,8 +36,11 @@ const getSocketUser = (socket) => {
 
 const canJoinSellerRoom = (socket, sellerId) => {
     const socketUser = getSocketUser(socket);
-    if (!socketUser) return true;
-    return socketUser.role?.toLowerCase() === "seller" && socketUser._id?.toString() === sellerId?.toString();
+    if (!socketUser) return false;
+    const role = (socketUser.role || "").toLowerCase();
+    const isSeller = role === "seller" && socketUser._id?.toString() === sellerId?.toString();
+    const isAdmin = role === "admin" || role === "super_admin" || role === "support_manager";
+    return isSeller || isAdmin;
 };
 
 export const initSocket = (server) => {
@@ -56,6 +61,12 @@ export const initSocket = (server) => {
 
         // Admin joins global administrative command center room
         socket.on("join_admin_room", () => {
+            const socketUser = getSocketUser(socket);
+            const role = (socketUser?.role || "").toLowerCase();
+            if (!socketUser || (role !== "admin" && role !== "super_admin" && role !== "support_manager")) {
+                console.warn(`Rejected unauthorized admin_room join for socket ${socket.id}`);
+                return;
+            }
             socket.join("admin_room");
             console.log(`Socket ${socket.id} joined admin_room`);
         });
@@ -115,6 +126,18 @@ export const initSocket = (server) => {
         // Customer joins their specific room
         socket.on("join_customer_room", ({ customerId }) => {
             if (customerId) {
+                const socketUser = getSocketUser(socket);
+                if (!socketUser) {
+                    console.warn(`Rejected unauthenticated customer room join for socket ${socket.id}`);
+                    return;
+                }
+                const role = (socketUser.role || "").toLowerCase();
+                const isAdmin = role === "admin" || role === "super_admin" || role === "support_manager";
+                const isOwner = socketUser._id?.toString() === customerId?.toString();
+                if (!isAdmin && !isOwner) {
+                    console.warn(`Rejected unauthorized customer room join for socket ${socket.id}: ${customerId}`);
+                    return;
+                }
                 const roomName = `customer_${customerId}`;
                 socket.join(roomName);
                 console.log(`Customer ${customerId} joined room: ${roomName}`);

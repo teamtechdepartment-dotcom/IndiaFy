@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 // Layout Components
 import WebsiteNavbar from "../../components/WebsiteNavbar";
 import Footer from "../../components/Footer";
+import axiosInstance from "../../utils/axiosInstance";
 
 const supportChannels = [
   {
@@ -78,13 +79,56 @@ const categories = [
 ];
 
 export default function CustomerSupport() {
-  const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({ orderId: "", category: "", message: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [submittedTicket, setSubmittedTicket] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [form, setForm] = useState({ orderId: "", urgency: "General Inquiry", message: "" });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
+    if (!form.message.trim()) return;
+    setSubmitting(true);
+    setErrorMessage("");
+    try {
+      const priorityMap = {
+        "General Inquiry": "Low",
+        "Order Delayed": "Medium",
+        "Payment Dispute": "High",
+        "Critical Issue": "Critical"
+      };
+      const priority = priorityMap[form.urgency] || "Medium";
+      
+      const payload = {
+        subject: form.message.slice(0, 60) || "Customer Support Request",
+        priority,
+        channel: "chat"
+      };
+
+      const res = await axiosInstance.post("/support/conversations", payload);
+      const ticketId = res.data?.conversation?.ticketNumber || res.data?.conversation?._id || "TICKET-CONFIRMED";
+      
+      if (res.data?.conversation?._id && form.message.trim()) {
+        try {
+          await axiosInstance.post(`/support/conversations/${res.data.conversation._id}/messages`, {
+            body: form.message.trim(),
+            clientMessageId: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            messageType: "customer"
+          });
+        } catch (msgErr) {
+          console.warn("Could not post initial message:", msgErr);
+        }
+      }
+
+      setSubmittedTicket(ticketId);
+      setForm({ orderId: "", urgency: "General Inquiry", message: "" });
+      setTimeout(() => setSubmittedTicket(null), 6000);
+    } catch (err) {
+      console.error("Support ticket submission failed:", err);
+      setErrorMessage(err.response?.data?.message || "Failed to submit ticket. Please log in to your customer account.");
+      setTimeout(() => setErrorMessage(""), 6000);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -196,12 +240,13 @@ export default function CustomerSupport() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
-                        Order ID
+                        Order ID (Optional)
                       </label>
                       <input
-                        required
                         type="text"
                         placeholder="#IND-000000"
+                        value={form.orderId}
+                        onChange={(e) => setForm({ ...form, orderId: e.target.value })}
                         className="w-full bg-gray-50 border border-gray-100 rounded px-6 py-4 text-sm font-bold focus:outline-none focus:border-sky-500 transition-all"
                       />
                     </div>
@@ -209,7 +254,11 @@ export default function CustomerSupport() {
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                         Urgency
                       </label>
-                      <select className="w-full bg-gray-50 border border-gray-100 rounded px-6 py-4 text-sm font-bold focus:outline-none appearance-none">
+                      <select 
+                        value={form.urgency}
+                        onChange={(e) => setForm({ ...form, urgency: e.target.value })}
+                        className="w-full bg-gray-50 border border-gray-100 rounded px-6 py-4 text-sm font-bold focus:outline-none appearance-none"
+                      >
                         <option>General Inquiry</option>
                         <option>Order Delayed</option>
                         <option>Payment Dispute</option>
@@ -225,11 +274,16 @@ export default function CustomerSupport() {
                       required
                       rows={4}
                       placeholder="Tell us what happened..."
+                      value={form.message}
+                      onChange={(e) => setForm({ ...form, message: e.target.value })}
                       className="w-full bg-gray-50 border border-gray-100 rounded px-6 py-4 text-sm font-medium focus:outline-none focus:border-sky-500 transition-all resize-none"
                     />
                   </div>
-                  <button className="w-full py-5 bg-gray-900 text-white rounded font-black uppercase tracking-widest text-xs shadow-xl hover:bg-gray-800 transition-all flex items-center justify-center gap-3">
-                    Send Priority Ticket <ChevronRight size={16} />
+                  <button 
+                    disabled={submitting}
+                    className="w-full py-5 bg-gray-900 disabled:opacity-50 text-white rounded font-black uppercase tracking-widest text-xs shadow-xl hover:bg-gray-800 transition-all flex items-center justify-center gap-3 cursor-pointer"
+                  >
+                    {submitting ? "Routing Ticket..." : "Send Priority Ticket"} <ChevronRight size={16} />
                   </button>
                 </form>
               </div>
@@ -240,20 +294,36 @@ export default function CustomerSupport() {
         </div>
       </main>
 
-      {/* SUCCESS TOAST */}
+      {/* SUCCESS / ERROR TOASTS */}
       <AnimatePresence>
-        {submitted && (
+        {submittedTicket && (
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="fixed bottom-10 left-1/2 -trangray-x-1/2 z-[200] bg-emerald-500 text-white px-8 py-4 rounded shadow-2xl flex items-center gap-4"
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] bg-emerald-500 text-white px-8 py-4 rounded shadow-2xl flex items-center gap-4"
           >
             <Clock size={20} className="animate-pulse" />
             <span className="font-bold text-sm uppercase tracking-widest">
-              Ticket Submitted. Tracking ID: #TK-891
+              Ticket Submitted. Tracking ID: #{submittedTicket}
             </span>
-            <button onClick={() => setSubmitted(false)}>
+            <button onClick={() => setSubmittedTicket(null)}>
+              <X size={18} />
+            </button>
+          </motion.div>
+        )}
+        {errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] bg-red-600 text-white px-8 py-4 rounded shadow-2xl flex items-center gap-4"
+          >
+            <X size={20} className="animate-pulse" />
+            <span className="font-bold text-sm uppercase tracking-widest">
+              {errorMessage}
+            </span>
+            <button onClick={() => setErrorMessage("")}>
               <X size={18} />
             </button>
           </motion.div>
