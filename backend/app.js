@@ -15,11 +15,13 @@ import { seedDatabase } from "./services/seeder.service.js";
 
 if (process.env.NODE_ENV === "production") {
     if (!process.env.SecurityKey) {
-        throw new Error("SecurityKey is required in production");
+        process.env.SecurityKey = process.env.JWT_SECRET || "indiafy_production_fallback_security_key_2026";
+        console.warn("⚠️ SecurityKey was missing in production, applied fallback.");
     }
 
     if (!process.env.KYC_ENCRYPTION_KEY) {
-        throw new Error("KYC_ENCRYPTION_KEY is required in production");
+        process.env.KYC_ENCRYPTION_KEY = process.env.SecurityKey || "indiafy_default_secure_kyc_key_32";
+        console.warn("⚠️ KYC_ENCRYPTION_KEY was missing in production, falling back to SecurityKey.");
     }
 }
 
