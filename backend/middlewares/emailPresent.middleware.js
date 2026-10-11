@@ -28,7 +28,11 @@ const admin = async (req, res, next) => {
         const email = req.body.email ? String(req.body.email).trim().toLowerCase() : "";
         req.body.email = email;
 
-        const isEmail = await adminAuthModel.findOne({email: email});
+        let isEmail = await adminAuthModel.findOne({email: email});
+        if(!isEmail && email){
+            const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            isEmail = await adminAuthModel.findOne({ email: { $regex: new RegExp(`^${escaped}$`, "i") } });
+        }
 
         if(!isEmail){
             return res.status(404).json(new ApiError(404, "Email is not found"));

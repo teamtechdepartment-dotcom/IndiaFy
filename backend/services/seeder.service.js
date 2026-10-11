@@ -3,6 +3,9 @@ import Category from "../models/products/category.model.js";
 import SubCategory from "../models/products/subCategory.model.js";
 import Product from "../models/products/product.model.js";
 import SellerNode from "../models/sellerNodes/sellerNode.model.js";
+import AuthModel from "../models/admins/auth.model.js";
+import SecurityKeyModel from "../models/admins/securityKey.model.js";
+import { passwordEncryption, passwordDecryption } from "../utils/bcrypt.js";
 
 // Helper to generate SEO friendly slug
 const slugify = (text) => {
@@ -714,8 +717,85 @@ const CATEGORIES_DATA = [
   }
 ];
 
+export const seedDefaultAdmin = async () => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.trim().toLowerCase() : null;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminSecurityKey = process.env.ADMIN_SECURITY_KEY || process.env.ADMIN_SECRET_KEY;
+
+    if (!adminEmail || !adminPassword) {
+      return { success: false, message: "No admin credentials in environment variables." };
+    }
+
+    // 1. Ensure a SecurityKey doc exists for admin
+    let secKeyDoc = await SecurityKeyModel.findOne({ role: "admin" });
+    if (!secKeyDoc) {
+      secKeyDoc = await SecurityKeyModel.findOne({ role: "SUPER_ADMIN" });
+    }
+
+    const hashedKey = adminSecurityKey ? await passwordEncryption(adminSecurityKey) : "ADMIN_SECKEY_DEFAULT";
+
+    if (!secKeyDoc) {
+      secKeyDoc = await SecurityKeyModel.create({
+        role: "admin",
+        key: hashedKey
+      });
+    } else if (adminSecurityKey && secKeyDoc.key !== hashedKey) {
+      secKeyDoc.key = hashedKey;
+      await secKeyDoc.save();
+    }
+
+    // 2. Find or create admin
+    let admin = await AuthModel.findOne({ email: adminEmail });
+    if (!admin) {
+      const escaped = adminEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      admin = await AuthModel.findOne({ email: { $regex: new RegExp(`^${escaped}$`, "i") } });
+    }
+
+    if (!admin) {
+      admin = new AuthModel({
+        email: adminEmail,
+        password: adminPassword,
+        firstName: process.env.ADMIN_FIRST_NAME || "Super",
+        lastName: process.env.ADMIN_LAST_NAME || "Admin",
+        role: "admin",
+        securityKeyId: secKeyDoc._id,
+        isEmailVerified: true,
+        isActive: true
+      });
+      await admin.save();
+      console.log(`✅ Default admin account (${adminEmail}) seeded successfully.`);
+    } else {
+      let modified = false;
+      if (!admin.isEmailVerified) {
+        admin.isEmailVerified = true;
+        modified = true;
+      }
+      if (!admin.securityKeyId) {
+        admin.securityKeyId = secKeyDoc._id;
+        modified = true;
+      }
+      const isMatch = await passwordDecryption(adminPassword, admin.password).catch(() => false);
+      if (!isMatch) {
+        admin.password = adminPassword;
+        modified = true;
+      }
+      if (modified) {
+        await admin.save();
+        console.log(`✅ Default admin account (${adminEmail}) synchronized successfully.`);
+      }
+    }
+    return { success: true, message: `Admin ${adminEmail} ready.` };
+  } catch (err) {
+    console.error("⚠️ Error seeding default admin:", err.message);
+    return { success: false, error: err.message };
+  }
+};
+
 export const seedDatabase = async (force = false) => {
   try {
+    // Ensure default admin exists first
+    await seedDefaultAdmin();
 
     // Find the dynamic store named Sharma Mart or fall back to any available seller node
     let sharmaMart = await SellerNode.findOne({ storeName: /Sharma Mart/i });

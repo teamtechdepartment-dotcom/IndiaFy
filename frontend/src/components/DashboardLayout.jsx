@@ -425,7 +425,7 @@ export default function DashboardLayout({ storeDetails, activeNode }) {
 
       {showSupport && (
         <SupportChat
-          storeId={activeNode}
+          storeId={storeDetails?.nodeId || activeNodeId}
           role="seller"
           onClose={() => setShowSupport(false)}
         />

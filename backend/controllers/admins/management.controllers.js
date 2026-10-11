@@ -7,6 +7,10 @@ import OrderModel from "../../models/orders/order.model.js";
 import CategoryModel from "../../models/products/category.model.js";
 import AuditLog from "../../models/admins/auditLog.model.js";
 import SupportTicket from "../../models/admins/supportTicket.model.js";
+import SupportConversation from "../../models/support/supportConversation.model.js";
+import SupportMessage from "../../models/support/supportMessage.model.js";
+import SupportCallLog from "../../models/support/supportCallLog.model.js";
+import { createSupportMessage } from "../../services/support.service.js";
 import SystemSettings from "../../models/admins/systemSettings.model.js";
 import AdminRole from "../../models/admins/adminRole.model.js";
 import AdminModel from "../../models/admins/auth.model.js";
@@ -1216,7 +1220,56 @@ export const getRecommendationExperimentTuning = async (req, res) => {
 // DASHBOARD STATSICKETS ---
 export const getSupportTickets = async (req, res) => {
   try {
-    const tickets = await SupportTicket.find({}).sort({ updatedAt: -1 });
+    const tickets = await SupportTicket.find({}).sort({ updatedAt: -1 }).lean();
+    const existingIds = new Set(tickets.map(t => t._id.toString()));
+
+    const conversations = await SupportConversation.find({}).sort({ updatedAt: -1 }).limit(100).lean();
+    const convIds = conversations.map(c => c._id);
+    const callLogs = await SupportCallLog.find({ conversationId: { $in: convIds } }).sort({ createdAt: -1 }).lean();
+    const callLogsByConv = {};
+    for (const log of callLogs) {
+      if (!callLogsByConv[log.conversationId.toString()]) {
+        callLogsByConv[log.conversationId.toString()] = log;
+      }
+    }
+
+    for (const conv of conversations) {
+      if (!existingIds.has(conv._id.toString())) {
+        const msgs = await SupportMessage.find({ conversationId: conv._id }).sort({ createdAt: 1 }).lean();
+        const mappedStatus = conv.status === "open" ? "Open" : conv.status === "in_progress" || conv.status === "assigned" ? "In Progress" : conv.status === "resolved" ? "Resolved" : conv.status === "closed" ? "Closed" : "Open";
+        const activeCall = callLogsByConv[conv._id.toString()] || null;
+        tickets.push({
+          _id: conv._id,
+          ticketNumber: conv.ticketNumber || `TCK-${conv._id.toString().slice(-6).toUpperCase()}`,
+          userType: conv.customerTypeModel || "customer",
+          userId: conv.customerId,
+          userTypeModel: conv.customerTypeModel || "customer",
+          subject: conv.subject || "Customer Support Inquiry",
+          description: msgs.length > 0 ? msgs[0].body : conv.subject || "No initial description",
+          status: mappedStatus,
+          priority: conv.priority || "Medium",
+          callback: activeCall ? {
+            _id: activeCall._id,
+            phone: activeCall.phone,
+            status: activeCall.status,
+            requestedTimeWindow: activeCall.requestedTimeWindow,
+            requestedAt: activeCall.requestedAt || activeCall.createdAt,
+            createdAt: activeCall.createdAt
+          } : null,
+          messages: msgs.map(m => ({
+            senderType: m.senderType,
+            senderId: m.senderId,
+            senderName: m.senderType === "admin" ? "Admin Support" : m.senderType === "seller" ? "Seller Partner" : "Customer",
+            body: m.body,
+            createdAt: m.createdAt
+          })),
+          createdAt: conv.createdAt,
+          updatedAt: conv.updatedAt || conv.createdAt
+        });
+      }
+    }
+
+    tickets.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
     return res.status(200).json(new ApiResponse(200, tickets, "Support tickets fetched"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
@@ -1225,7 +1278,43 @@ export const getSupportTickets = async (req, res) => {
 
 export const getSupportTicketDetails = async (req, res) => {
   try {
-    const ticket = await SupportTicket.findById(req.params.id);
+    let ticket = await SupportTicket.findById(req.params.id).lean();
+    if (!ticket) {
+      const conv = await SupportConversation.findById(req.params.id).lean();
+      if (conv) {
+        const msgs = await SupportMessage.find({ conversationId: conv._id }).sort({ createdAt: 1 }).lean();
+        const activeCall = await SupportCallLog.findOne({ conversationId: conv._id }).sort({ createdAt: -1 }).lean();
+        const mappedStatus = conv.status === "open" ? "Open" : conv.status === "in_progress" || conv.status === "assigned" ? "In Progress" : conv.status === "resolved" ? "Resolved" : conv.status === "closed" ? "Closed" : "Open";
+        ticket = {
+          _id: conv._id,
+          ticketNumber: conv.ticketNumber || `TCK-${conv._id.toString().slice(-6).toUpperCase()}`,
+          userType: conv.customerTypeModel || "customer",
+          userId: conv.customerId,
+          userTypeModel: conv.customerTypeModel || "customer",
+          subject: conv.subject || "Customer Support Inquiry",
+          description: msgs.length > 0 ? msgs[0].body : conv.subject || "No initial description",
+          status: mappedStatus,
+          priority: conv.priority || "Medium",
+          callback: activeCall ? {
+            _id: activeCall._id,
+            phone: activeCall.phone,
+            status: activeCall.status,
+            requestedTimeWindow: activeCall.requestedTimeWindow,
+            requestedAt: activeCall.requestedAt || activeCall.createdAt,
+            createdAt: activeCall.createdAt
+          } : null,
+          messages: msgs.map(m => ({
+            senderType: m.senderType,
+            senderId: m.senderId,
+            senderName: m.senderType === "admin" ? "Admin Support" : m.senderType === "seller" ? "Seller Partner" : "Customer",
+            body: m.body,
+            createdAt: m.createdAt
+          })),
+          createdAt: conv.createdAt,
+          updatedAt: conv.updatedAt || conv.createdAt
+        };
+      }
+    }
     if (!ticket) {
       throw new ApiError(404, "Ticket not found");
     }
@@ -1240,24 +1329,38 @@ export const replySupportTicket = async (req, res) => {
     const { id } = req.params;
     const { body, attachments } = req.body;
 
-    const ticket = await SupportTicket.findById(id);
-    if (!ticket) {
-      throw new ApiError(404, "Ticket not found");
+    let ticket = await SupportTicket.findById(id);
+    const conv = await SupportConversation.findById(id);
+
+    if (conv) {
+      try {
+        await createSupportMessage(id, req.user, {
+          body,
+          clientMessageId: `adm-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          attachments: attachments || [],
+          messageType: "customer"
+        });
+        conv.status = "in_progress";
+        await conv.save();
+      } catch (_convErr) {
+        console.error("Error creating SupportMessage for conversation:", _convErr);
+      }
     }
 
-    const message = {
-      senderType: "admin",
-      senderId: req.user._id,
-      senderName: `${req.user.firstName} ${req.user.lastName || ""}`.trim(),
-      body,
-      attachments: attachments || [],
-    };
+    if (ticket) {
+      const message = {
+        senderType: "admin",
+        senderId: req.user._id,
+        senderName: `${req.user.firstName} ${req.user.lastName || ""}`.trim(),
+        body,
+        attachments: attachments || [],
+      };
+      ticket.messages.push(message);
+      ticket.status = "In Progress";
+      await ticket.save();
+    }
 
-    ticket.messages.push(message);
-    ticket.status = "Waiting"; // Set waiting for customer reply
-    await ticket.save();
-
-    return res.status(200).json(new ApiResponse(200, ticket, "Reply posted successfully"));
+    return res.status(200).json(new ApiResponse(200, ticket || conv, "Reply posted successfully"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
   }
@@ -1269,18 +1372,30 @@ export const addInternalNote = async (req, res) => {
     const { note } = req.body;
 
     const ticket = await SupportTicket.findById(id);
-    if (!ticket) {
-      throw new ApiError(404, "Ticket not found");
+    const conv = await SupportConversation.findById(id);
+
+    if (conv) {
+      try {
+        await createSupportMessage(id, req.user, {
+          body: note,
+          clientMessageId: `note-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          messageType: "internal_note"
+        });
+      } catch (_noteErr) {
+        console.error("Error creating internal note:", _noteErr);
+      }
     }
 
-    ticket.internalNotes.push({
-      adminId: req.user._id,
-      adminName: `${req.user.firstName} ${req.user.lastName || ""}`.trim(),
-      note,
-    });
-    await ticket.save();
+    if (ticket) {
+      ticket.internalNotes.push({
+        adminId: req.user._id,
+        adminName: `${req.user.firstName} ${req.user.lastName || ""}`.trim(),
+        note,
+      });
+      await ticket.save();
+    }
 
-    return res.status(200).json(new ApiResponse(200, ticket, "Internal note added"));
+    return res.status(200).json(new ApiResponse(200, ticket || conv, "Internal note added"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
   }
@@ -1292,20 +1407,28 @@ export const updateTicketStatus = async (req, res) => {
     const { status, priority, assignedTo } = req.body;
 
     const ticket = await SupportTicket.findById(id);
-    if (!ticket) {
-      throw new ApiError(404, "Ticket not found");
+    const conv = await SupportConversation.findById(id);
+
+    if (conv) {
+      if (status) {
+        const s = status.toLowerCase();
+        conv.status = s.includes("progress") ? "in_progress" : s.includes("resolve") ? "resolved" : s.includes("close") ? "closed" : "open";
+      }
+      if (priority) conv.priority = priority;
+      if (assignedTo !== undefined) conv.assignedAgentId = assignedTo;
+      await conv.save();
     }
 
-    const before = { status: ticket.status, priority: ticket.priority, assignedTo: ticket.assignedTo };
+    if (ticket) {
+      const before = { status: ticket.status, priority: ticket.priority, assignedTo: ticket.assignedTo };
+      if (status) ticket.status = status;
+      if (priority) ticket.priority = priority;
+      if (assignedTo !== undefined) ticket.assignedTo = assignedTo;
+      await ticket.save();
+      await logAdminAction(req, "UPDATE_TICKET_PROPERTIES", `ticket:${id}`, before, { status, priority, assignedTo });
+    }
 
-    if (status) ticket.status = status;
-    if (priority) ticket.priority = priority;
-    if (assignedTo !== undefined) ticket.assignedTo = assignedTo;
-    await ticket.save();
-
-    await logAdminAction(req, "UPDATE_TICKET_PROPERTIES", `ticket:${id}`, before, { status, priority, assignedTo });
-
-    return res.status(200).json(new ApiResponse(200, ticket, "Ticket properties updated"));
+    return res.status(200).json(new ApiResponse(200, ticket || conv, "Ticket properties updated"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
   }

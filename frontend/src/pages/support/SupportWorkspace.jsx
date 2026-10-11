@@ -343,8 +343,9 @@ const SupportWorkspace = () => {
                   <span className="font-medium text-sm text-gray-900 truncate pr-2">
                     {conv.subject || `Order #${conv.orderId?.slice(-6) || 'General'}`}
                   </span>
-                  <span className="text-xs text-gray-500 flex-shrink-0">
-                    {new Date(conv.lastMessageAt || conv.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  <span className="text-[11px] text-gray-500 font-medium flex-shrink-0">
+                    {new Date(conv.lastMessageAt || conv.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })},{" "}
+                    {new Date(conv.lastMessageAt || conv.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -367,8 +368,9 @@ const SupportWorkspace = () => {
                     <Phone className="w-3 h-3 mr-1 text-gray-400" />
                     Callback ({cb.status})
                   </span>
-                  <span className="text-xs text-gray-500 flex-shrink-0">
-                    {new Date(cb.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  <span className="text-[11px] text-gray-500 font-medium flex-shrink-0">
+                    {new Date(cb.requestedAt || cb.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })},{" "}
+                    {new Date(cb.requestedAt || cb.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
@@ -397,9 +399,20 @@ const SupportWorkspace = () => {
                 <h3 className="font-semibold text-gray-800 text-sm md:text-base">
                   {activeConvDetails?.subject || 'Support Conversation'}
                 </h3>
-                <div className="text-xs text-gray-500 flex items-center mt-0.5">
+                <div className="text-xs text-gray-500 flex flex-wrap items-center mt-0.5 gap-2">
                   <span className={`inline-block w-2 h-2 rounded-full mr-1 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                  {activeConvDetails?.status === 'open' ? 'Open' : activeConvDetails?.status} • {activeConvDetails?._id}
+                  <span>{activeConvDetails?.status === 'open' ? 'Open' : activeConvDetails?.status}</span>
+                  <span>•</span>
+                  <span className="font-mono text-gray-600">{activeConvDetails?.ticketNumber || activeConvDetails?._id}</span>
+                  {activeConvDetails?.createdAt && (
+                    <>
+                      <span>•</span>
+                      <span className="text-gray-500 font-medium">
+                        📅 {new Date(activeConvDetails.createdAt).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })},{" "}
+                        {new Date(activeConvDetails.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -436,7 +449,10 @@ const SupportWorkspace = () => {
                         <div className="text-sm whitespace-pre-wrap leading-relaxed">{msg.body}</div>
                       </div>
                       <div className="text-[10px] text-gray-500 mt-1 flex items-center space-x-1">
-                        <span>{new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <span>
+                          {new Date(msg.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })},{" "}
+                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                         {isAgent && !isInternal && msg.readAt && <CheckCircle className="w-3 h-3 text-blue-500" />}
                         {isAgent && !isInternal && msg.delivered && !msg.readAt && <CheckCircle className="w-3 h-3 text-gray-400" />}
                       </div>
@@ -639,10 +655,28 @@ const SupportWorkspace = () => {
                   <span className="text-gray-500">Channel</span>
                   <span className="capitalize">{activeConvDetails?.channel}</span>
                 </div>
-                <div className="grid grid-cols-[80px_1fr] gap-1">
+                <div className="grid grid-cols-[80px_1fr] gap-1 mb-2">
                   <span className="text-gray-500">Priority</span>
                   <span className="capitalize">{activeConvDetails?.priority}</span>
                 </div>
+                {activeConvDetails?.createdAt && (
+                  <div className="grid grid-cols-[80px_1fr] gap-1 mb-2">
+                    <span className="text-gray-500">Created</span>
+                    <span className="text-gray-900 font-medium text-xs">
+                      {new Date(activeConvDetails.createdAt).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })},{" "}
+                      {new Date(activeConvDetails.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                )}
+                {activeConvDetails?.updatedAt && (
+                  <div className="grid grid-cols-[80px_1fr] gap-1">
+                    <span className="text-gray-500">Updated</span>
+                    <span className="text-gray-900 font-medium text-xs">
+                      {new Date(activeConvDetails.updatedAt).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })},{" "}
+                      {new Date(activeConvDetails.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

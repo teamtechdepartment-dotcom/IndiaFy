@@ -405,10 +405,18 @@ export const requestCallback = async (req, res, next) => {
     if (userRole === "seller") {
       const seller = await SellerModel.findById(req.user._id).select("phone").lean();
       authoritativePhone = seller?.phone || req.user.phone;
+      if (!authoritativePhone && req.body.phone) {
+        authoritativePhone = String(req.body.phone).trim();
+        await SellerModel.findByIdAndUpdate(req.user._id, { phone: authoritativePhone }).catch(() => {});
+      }
     } else if (userRole === "customer") {
       const profile = await CustomerProfile.findOne({ customerId: req.user._id }).select("contact").lean();
       const customer = await CustomerModel.findById(req.user._id).select("phone").lean();
       authoritativePhone = profile?.contact ? String(profile.contact) : (customer?.phone || req.user.phone);
+      if (!authoritativePhone && req.body.phone) {
+        authoritativePhone = String(req.body.phone).trim();
+        await CustomerModel.findByIdAndUpdate(req.user._id, { phone: authoritativePhone }).catch(() => {});
+      }
     } else if (isAdmin) {
       const hasWrite = await checkUserPermission(req.user, "tickets:write");
       if (!hasWrite) {
@@ -418,7 +426,7 @@ export const requestCallback = async (req, res, next) => {
     }
 
     if (!authoritativePhone) {
-      return res.status(400).json(new ApiError(400, "No verified phone number found on account. Please add a phone number to your profile before requesting a callback."));
+      return res.status(400).json(new ApiError(400, "Please provide a valid phone number for the callback."));
     }
 
     // Check for existing active callback to prevent duplicates
@@ -452,7 +460,7 @@ export const requestCallback = async (req, res, next) => {
             status: "requested"
           }
         },
-        { upsert: true, returnDocument: 'after' }
+        { upsert: true, new: true, returnDocument: 'after' }
       );
 
       // We don't easily know if it was inserted or found via Mongoose easily, but it's idempotent.
@@ -467,11 +475,24 @@ export const requestCallback = async (req, res, next) => {
         adminId: req.user._id,
         adminEmail: req.user.email || "system@indiafy.com",
         action: "SUPPORT_CALLBACK_REQUESTED",
-        targetResource: `SupportCallLog:${callbackLog._id}`,
+        targetResource: `SupportCallLog:${callbackLog?._id}`,
       }).catch(err => console.error("Audit log failed:", err));
 
-      res.status(201).json({ success: true, callback: callbackLog });
+      return res.status(201).json({ success: true, callback: callbackLog });
     } catch (err) {
+      if (err.code === 11000) {
+        const existing = await SupportCallLog.findOne({
+          conversationId: id,
+          status: { $in: ["requested", "queued", "assigned", "calling", "connected"] }
+        });
+        if (existing) {
+          return res.status(200).json({
+            success: true,
+            message: "Active callback already exists",
+            callback: existing
+          });
+        }
+      }
       throw err;
     }
   } catch (error) {

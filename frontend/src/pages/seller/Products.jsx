@@ -625,20 +625,20 @@ export default function Products() {
                                 <span>🔥</span>
                                 <span>{p.campaign.name || p.campaign.badgeText} ({p.campaign.discountValue}% OFF)</span>
                               </div>
-                              <div className="text-[11px] text-gray-500">
-                                Original: <span className="font-bold text-gray-800">₹{(Number(p.originalPrice || p.attribute?.originalSellerPrice || salePrice)).toFixed(2)}</span>
+                              <div className="text-[11px] text-slate-500">
+                                Original: <span className="font-bold text-slate-800">₹{(Number(p.originalPrice || p.attribute?.originalSellerPrice || salePrice)).toFixed(2)}</span>
                               </div>
-                              <div className="text-[11px] text-[#065F46]">
-                                Customer: <span className="font-black text-gray-900">₹{salePrice.toFixed(2)}</span>
+                              <div className="text-[11px] text-emerald-700">
+                                Customer: <span className="font-black text-slate-900">₹{salePrice.toFixed(2)}</span>
                               </div>
                             </div>
                           ) : (
                             <>
-                              <span className="font-black text-gray-900 text-sm">
+                              <span className="font-black text-slate-900 text-sm">
                                 ₹{salePrice.toFixed(2)}
                               </span>
                               {mrpPrice > salePrice && (
-                                <span className="text-[10px] text-gray-400 line-through mt-0.5">
+                                <span className="text-[10px] text-slate-400 line-through mt-0.5">
                                   ₹{mrpPrice.toFixed(2)}
                                 </span>
                               )}
@@ -694,7 +694,8 @@ export default function Products() {
                               }); 
                               setIsEditModalOpen(true); 
                             }}
-                            className="p-2 rounded text-gray-400 hover:text-[#065F46] hover:bg-[#065F46]/10 transition-colors"
+                            className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+
                             title="Edit Product"
                           >
                             <Edit2 size={16} />

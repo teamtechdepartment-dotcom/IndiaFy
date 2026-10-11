@@ -226,11 +226,10 @@ describe("Support Socket Tests", () => {
         expect(errorEvent.payload.code).toBe("SUPPORT_INVALID_MESSAGE");
     });
 
-    it("15. Rate limiting works", async () => {
+    it("15. Rate limiting disabled per user request", async () => {
         initSupportSocket(mockIo, mockSocket, mockUser);
         mockSocket.rooms.add(`support_conversation:${convId}`);
         
-        // Exceed rate limit of 30 messages/minute
         const promises = [];
         for (let i = 0; i < 35; i++) {
             promises.push(handlers["support:message:send"]({ 
@@ -242,7 +241,7 @@ describe("Support Socket Tests", () => {
         await Promise.all(promises);
         
         const rateLimitEvents = emittedEvents.filter(e => e.event === "support:error" && e.payload.code === "SUPPORT_RATE_LIMITED");
-        expect(rateLimitEvents.length).toBeGreaterThan(0);
+        expect(rateLimitEvents.length).toBe(0);
     });
 
     it("16. Reconnection requires room reauthorization", async () => {

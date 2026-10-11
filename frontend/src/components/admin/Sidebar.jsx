@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Users, BarChart2,
   Settings, X, LogOut, Store, Layers, FileSpreadsheet,
   ShieldAlert, FolderOpen, LifeBuoy, ArrowLeft, Menu, ChevronRight,
-  Sun, Moon, TicketPercent, MessageSquare, Boxes, Flame
+  Sun, Moon, TicketPercent, MessageSquare, Boxes, Flame, PhoneCall
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,6 +44,7 @@ const groups = [
     title: "Support & Audit",
     items: [
       { name: "Help Desk Inbox", icon: LifeBuoy, path: "/admin/tickets" },
+      { name: "Live Support & Calls", icon: PhoneCall, path: "/support-workspace" },
       { name: "Role Policies", icon: Settings, path: "/admin/roles" },
       { name: "Audit Trail Logs", icon: FolderOpen, path: "/admin/audit-logs" },
     ],

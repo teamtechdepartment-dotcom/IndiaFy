@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LifeBuoy, Send, Clipboard, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { LifeBuoy, Send, Clipboard, RefreshCw, AlertTriangle, Phone, PhoneCall } from 'lucide-react';
 import Sidebar from "../../components/admin/Sidebar";
 import Header from "../../components/admin/Header";
 import AdminErrorBoundary from "../../components/admin/AdminErrorBoundary";
@@ -119,13 +120,23 @@ export default function SupportInbox() {
                 <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Customer Care Support</h1>
               </div>
 
-              <button
-                onClick={fetchTickets}
-                className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-xs self-start sm:self-auto"
-              >
-                <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-                Refresh Tickets
-              </button>
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <Link
+                  to="/support-workspace"
+                  className="flex items-center justify-center gap-2 bg-[#065F46] hover:bg-emerald-800 text-white px-3.5 py-2.5 rounded text-xs font-bold transition shadow-xs"
+                  title="Open Support Workspace with Callbacks & Live Chats"
+                >
+                  <PhoneCall size={15} />
+                  Live Support & Call Queue
+                </Link>
+                <button
+                  onClick={fetchTickets}
+                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-xs"
+                >
+                  <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                  Refresh Tickets
+                </button>
+              </div>
             </div>
 
             {/* Error Banner */}
@@ -177,13 +188,18 @@ export default function SupportInbox() {
                       {/* Header */}
                       <div className="p-5 border-b border-slate-150 flex flex-wrap justify-between items-center gap-4 bg-gray-50/30">
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="font-black text-[#2874F0] text-sm">{selectedTicket.ticketNumber ?? "TCK-0000"}</span>
                             <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
                               selectedTicket.priority === "Critical" || selectedTicket.priority === "High" ? "bg-red-100 text-red-650" : "bg-blue-100 text-blue-650"
                             }`}>
                               {selectedTicket.priority ?? "Normal"} Priority
                             </span>
+                            {(selectedTicket.createdAt || selectedTicket.updatedAt) && (
+                              <span className="text-[11px] text-gray-500 font-semibold bg-white px-2 py-0.5 rounded border border-gray-200">
+                                📅 {formatDateTime(selectedTicket.createdAt || selectedTicket.updatedAt)}
+                              </span>
+                            )}
                           </div>
                           <h3 className="font-extrabold text-gray-800 text-base mt-1">{selectedTicket.subject ?? "Untitled Ticket"}</h3>
                         </div>
@@ -201,6 +217,42 @@ export default function SupportInbox() {
                           </select>
                         </div>
                       </div>
+
+                      {/* Call Request Banner if present */}
+                      {selectedTicket.callback && (
+                        <div className="bg-amber-50 border-b border-amber-200 px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-amber-950">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
+                              <Phone size={16} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-extrabold text-xs text-amber-950 uppercase tracking-wide">Customer Call Request</span>
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-200 text-amber-900">
+                                  {selectedTicket.callback.status || "requested"}
+                                </span>
+                                <span className="text-[11px] text-amber-800 font-medium">
+                                  ({selectedTicket.callback.requestedTimeWindow || "ASAP"})
+                                </span>
+                              </div>
+                              <p className="text-xs font-mono font-bold text-gray-900 mt-0.5">
+                                📞 Contact Phone: {selectedTicket.callback.phone}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[11px] text-amber-800 font-medium">
+                              Requested: {formatDateTime(selectedTicket.callback.requestedAt || selectedTicket.callback.createdAt)}
+                            </span>
+                            <a 
+                              href={`tel:${selectedTicket.callback.phone}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-bold transition shadow-xs"
+                            >
+                              <Phone size={12} /> Call Customer
+                            </a>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Tabs */}
                       <div className="flex border-b border-gray-200 text-xs font-bold text-gray-400 bg-gray-50/50">
@@ -236,9 +288,16 @@ export default function SupportInbox() {
                                     : "bg-gray-100 text-gray-800 border border-gray-200"
                                 }`}
                               >
-                                <span className={`font-black text-[9px] uppercase tracking-wider ${msg?.senderType === "admin" ? "text-slate-300" : "text-[#2874F0]"}`}>
-                                  {msg?.senderName ?? "User"}
-                                </span>
+                                <div className="flex justify-between items-center gap-4">
+                                  <span className={`font-black text-[9px] uppercase tracking-wider ${msg?.senderType === "admin" ? "text-slate-300" : "text-[#2874F0]"}`}>
+                                    {msg?.senderName ?? "User"}
+                                  </span>
+                                  {msg?.createdAt && (
+                                    <span className={`text-[10px] font-medium ${msg?.senderType === "admin" ? "text-emerald-100/75" : "text-gray-500"}`}>
+                                      {formatDateTime(msg.createdAt)}
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="mt-1 font-medium">{msg?.body ?? ""}</p>
                               </div>
                             ))}
@@ -249,7 +308,9 @@ export default function SupportInbox() {
                               <div key={i} className="bg-amber-50 border border-amber-200 rounded p-4 text-xs text-amber-800">
                                 <p className="font-bold flex justify-between">
                                   <span>Note by: {n?.adminName ?? "Admin"}</span>
-                                  <span>{n?.createdAt ? new Date(n.createdAt).toLocaleDateString() : "Today"}</span>
+                                  <span className="text-[11px] text-amber-900 font-semibold">
+                                    {n?.createdAt ? formatDateTime(n.createdAt) : "Today"}
+                                  </span>
                                 </p>
                                 <p className="mt-1 font-medium text-gray-700">{n?.note ?? ""}</p>
                               </div>
@@ -308,12 +369,32 @@ export default function SupportInbox() {
   );
 }
 
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleString(undefined, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch (_e) {
+    return String(dateStr);
+  }
+};
+
 function TicketItem({ item, active, onClick }) {
   if (!item) return null;
   let priorityStyle = "bg-blue-100 text-blue-700 border border-blue-200";
   if (item.priority === "High" || item.priority === "Critical") {
     priorityStyle = "bg-red-100 text-red-750 border border-red-200";
   }
+
+  const dateStr = item.updatedAt || item.createdAt;
 
   return (
     <div 
@@ -329,13 +410,25 @@ function TicketItem({ item, active, onClick }) {
       
       <p className="font-extrabold text-gray-800 text-xs mt-1 truncate">{item.subject ?? "Support Inquiry"}</p>
       
-      <div className="flex items-center gap-2 mt-3">
-        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${priorityStyle}`}>
-          {item.priority ?? "Normal"}
-        </span>
-        <span className="px-2 py-0.5 bg-gray-100 text-slate-650 rounded text-[8px] font-black uppercase tracking-wider border border-gray-200">
-          {item.status ?? "Open"}
-        </span>
+      <div className="flex items-center justify-between gap-2 mt-3">
+        <div className="flex items-center gap-1.5">
+          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${priorityStyle}`}>
+            {item.priority ?? "Normal"}
+          </span>
+          <span className="px-2 py-0.5 bg-gray-100 text-slate-650 rounded text-[8px] font-black uppercase tracking-wider border border-gray-200">
+            {item.status ?? "Open"}
+          </span>
+          {item.callback && (
+            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-0.5">
+              <Phone size={9} /> Call Req
+            </span>
+          )}
+        </div>
+        {dateStr && (
+          <span className="text-[10px] text-gray-500 font-semibold whitespace-nowrap">
+            {formatDateTime(dateStr)}
+          </span>
+        )}
       </div>
     </div>
   );

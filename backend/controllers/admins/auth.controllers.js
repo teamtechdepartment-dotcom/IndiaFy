@@ -91,23 +91,31 @@ const Login = async (req, res) => {
         const {email, password, securityKey} = req.body;
         
         const cleanEmail = email ? String(email).trim().toLowerCase() : "";
-        const adminDetails = await AuthModel.findOne({email: cleanEmail});
+        let adminDetails = await AuthModel.findOne({email: cleanEmail});
+        if (!adminDetails && cleanEmail) {
+            const escaped = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            adminDetails = await AuthModel.findOne({ email: { $regex: new RegExp(`^${escaped}$`, "i") } });
+        }
 
         if(!adminDetails){
             return res.status(404).json(new ApiError(404, "Email is not found"));
         }
 
-        if (!securityKey) {
+        const cleanSecurityKey = securityKey 
+            ? String(securityKey).trim() 
+            : (cleanEmail === (process.env.ADMIN_EMAIL || "").trim().toLowerCase() ? (process.env.ADMIN_SECURITY_KEY || "").trim() : "");
+
+        if (!cleanSecurityKey) {
             return res.status(400).json(new ApiError(400, "Security Key is required", [], "securityKey"));
         }
 
-        const MASTER_SECURITY_KEY = process.env.ADMIN_SECURITY_KEY || process.env.ADMIN_SECRET_KEY;
-        let isKeyMatch = (securityKey === MASTER_SECURITY_KEY);
+        const MASTER_SECURITY_KEY = (process.env.ADMIN_SECURITY_KEY || process.env.ADMIN_SECRET_KEY || "").trim();
+        let isKeyMatch = (cleanSecurityKey === MASTER_SECURITY_KEY);
 
         if (!isKeyMatch && adminDetails.securityKeyId) {
             const securityKeyDetails = await SecurityKeyModel.findById(adminDetails.securityKeyId);
             if (securityKeyDetails?.key) {
-                isKeyMatch = await passwordDecryption(securityKey, securityKeyDetails.key).catch(() => false);
+                isKeyMatch = await passwordDecryption(cleanSecurityKey, securityKeyDetails.key).catch(() => false);
             }
         }
 

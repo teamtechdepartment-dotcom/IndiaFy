@@ -4,19 +4,9 @@ import permissionGuard from "../../middlewares/permissionGuard.middleware.js";
 import * as supportCtrl from "../../controllers/support/support.controllers.js";
 import { validateResult } from "../../middlewares/validate.middleware.js";
 import * as supportValidator from "../../middlewares/validators/support.validator.js";
-import rateLimit from "express-rate-limit";
-
-const conversationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-  message: { success: false, message: "Too many conversations created. Please try again later." }
-});
-
-const messageLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 30,
-  message: { success: false, message: "Too many messages sent. Please slow down." }
-});
+// Rate limiters disabled per user request
+const conversationLimiter = (req, res, next) => next();
+const messageLimiter = (req, res, next) => next();
 
 const router = Router();
 

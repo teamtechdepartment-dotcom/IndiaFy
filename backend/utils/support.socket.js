@@ -9,19 +9,8 @@ const rateLimits = new Map();
 let socketIoInstance = null;
 
 export const getSocketIo = () => socketIoInstance;
-const checkRateLimit = (identity, event, limit, windowMs) => {
-    const key = `${identity}:${event}`;
-    const now = Date.now();
-    let data = rateLimits.get(key) || { count: 0, resetAt: now + windowMs };
-    
-    if (now > data.resetAt) {
-        data = { count: 0, resetAt: now + windowMs };
-    }
-    data.count += 1;
-    rateLimits.set(key, data);
-    
-    return data.count > limit;
-};
+// Rate limiter disabled per user request
+const checkRateLimit = () => false;
 
 export const initSupportSocket = (io, socket, socketUser) => {
     if (!socketIoInstance) socketIoInstance = io;

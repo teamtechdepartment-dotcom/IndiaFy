@@ -103,7 +103,7 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
           </div>
         </div>
 
-        <div className="w-full sm:w-[220px] shrink-0 flex flex-col sm:items-start py-2 sm:pl-4 sm:border-l border-gray-100">
+        <div className="w-full sm:w-[250px] shrink-0 flex flex-col sm:items-start py-2 sm:pl-4 sm:border-l border-gray-100">
            {product.campaign && (
              <div className="mb-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[11px] font-black shadow-sm tracking-wide">
                <span>🔥</span>
@@ -111,13 +111,13 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
              </div>
            )}
            <div className="flex items-baseline gap-2 mb-1">
-             <span className="text-[20px] font-bold text-gray-900">₹{product.price.toLocaleString("en-IN")}</span>
+             <span className="text-2xl font-bold text-[#212121]">₹{product.price.toLocaleString("en-IN")}</span>
            </div>
            {product.original > product.price && (
-             <div className="flex items-center gap-2 text-[13px] font-medium mb-2">
-               <span className="text-gray-500 line-through">₹{product.original.toLocaleString("en-IN")}</span>
-               <span className={product.campaign ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded text-xs font-bold' : 'text-[#065F46] font-bold'}>
-                 {product.campaign ? `${product.campaign.discountValue}% OFF` : `${discountPercent}% off`}
+             <div className="flex items-center gap-2 text-sm font-medium mb-2">
+               <span className="text-[#878787] line-through">₹{product.original.toLocaleString("en-IN")}</span>
+               <span className={`font-bold ${product.campaign ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded text-xs' : 'text-[#388e3c]'}`}>
+                 {product.campaign ? `${product.campaign.discountValue}% OFF` : `${Math.round(((product.original - product.price) / product.original) * 100)}% off`}
                </span>
              </div>
            )}
@@ -144,21 +144,23 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
           {product.campaign ? (
-            <span className="bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+            <span className="bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-md uppercase tracking-wider flex items-center gap-1">
               <span>🔥</span>
               <span>{product.campaign.badgeText || product.campaign.name}</span>
             </span>
           ) : (
-            discountPercent > 0 && (
-              <span className="bg-[#ea580c] text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                {discountPercent}% OFF
-              </span>
-            )
-          )}
-          {product.badge === "Best Seller" && (
-            <span className="bg-[#065F46] text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-              Bestseller
-            </span>
+            <>
+              {discountPercent > 0 && (
+                <span className="bg-[#ea580c] text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                  {discountPercent}% OFF
+                </span>
+              )}
+              {product.badge === "Best Seller" && (
+                <span className="bg-[#065F46] text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                  Bestseller
+                </span>
+              )}
+            </>
           )}
         </div>
 
@@ -208,16 +210,12 @@ function ProductCard({ product, viewMode, source = "organic", surface = "none" }
           <div className="flex items-baseline gap-1.5 flex-wrap">
             <span className="text-[16px] font-bold text-gray-900">₹{product.price.toLocaleString("en-IN")}</span>
             {product.original > product.price && (
-              <span className="text-[12px] font-medium text-gray-500 line-through">₹{product.original.toLocaleString("en-IN")}</span>
-            )}
-            {product.campaign ? (
-              <span className="text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
-                {product.campaign.discountValue}% OFF
-              </span>
-            ) : (
-              discountPercent > 0 && (
-                <span className="text-[12px] font-bold text-[#065F46]">{discountPercent}% off</span>
-              )
+              <>
+                <span className="text-xs font-medium text-gray-400 line-through">₹{product.original.toLocaleString("en-IN")}</span>
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${product.campaign ? 'text-rose-600 bg-rose-50 border border-rose-200' : 'text-[#10B981] bg-[#10B981]/10'}`}>
+                  {product.campaign ? `${product.campaign.discountValue}% OFF` : `${Math.round(((product.original - product.price) / product.original) * 100)}% off`}
+                </span>
+              </>
             )}
           </div>
           

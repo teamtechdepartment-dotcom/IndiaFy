@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, X, Loader, CheckCircle, Package, Phone } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-hot-toast";
 import axiosInstance from "../../utils/axiosInstance";
 import { useAuthStore } from "../../store/authStore";
 import { useSellerAuthStore } from "../../store/sellerAuthStore";
@@ -124,32 +125,60 @@ export default function SupportChat({
     const initializeConversation = async () => {
       try {
         setLoading(true);
+        setError(null);
+
+        const isValidMongoId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+        const validOrderId = isValidMongoId(orderId) ? orderId : null;
+        const validStoreId = isValidMongoId(storeId) ? storeId : null;
+
         // 1. Check existing
         let endpoint = `/support/conversations`;
         const params = [];
-        if (orderId) params.push(`orderId=${orderId}`);
-        if (storeId) params.push(`storeId=${storeId}`);
+        if (validOrderId) params.push(`orderId=${validOrderId}`);
+        if (validStoreId) params.push(`storeId=${validStoreId}`);
         if (params.length > 0) endpoint += `?${params.join("&")}`;
 
         const res = await axiosInstance.get(endpoint);
-        let conv = res.data.conversations?.[0];
+        const conversations = res?.conversations || res?.data?.conversations || [];
+        let conv = conversations[0];
 
         // 2. Create new if missing
         if (!conv) {
-          const createRes = await axiosInstance.post(`/support/conversations`, {
-            subject: orderId ? `Order #${orderId.slice(-6)} Support` : defaultSubject,
-            orderId,
-            storeId,
-          });
-          conv = createRes.data.conversation;
+          const payload = {
+            subject: validOrderId ? `Order #${validOrderId.slice(-6)} Support` : defaultSubject,
+          };
+          if (validOrderId) payload.orderId = validOrderId;
+          if (validStoreId) payload.storeId = validStoreId;
+
+          const createRes = await axiosInstance.post(`/support/conversations`, payload);
+          conv = createRes?.conversation || createRes?.data?.conversation;
         }
 
         if (isMounted) {
+          if (!conv?._id) {
+            throw new Error("Unable to establish support session.");
+          }
           setConversation(conv);
           fetchMessages(conv._id, 1);
         }
       } catch (err) {
-        if (isMounted) setError(err.response?.data?.message || "Failed to load support chat.");
+        if (!isMounted) return;
+        const status = err.response?.status;
+        let errorMessage = "Failed to load support chat.";
+        if (status === 401) {
+          errorMessage = "Session expired. Please log in again to access support.";
+        } else if (status === 403) {
+          errorMessage = "You are not authorized to access this support conversation.";
+        } else if (status === 404) {
+          errorMessage = "Support service is currently unavailable. Please try again later.";
+        } else if (status >= 500) {
+          errorMessage = "Support server encountered an error. Please try again shortly.";
+        } else if (err.message === "Network Error" || err.code === "ERR_NETWORK") {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        }
+        setError(errorMessage);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -167,8 +196,9 @@ export default function SupportChat({
       const res = await axiosInstance.get(
         `/support/conversations/${convId}/messages?page=${pageNum}&limit=30`
       );
+      const rawMessages = res?.messages || res?.data?.messages || [];
       // Filter out internal notes just in case, though backend should do this
-      const validMessages = res.data.messages.filter(m => m.messageType !== 'internal_note');
+      const validMessages = rawMessages.filter(m => m.messageType !== 'internal_note');
       
       setMessages((prev) => {
         const existing = pageNum === 1 ? [] : [...prev];
@@ -178,8 +208,8 @@ export default function SupportChat({
           (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );
       });
-      setHasMoreMessages(res.data.hasMore);
-      setPage(res.data.currentPage);
+      setHasMoreMessages(res?.hasMore ?? res?.data?.hasMore ?? false);
+      setPage(res?.currentPage ?? res?.data?.currentPage ?? pageNum);
 
       if (pageNum === 1) {
         scrollToBottom();
@@ -203,7 +233,7 @@ export default function SupportChat({
       _id: "temp-" + clientMessageId,
       body: typingText.trim(),
       clientMessageId,
-      senderId: user._id,
+      senderId: user?._id,
       senderType: role,
       messageType: "customer", // Enforced client-side, also enforced backend
       createdAt: new Date().toISOString(),
@@ -241,14 +271,16 @@ export default function SupportChat({
     if (!callbackPhone.trim() || !activeConvId) return;
     setCallbackLoading(true);
     try {
-      await axiosInstance.post(`/support/conversations/${activeConvId}/callback`, {
+      const res = await axiosInstance.post(`/support/conversations/${activeConvId}/callback`, {
         phone: callbackPhone.trim(),
       });
       setCallbackRequested(true);
       setShowCallbackForm(false);
+      toast.success(res.data?.message || "Callback requested! Support team will call you shortly.");
     } catch (err) {
       console.error("Failed to request callback", err);
-      // fallback or toast here
+      const errMsg = err.response?.data?.message || "Failed to request callback. Please try again.";
+      toast.error(errMsg);
     } finally {
       setCallbackLoading(false);
     }
@@ -256,107 +288,138 @@ export default function SupportChat({
 
   if (loading) {
     return (
-      <div className="flex flex-col h-[500px] w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200 justify-center items-center fixed sm:bottom-6 sm:right-6 bottom-0 right-0 left-0 z-50">
-        <Loader className="w-8 h-8 animate-spin text-[#065F46]" />
-        <p className="mt-4 text-sm text-gray-500">Connecting to Support...</p>
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+      <>
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[140] sm:hidden" 
+          onClick={onClose} 
+          aria-hidden="true" 
+        />
+        <div className="flex flex-col h-[320px] sm:h-[360px] w-full sm:w-[410px] max-w-full sm:max-w-[calc(100vw-3rem)] bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200 justify-center items-center fixed bottom-0 right-0 left-0 sm:left-auto sm:right-6 sm:bottom-6 z-[150] p-6 text-center">
+          <Loader className="w-8 h-8 animate-spin text-[#065F46]" />
+          <p className="mt-4 text-sm font-semibold text-gray-600">Connecting to Support...</p>
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col h-[500px] w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200 justify-center items-center p-6 text-center fixed sm:bottom-6 sm:right-6 bottom-0 right-0 left-0 z-50">
-        <div className="text-red-500 mb-2">Error</div>
-        <p className="text-gray-700 text-sm">{error}</p>
-        <button
-          onClick={onClose}
-          className="mt-6 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm font-medium"
-        >
-          Close
-        </button>
-      </div>
+      <>
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[140] sm:hidden" 
+          onClick={onClose} 
+          aria-hidden="true" 
+        />
+        <div className="flex flex-col h-[320px] sm:h-[360px] w-full sm:w-[410px] max-w-full sm:max-w-[calc(100vw-3rem)] bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200 justify-center items-center p-6 text-center fixed bottom-0 right-0 left-0 sm:left-auto sm:right-6 sm:bottom-6 z-[150]">
+          <div className="text-red-500 font-bold mb-2 text-sm">Support Unavailable</div>
+          <p className="text-gray-600 text-xs px-4">{error}</p>
+          <button
+            onClick={onClose}
+            className="mt-5 px-5 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-xs font-bold transition-colors cursor-pointer"
+          >
+            Close
+          </button>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="flex flex-col h-[500px] sm:h-[600px] w-full max-w-md bg-white sm:rounded-lg shadow-2xl overflow-hidden border border-gray-200 flex-shrink-0 z-50 fixed sm:bottom-6 sm:right-6 bottom-0 right-0 left-0">
-      {/* Header */}
-      <div className="bg-[#065F46] text-white p-4 flex justify-between items-center shadow-sm">
-        <div>
-          <h3 className="font-semibold text-sm">IndiaFy Support</h3>
-          {conversation && (
-            <div className="text-xs text-[#065F46] bg-green-100/20 px-2 py-0.5 rounded inline-flex items-center mt-1 font-medium">
-              <span
-                className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                  isConnected ? "bg-green-400" : "bg-red-400"
-                }`}
-              ></span>
-              {isConnected ? "Connected" : "Reconnecting..."}
-              <span className="mx-1.5">•</span>
-              Ticket {conversation.ticketNumber}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
-          {activeConvId && !callbackRequested && (
-            <button
-              onClick={() => setShowCallbackForm(!showCallbackForm)}
-              className="text-white/90 hover:text-white hover:bg-white/10 p-1.5 rounded transition-colors flex items-center text-xs font-medium"
-              title="Request Callback"
-            >
-              <Phone className="w-4 h-4" />
-            </button>
-          )}
-          {callbackRequested && (
-            <div className="text-white/90 p-1.5 rounded flex items-center text-xs font-medium" title="Callback Requested">
-              <CheckCircle className="w-4 h-4 mr-1 text-green-300" />
-              Callback
-            </div>
-          )}
-          <button
-            onClick={onClose}
-            className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded transition-colors"
-            aria-label="Close chat"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
+    <>
+      <div 
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[140] sm:hidden transition-opacity" 
+        onClick={onClose} 
+        aria-hidden="true" 
+      />
+      <div className="flex flex-col h-[85dvh] sm:h-[min(580px,calc(100dvh-6rem))] max-h-[calc(100dvh-1.5rem)] w-full sm:w-[410px] max-w-full sm:max-w-[calc(100vw-3rem)] bg-white rounded-t-2xl sm:rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] overflow-hidden border border-gray-200/90 flex-shrink-0 z-[150] fixed bottom-0 right-0 left-0 sm:left-auto sm:right-6 sm:bottom-6 transition-all duration-200">
+        {/* Mobile handle indicator */}
+        <div className="w-12 h-1 bg-white/40 rounded-full mx-auto mt-2 sm:hidden absolute top-0 left-1/2 -translate-x-1/2 z-20" />
 
-      {showCallbackForm && (
-        <div className="bg-[#065F46]/5 border-b border-[#065F46]/20 p-3 flex flex-col space-y-2 text-sm shadow-inner">
-          <p className="text-gray-700 text-xs font-medium">Request a callback from our support team</p>
-          <div className="flex space-x-2">
-            <input
-              type="tel"
-              placeholder="Your Phone Number"
-              className="flex-1 px-3 py-1.5 border border-gray-300 rounded focus:outline-none focus:border-[#065F46] focus:ring-1 focus:ring-[#065F46]/50 text-sm"
-              value={callbackPhone}
-              onChange={(e) => setCallbackPhone(e.target.value)}
-            />
+        {/* Header */}
+        <div className="bg-[#065F46] text-white px-4 py-3 sm:py-3.5 flex justify-between items-center shadow-sm shrink-0 relative z-10 pt-4 sm:pt-3.5">
+          <div className="min-w-0 pr-2">
+            <h3 className="font-bold text-sm tracking-tight truncate">IndiaFy Support</h3>
+            {conversation && (
+              <div className="text-emerald-100 bg-white/15 px-2.5 py-0.5 rounded-full inline-flex items-center mt-1 text-[11px] font-medium tracking-wide">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full mr-1.5 shrink-0 ${
+                    isConnected ? "bg-emerald-300" : "bg-red-400"
+                  }`}
+                ></span>
+                <span className="truncate">{isConnected ? "Connected" : "Reconnecting..."}</span>
+                <span className="mx-1.5 opacity-60">•</span>
+                <span className="truncate font-semibold">{conversation.ticketNumber}</span>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+            {activeConvId && !callbackRequested && (
+              <button
+                onClick={() => setShowCallbackForm(!showCallbackForm)}
+                className="text-white/90 hover:text-white hover:bg-white/15 p-2 rounded-lg transition-colors flex items-center text-xs font-semibold cursor-pointer"
+                title="Request Callback"
+                aria-label="Request Callback"
+              >
+                <Phone className="w-4 h-4" />
+              </button>
+            )}
+            {callbackRequested && (
+              <div className="text-white/90 p-1.5 rounded flex items-center text-xs font-medium" title="Callback Requested">
+                <CheckCircle className="w-4 h-4 mr-1 text-emerald-300" />
+                <span className="hidden xs:inline">Callback</span>
+              </div>
+            )}
             <button
-              onClick={handleRequestCallback}
-              disabled={callbackLoading || !callbackPhone.trim()}
-              className="px-3 py-1.5 bg-[#065F46] text-white rounded font-medium disabled:opacity-50 hover:bg-[#047857] transition-colors"
+              onClick={onClose}
+              className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-lg transition-colors cursor-pointer active:scale-95"
+              aria-label="Close chat"
             >
-              {callbackLoading ? <Loader className="w-4 h-4 animate-spin mx-auto" /> : "Request"}
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
-      )}
 
-      {/* Order Context Banner */}
-      {orderId && (
-        <div className="bg-gray-50 border-b border-gray-200 p-2.5 px-4 flex items-center justify-between text-xs text-gray-600">
-          <div className="flex items-center font-medium">
-            <Package className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
-            Order #{orderId.slice(-8).toUpperCase()}
+        {showCallbackForm && (
+          <div className="bg-[#065F46]/5 border-b border-[#065F46]/20 p-3 flex flex-col space-y-2 text-sm shadow-inner shrink-0">
+            <p className="text-gray-700 text-xs font-medium">Request a callback from our support team</p>
+            <div className="flex space-x-2">
+              <input
+                type="tel"
+                placeholder="Your Phone Number"
+                className="flex-1 px-3 py-1.5 border border-gray-300 rounded focus:outline-none focus:border-[#065F46] focus:ring-1 focus:ring-[#065F46]/50 text-sm"
+                value={callbackPhone}
+                onChange={(e) => setCallbackPhone(e.target.value)}
+              />
+              <button
+                onClick={handleRequestCallback}
+                disabled={callbackLoading || !callbackPhone.trim()}
+                className="px-3 py-1.5 bg-[#065F46] text-white rounded font-medium disabled:opacity-50 hover:bg-[#047857] transition-colors cursor-pointer"
+              >
+                {callbackLoading ? <Loader className="w-4 h-4 animate-spin mx-auto" /> : "Request"}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Order Context Banner */}
+        {orderId && (
+          <div className="bg-gray-50 border-b border-gray-200 py-2 px-4 flex items-center justify-between text-xs text-gray-700 font-semibold shrink-0">
+            <div className="flex items-center min-w-0 pr-2">
+              <Package className="w-3.5 h-3.5 mr-1.5 text-emerald-700 shrink-0" />
+              <span className="truncate">Order #{orderId.slice(-8).toUpperCase()}</span>
+            </div>
+            <span className="text-[10px] uppercase font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-300/60 px-2 py-0.5 rounded-full shrink-0">
+              Linked
+            </span>
+          </div>
+        )}
 
       {/* Messages Area */}
       <div
@@ -445,6 +508,7 @@ export default function SupportChat({
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -99,7 +99,7 @@ export default function AdminLogin() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [securityKey, setSecurityKey] = useState("");
+  const [securityKey, setSecurityKey] = useState(import.meta.env.VITE_ADMIN_SECURITY_KEY || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -400,6 +400,28 @@ export default function AdminLogin() {
                 </p>
               </div>
 
+              {import.meta.env.DEV && (
+                <div className="mb-5 p-3 rounded-xl bg-orange-50/80 dark:bg-orange-950/30 border border-orange-200/60 dark:border-orange-900/40 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-extrabold text-[#FB641B] block">Development Quick Fill:</span>
+                    <span className="text-[11px] text-gray-600 dark:text-gray-400">
+                      {import.meta.env.VITE_DEV_ADMIN_EMAIL || "Use configured credentials"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (import.meta.env.VITE_DEV_ADMIN_EMAIL) setEmail(import.meta.env.VITE_DEV_ADMIN_EMAIL);
+                      if (import.meta.env.VITE_DEV_ADMIN_PASSWORD) setPassword(import.meta.env.VITE_DEV_ADMIN_PASSWORD);
+                      if (import.meta.env.VITE_ADMIN_SECURITY_KEY) setSecurityKey(import.meta.env.VITE_ADMIN_SECURITY_KEY);
+                    }}
+                    className="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#FB641B] hover:bg-[#F0570F] text-white transition-colors cursor-pointer shadow-sm"
+                  >
+                    Auto Fill
+                  </button>
+                </div>
+              )}
+
               {/* Login Form */}
               <form onSubmit={handleLogin} className="space-y-5">
                 {/* EMAIL */}
@@ -485,6 +507,7 @@ export default function AdminLogin() {
                       onChange={(e) => setSecurityKey(e.target.value)}
                       required
                       autoComplete="off"
+                      placeholder="Enter Admin Security Key"
                       className="w-full rounded py-3.5 pl-11 pr-12 text-xs font-medium placeholder-gray-400 dark:placeholder-gray-600 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-gray-900 dark:text-gray-100 transition-all duration-200 focus:outline-none focus:border-[#FB641B] focus:ring-4 focus:ring-[#FB641B]/10 dark:focus:ring-[#FB641B]/5"
                     />
                     <button

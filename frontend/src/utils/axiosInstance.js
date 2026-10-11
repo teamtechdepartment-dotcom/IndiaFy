@@ -48,6 +48,7 @@ axiosInstance.interceptors.request.use(
         try {
             const url = config.url || "";
             const isCustomerRoute = url.includes("/customer");
+            const isSellerRoute = url.includes("/seller") || url.includes("/wholesale") || url.includes("/local") || url.includes("/products") || url.includes("/orders");
             const isAdminRoute = url.includes("/admin");
             
             let token = null;
@@ -81,16 +82,17 @@ axiosInstance.interceptors.request.use(
 
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
             const isAdminContext = currentPath.startsWith('/admin') || url.includes('/admin');
+            const isSellerContext = currentPath.startsWith('/seller') || currentPath === '/seller-hub';
 
             if (isAdminContext && getAdminToken()) {
                 token = getAdminToken();
-            } else if (isSellerRoute || currentPath.startsWith('/seller')) {
+            } else if (isSellerRoute || isSellerContext) {
                 token = getSellerToken() || getCustomerToken();
             } else if (isCustomerRoute) {
                 token = getCustomerToken();
             } else {
-                // Shared endpoint or fallback: use available session in precedence: admin (if in admin view) or seller or customer
-                token = (isAdminContext ? getAdminToken() : null) || getSellerToken() || getCustomerToken() || getAdminToken();
+                // Shared endpoint or fallback: use available session in precedence: admin (if in admin view) or seller (if in seller view) or customer
+                token = (isAdminContext ? getAdminToken() : null) || (isSellerContext ? getSellerToken() : null) || getCustomerToken() || getSellerToken() || getAdminToken();
             }
 
             if (token) {

@@ -3,7 +3,10 @@ import { io } from "socket.io-client";
 import { useAdminAuthStore } from "../store/adminAuthStore";
 
 const getSocketURL = () => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  let url = import.meta.env.VITE_API_URL;
+  if (url) {
+    return url.replace(/\/api\/v1\/indiafy\/?$/, "").replace(/\/+$/, "");
+  }
   if (
     typeof window !== "undefined" &&
     !window.location.hostname.includes("localhost") &&

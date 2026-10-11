@@ -105,11 +105,12 @@ export default function CustomerSupport() {
       };
 
       const res = await axiosInstance.post("/support/conversations", payload);
-      const ticketId = res.data?.conversation?.ticketNumber || res.data?.conversation?._id || "TICKET-CONFIRMED";
+      const conv = res?.conversation || res?.data?.conversation;
+      const ticketId = conv?.ticketNumber || conv?._id || "TICKET-CONFIRMED";
       
-      if (res.data?.conversation?._id && form.message.trim()) {
+      if (conv?._id && form.message.trim()) {
         try {
-          await axiosInstance.post(`/support/conversations/${res.data.conversation._id}/messages`, {
+          await axiosInstance.post(`/support/conversations/${conv._id}/messages`, {
             body: form.message.trim(),
             clientMessageId: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
             messageType: "customer"
