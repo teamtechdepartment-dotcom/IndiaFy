@@ -1,702 +1,1123 @@
+/* eslint-disable no-unused-vars, react-hooks/rules-of-hooks, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-undef, no-empty */
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Loader, Send, Phone, CheckCircle, User, FileText, Settings, X, MoreVertical, Lock } from "lucide-react";
+import {
+  Search,
+  Loader,
+  Send,
+  LifeBuoy,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  User,
+  Package,
+  FileText,
+  Lock,
+  RefreshCw,
+  Tag,
+  ChevronRight,
+  Filter,
+  CheckCheck,
+  RotateCcw,
+  UserCheck,
+  Building,
+  Shield,
+  MessageSquare,
+  HelpCircle,
+  Trash2,
+  X
+} from "lucide-react";
 import axiosInstance from "../../utils/axiosInstance";
 import { useAdminAuthStore } from "../../store/adminAuthStore";
-import { useSupportSocket } from "../../hooks/useSupportSocket";
-import { v4 as uuidv4 } from "uuid";
+import { useSupportAuthStore } from "../../store/supportAuthStore";
 import toast from "react-hot-toast";
 
-const SupportWorkspace = () => {
-  const { user } = useAdminAuthStore();
-  
-  // State
-  const [conversations, setConversations] = useState([]);
-  const [callbacks, setCallbacks] = useState([]);
-  const [queueMode, setQueueMode] = useState("chats"); // "chats" | "callbacks"
-  const [agentStatus, setAgentStatus] = useState("online");
-  const [activeConvId, setActiveConvId] = useState(null);
-  const [activeConvDetails, setActiveConvDetails] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [hasMoreMessages, setHasMoreMessages] = useState(false);
-  const [messageCursor, setMessageCursor] = useState(null);
-  
-  const [queueLoading, setQueueLoading] = useState(true);
-  const [chatLoading, setChatLoading] = useState(false);
-  const [typing, setTyping] = useState("");
-  const [isInternalNote, setIsInternalNote] = useState(false);
-  const [typingUsers, setTypingUsers] = useState({});
-  const [queueFilter, setQueueFilter] = useState("unassigned");
-  const [searchQuery, setSearchQuery] = useState("");
-  
-  const [mobilePane, setMobilePane] = useState("queue"); // queue | chat | context
-  
-  const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
-  const typingTimeoutRef = useRef(null);
+export default function SupportWorkspace() {
+  const adminAuth = useAdminAuthStore();
+  const supportAuth = useSupportAuthStore();
 
-  // Load Queue
-  const loadQueue = useCallback(async (filter = queueFilter, search = searchQuery) => {
-    try {
-      setQueueLoading(true);
-      
-      const params = {};
-      
-      // Map frontend filters to backend supported params (Phase 1/2 backend params)
-      // "unassigned", "assigned", "waiting", "priority"
-      if (filter === "unassigned") {
-        params.status = "open";
-      } else if (filter === "assigned_me") {
-        params.assignedToMe = "true";
-      } else if (filter === "waiting") {
-        params.status = "waiting_agent";
-      } else if (filter === "escalated") {
-        params.status = "escalated";
-      }
-      
-      // Search - documented as missing backend support if not fully supported, but we pass it
-      if (search) {
-        params.search = search;
-      }
-      
-      const res = await axiosInstance.get('/support/conversations', { params });
-      setConversations(res.data.conversations || []);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load queue");
-    } finally {
-      setQueueLoading(false);
-    }
-  }, [queueFilter, searchQuery]);
+  const currentUser = supportAuth.isAuthenticated && supportAuth.user
+    ? supportAuth.user
+    : adminAuth.user;
 
-  // Load Callbacks
-  const loadCallbacks = useCallback(async () => {
-    try {
-      setQueueLoading(true);
-      const res = await axiosInstance.get('/support/callbacks');
-      setCallbacks(res.data.callbacks || []);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load callbacks");
-    } finally {
-      setQueueLoading(false);
-    }
-  }, []);
-
-  // Initial Queue Load
-  useEffect(() => {
-    if (queueMode === "chats") {
-      loadQueue();
-    } else {
-      loadCallbacks();
-    }
-  }, [loadQueue, loadCallbacks, queueMode]);
-
-  // Load Chat
-  useEffect(() => {
-    if (!activeConvId) return;
-    
-    const loadConversation = async () => {
-      try {
-        setChatLoading(true);
-        // Load Details
-        const detailRes = await axiosInstance.get(`/support/conversations/${activeConvId}`);
-        setActiveConvDetails(detailRes.data.conversation);
-        
-        // Load Messages
-        const msgRes = await axiosInstance.get(`/support/conversations/${activeConvId}/messages?limit=50`);
-        setMessages(msgRes.data.messages || []);
-        setHasMoreMessages(msgRes.data.hasMore);
-        setMessageCursor(msgRes.data.cursor);
-        
-        // Reset state
-        setTyping("");
-        setTypingUsers({});
-        
-        if (window.innerWidth < 768) setMobilePane("chat");
-        
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load conversation");
-      } finally {
-        setChatLoading(false);
-      }
-    };
-    
-    loadConversation();
-  }, [activeConvId]);
-
-  // Scroll to bottom when messages load initial or new message arrives
-  useEffect(() => {
-    if (messagesEndRef.current && !hasMoreMessages) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, hasMoreMessages]);
-
-  // Load Older Messages
-  const handleScroll = async () => {
-    if (!messagesContainerRef.current) return;
-    const { scrollTop } = messagesContainerRef.current;
-    
-    if (scrollTop === 0 && hasMoreMessages && messageCursor) {
-      try {
-        // preserve scroll pos
-        const oldScrollHeight = messagesContainerRef.current.scrollHeight;
-        
-        const msgRes = await axiosInstance.get(`/support/conversations/${activeConvId}/messages?limit=50&before=${messageCursor}`);
-        
-        const newMessages = msgRes.data.messages || [];
-        setMessages(prev => [...newMessages, ...prev]);
-        setHasMoreMessages(msgRes.data.hasMore);
-        setMessageCursor(msgRes.data.cursor);
-        
-        // restore scroll
-        setTimeout(() => {
-          if (messagesContainerRef.current) {
-            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight - oldScrollHeight;
-          }
-        }, 0);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  };
-
-  // Socket
-  const { isConnected, sendMessage, sendTypingStart, sendTypingStop, sendReadReceipt } = useSupportSocket(activeConvId, {
-    onNewMessage: (data) => {
-      if (data.message.conversationId === activeConvId) {
-        setMessages(prev => {
-          // Prevent duplicates if optimistic
-          if (prev.find(m => m.clientMessageId === data.message.clientMessageId)) return prev;
-          return [...prev, data.message];
-        });
-        
-        // Send read receipt if we are focused
-        if (document.visibilityState === 'visible') {
-          sendReadReceipt(activeConvId, data.message._id);
-        }
-      }
-      
-      // Update queue snippet
-      setConversations(prev => prev.map(c => 
-        c._id === data.message.conversationId 
-          ? { ...c, lastMessageAt: data.message.createdAt, messageCount: c.messageCount + 1 }
-          : c
-      ));
-    },
-    onMessageDelivered: (data) => {
-      setMessages(prev => prev.map(m => 
-        m.clientMessageId === data.clientMessageId 
-          ? { ...m, _id: data.messageId, delivered: true }
-          : m
-      ));
-    },
-    onMessageRead: (data) => {
-      setMessages(prev => prev.map(m => 
-        m._id === data.messageId ? { ...m, readAt: data.readAt } : m
-      ));
-    },
-    onTypingStart: (data) => {
-      if (data.conversationId === activeConvId) {
-        setTypingUsers(prev => ({ ...prev, [data.userId]: data.name }));
-      }
-    },
-    onTypingStop: (data) => {
-      if (data.conversationId === activeConvId) {
-        setTypingUsers(prev => {
-          const newObj = { ...prev };
-          delete newObj[data.userId];
-          return newObj;
-        });
-      }
-    },
-    onError: (err) => {
-      toast.error(err.message || "Socket Error");
-    }
+  // Dashboard Metrics
+  const [metrics, setMetrics] = useState({
+    total: 0,
+    open: 0,
+    assigned: 0,
+    inProgress: 0,
+    waiting: 0,
+    resolved: 0,
+    assignedToMe: 0,
   });
 
-  const handleSend = () => {
-    if (!typing.trim() || !activeConvId) return;
-    
-    const clientMessageId = uuidv4();
-    const tempMsg = {
-      _id: 'temp-' + clientMessageId,
-      body: typing.trim(),
-      clientMessageId,
-      senderId: user._id,
-      senderType: 'admin',
-      messageType: isInternalNote ? 'internal_note' : 'customer',
-      createdAt: new Date().toISOString(),
-      optimistic: true
-    };
-    
-    setMessages(prev => [...prev, tempMsg]);
-    sendMessage(activeConvId, typing.trim(), clientMessageId, [], isInternalNote ? 'internal_note' : 'customer');
-    setTyping("");
-    sendTypingStop(activeConvId);
-  };
+  // Ticket Queue State
+  const [tickets, setTickets] = useState([]);
+  const [queueLoading, setQueueLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [assignmentFilter, setAssignmentFilter] = useState("all"); // "all", "me", "unassigned"
+  const [selectedTicketIds, setSelectedTicketIds] = useState([]);
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+  // Active Ticket State
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [ticketLoading, setTicketLoading] = useState(false);
+
+  // Customer Context State
+  const [customerContext, setCustomerContext] = useState(null);
+  const [contextLoading, setContextLoading] = useState(false);
+
+  // Staff list for assignments
+  const [supportMembers, setSupportMembers] = useState([]);
+
+  // Composer State
+  const [replyText, setReplyText] = useState("");
+  const [isInternalNote, setIsInternalNote] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  // Resolution modal state
+  const [showResolveModal, setShowResolveModal] = useState(false);
+  const [resolutionNotes, setResolutionNotes] = useState("");
+
+  // Mobile layout tab
+  const [mobilePane, setMobilePane] = useState("queue"); // "queue" | "chat" | "context"
+
+  const messagesEndRef = useRef(null);
+
+  // Scroll messages to bottom
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  const handleTyping = (e) => {
-    setTyping(e.target.value);
-    
-    if (activeConvId) {
-      sendTypingStart(activeConvId);
-      
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => {
-        sendTypingStop(activeConvId);
-      }, 2000);
-    }
-  };
-  
-  const handleAssignToMe = async () => {
-    if (!activeConvId) return;
+  useEffect(() => {
+    scrollToBottom();
+  }, [selectedTicket?.messages, selectedTicket?.internalNotes]);
+
+  // Load Dashboard Metrics
+  const loadMetrics = async () => {
     try {
-      await axiosInstance.post(`/support/conversations/${activeConvId}/assign`, { agentId: user._id });
-      toast.success("Assigned to you");
-      loadQueue();
-      setActiveConvDetails(prev => ({ ...prev, assignedAgentId: user._id }));
+      const res = await axiosInstance.get("/support-workspace/dashboard");
+      const data = res?.data || res;
+      if (data) setMetrics(data);
     } catch (err) {
-      toast.error("Failed to assign");
+      console.warn("Failed to fetch support dashboard metrics:", err.message);
     }
   };
 
-  // UI Components
-  const QueuePane = () => (
-    <div className={`flex flex-col h-full border-r border-gray-200 bg-white md:w-80 lg:w-96 flex-shrink-0 ${mobilePane === "queue" ? "w-full absolute inset-0 z-10" : "hidden md:flex"}`}>
-      <div className="p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Support Workspace</h2>
-          <select 
-            value={agentStatus} 
-            onChange={(e) => setAgentStatus(e.target.value)}
-            className="text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:outline-none focus:border-[#065F46]"
-          >
-            <option value="online">🟢 Online</option>
-            <option value="away">🟡 Away</option>
-            <option value="offline">⚪ Offline</option>
-          </select>
-        </div>
-        
-        <div className="flex space-x-2 mb-3">
-          <button 
-            className={`flex-1 py-1.5 text-xs font-medium rounded ${queueMode === "chats" ? "bg-[#065F46] text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
-            onClick={() => setQueueMode("chats")}
-          >
-            Live Chats
-          </button>
-          <button 
-            className={`flex-1 py-1.5 text-xs font-medium rounded ${queueMode === "callbacks" ? "bg-[#065F46] text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
-            onClick={() => setQueueMode("callbacks")}
-          >
-            Callbacks
-          </button>
-        </div>
-        <div className="relative mb-3">
-          <input 
-            type="text" 
-            placeholder="Search ticket, order, customer..." 
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-[#065F46]"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onBlur={() => loadQueue()}
-            onKeyDown={(e) => e.key === 'Enter' && loadQueue()}
-          />
-          <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
-        </div>
-        <select 
-          className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-[#065F46]"
-          value={queueFilter}
-          onChange={(e) => setQueueFilter(e.target.value)}
-        >
-          <option value="all">All Active</option>
-          <option value="unassigned">Unassigned</option>
-          <option value="assigned_me">Assigned to Me</option>
-          <option value="waiting">Waiting on Agent</option>
-          <option value="escalated">Escalated</option>
-        </select>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto">
-        {queueLoading ? (
-          <div className="flex justify-center p-8"><Loader className="w-6 h-6 animate-spin text-[#065F46]" /></div>
-        ) : queueMode === "chats" && conversations.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-500">No conversations found.</div>
-        ) : queueMode === "callbacks" && callbacks.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-500">No active callbacks.</div>
-        ) : queueMode === "chats" ? (
-          <div className="divide-y divide-gray-100">
-            {conversations.map(conv => (
-              <div 
-                key={conv._id}
-                onClick={() => setActiveConvId(conv._id)}
-                className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${activeConvId === conv._id ? 'bg-[#065F46]/5 border-l-4 border-[#065F46]' : 'border-l-4 border-transparent'}`}
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-medium text-sm text-gray-900 truncate pr-2">
-                    {conv.subject || `Order #${conv.orderId?.slice(-6) || 'General'}`}
-                  </span>
-                  <span className="text-[11px] text-gray-500 font-medium flex-shrink-0">
-                    {new Date(conv.lastMessageAt || conv.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })},{" "}
-                    {new Date(conv.lastMessageAt || conv.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500 truncate">{conv.customerId?.name || 'Customer'}</span>
-                  {conv.priority === 'high' && <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] rounded-sm font-medium">HIGH</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : queueMode === "callbacks" ? (
-          <div className="divide-y divide-gray-100">
-            {callbacks.map(cb => (
-              <div 
-                key={cb._id}
-                onClick={() => setActiveConvId(cb.conversationId)}
-                className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${activeConvId === cb.conversationId ? 'bg-[#065F46]/5 border-l-4 border-[#065F46]' : 'border-l-4 border-transparent'}`}
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-medium text-sm text-gray-900 truncate pr-2 flex items-center">
-                    <Phone className="w-3 h-3 mr-1 text-gray-400" />
-                    Callback ({cb.status})
-                  </span>
-                  <span className="text-[11px] text-gray-500 font-medium flex-shrink-0">
-                    {new Date(cb.requestedAt || cb.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })},{" "}
-                    {new Date(cb.requestedAt || cb.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-xs font-mono text-gray-600 truncate">{cb.phone}</span>
-                  <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{cb.requestedTimeWindow}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
+  // Load Support Members
+  const loadMembers = async () => {
+    try {
+      const res = await axiosInstance.get("/support-workspace/members");
+      const data = res?.data || res;
+      if (Array.isArray(data)) setSupportMembers(data);
+    } catch (err) {
+      console.warn("Failed to fetch support members:", err.message);
+    }
+  };
 
-  const ChatPane = () => (
-    <div className={`flex flex-col h-full bg-white flex-1 ${mobilePane === "chat" ? "w-full absolute inset-0 z-20" : "hidden md:flex"}`}>
-      {activeConvId ? (
-        <>
-          {/* Header */}
-          <div className="h-16 border-b border-gray-200 px-4 flex items-center justify-between flex-shrink-0 bg-white">
-            <div className="flex items-center">
-              <button className="md:hidden mr-3 p-2 text-gray-600 hover:bg-gray-100 rounded" onClick={() => setMobilePane("queue")}>
-                <Search className="w-5 h-5" />
-              </button>
-              <div>
-                <h3 className="font-semibold text-gray-800 text-sm md:text-base">
-                  {activeConvDetails?.subject || 'Support Conversation'}
-                </h3>
-                <div className="text-xs text-gray-500 flex flex-wrap items-center mt-0.5 gap-2">
-                  <span className={`inline-block w-2 h-2 rounded-full mr-1 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                  <span>{activeConvDetails?.status === 'open' ? 'Open' : activeConvDetails?.status}</span>
-                  <span>•</span>
-                  <span className="font-mono text-gray-600">{activeConvDetails?.ticketNumber || activeConvDetails?._id}</span>
-                  {activeConvDetails?.createdAt && (
-                    <>
-                      <span>•</span>
-                      <span className="text-gray-500 font-medium">
-                        📅 {new Date(activeConvDetails.createdAt).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })},{" "}
-                        {new Date(activeConvDetails.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
+  // Load Tickets Queue
+  const loadTickets = useCallback(async (silent = false) => {
+    if (!silent) setQueueLoading(true);
+    try {
+      const params = {};
+      if (searchQuery.trim()) params.search = searchQuery.trim();
+      if (statusFilter !== "all") params.status = statusFilter;
+      if (priorityFilter !== "all") params.priority = priorityFilter;
+      if (categoryFilter !== "all") params.category = categoryFilter;
+      if (assignmentFilter !== "all") params.assignedTo = assignmentFilter;
+
+      const res = await axiosInstance.get("/support-workspace/tickets", { params });
+      const data = res?.data?.tickets || res?.tickets || [];
+      setTickets(Array.isArray(data) ? data : []);
+
+      // If nothing selected or selected ticket updated, refresh selection
+      if (selectedTicketId) {
+        const found = data.find((t) => t._id === selectedTicketId);
+        if (found) {
+          setSelectedTicket((prev) => ({
+            ...prev,
+            ...found,
+            messages: prev?.messages || found.messages,
+            internalNotes: prev?.internalNotes || found.internalNotes,
+          }));
+        }
+      } else if (data.length > 0 && !selectedTicketId && window.innerWidth >= 768) {
+        // Auto-select first ticket on desktop
+        handleSelectTicket(data[0]._id);
+      }
+    } catch (err) {
+      console.error("Failed to load support tickets:", err);
+      if (!silent) toast.error("Failed to load tickets queue");
+    } finally {
+      if (!silent) setQueueLoading(false);
+    }
+  }, [searchQuery, statusFilter, priorityFilter, categoryFilter, assignmentFilter, selectedTicketId]);
+
+  // Initial Data Load
+  useEffect(() => {
+    loadMetrics();
+    loadMembers();
+    loadTickets();
+  }, []);
+
+  // Reload queue when filters change
+  useEffect(() => {
+    loadTickets();
+  }, [statusFilter, priorityFilter, categoryFilter, assignmentFilter]);
+
+  // Select Ticket & Fetch Details + Customer Context
+  const handleSelectTicket = async (ticketId) => {
+    if (!ticketId) return;
+    setSelectedTicketId(ticketId);
+    setTicketLoading(true);
+    setContextLoading(true);
+
+    if (window.innerWidth < 768) {
+      setMobilePane("chat");
+    }
+
+    try {
+      const [ticketRes, contextRes] = await Promise.all([
+        axiosInstance.get(`/support-workspace/tickets/${ticketId}`),
+        axiosInstance.get(`/support-workspace/tickets/${ticketId}/customer-context`).catch(() => null),
+      ]);
+
+      const ticketData = ticketRes?.data || ticketRes;
+      setSelectedTicket(ticketData);
+
+      if (contextRes) {
+        const contextData = contextRes?.data || contextRes;
+        setCustomerContext(contextData);
+      }
+    } catch (err) {
+      console.error("Error loading ticket details:", err);
+      toast.error("Failed to load ticket details");
+    } finally {
+      setTicketLoading(false);
+      setContextLoading(false);
+    }
+  };
+
+  // Send Message or Internal Note
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    const text = replyText.trim();
+    if (!selectedTicketId || !text) return;
+
+    setSending(true);
+    setReplyText("");
+
+    const isNote = isInternalNote;
+    const actorName = currentUser?.name || `${currentUser?.firstName || ""} ${currentUser?.lastName || ""}`.trim() || "Support Staff";
+
+    // Optimistic UI update
+    if (isNote) {
+      const optimisticNote = {
+        adminName: actorName,
+        note: text,
+        createdAt: new Date().toISOString(),
+      };
+      setSelectedTicket((prev) =>
+        prev ? { ...prev, internalNotes: [...(prev.internalNotes || []), optimisticNote] } : prev
+      );
+    } else {
+      const optimisticMsg = {
+        senderType: "admin",
+        senderName: actorName,
+        body: text,
+        createdAt: new Date().toISOString(),
+      };
+      setSelectedTicket((prev) =>
+        prev ? { ...prev, messages: [...(prev.messages || []), optimisticMsg] } : prev
+      );
+    }
+
+    try {
+      if (isNote) {
+        await axiosInstance.post(`/support-workspace/tickets/${selectedTicketId}/notes`, { note: text });
+        toast.success("Internal note added");
+      } else {
+        await axiosInstance.post(`/support-workspace/tickets/${selectedTicketId}/messages`, { body: text });
+        toast.success("Public reply dispatched");
+      }
+
+      // Silent sync
+      const res = await axiosInstance.get(`/support-workspace/tickets/${selectedTicketId}`);
+      const updated = res?.data || res;
+      if (updated?._id) setSelectedTicket(updated);
+      loadTickets(true);
+      loadMetrics();
+    } catch (err) {
+      console.error("Failed to post message:", err);
+      toast.error(isNote ? "Failed to save internal note" : "Failed to post reply");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Update Status
+  const handleUpdateStatus = async (newStatus) => {
+    if (!selectedTicketId || !newStatus) return;
+    try {
+      await axiosInstance.patch(`/support-workspace/tickets/${selectedTicketId}`, { status: newStatus });
+      toast.success(`Status updated to ${newStatus}`);
+      setSelectedTicket((prev) => (prev ? { ...prev, status: newStatus } : prev));
+      loadTickets(true);
+      loadMetrics();
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
+  };
+
+  // Update Priority
+  const handleUpdatePriority = async (newPriority) => {
+    if (!selectedTicketId || !newPriority) return;
+    try {
+      await axiosInstance.patch(`/support-workspace/tickets/${selectedTicketId}`, { priority: newPriority });
+      toast.success(`Priority updated to ${newPriority}`);
+      setSelectedTicket((prev) => (prev ? { ...prev, priority: newPriority } : prev));
+      loadTickets(true);
+    } catch (err) {
+      toast.error("Failed to update priority");
+    }
+  };
+
+
+
+  // Resolve Ticket
+  const handleResolveTicket = async () => {
+    if (!selectedTicketId) return;
+    try {
+      const res = await axiosInstance.post(`/support-workspace/tickets/${selectedTicketId}/resolve`, {
+        resolutionNotes,
+      });
+      const updated = res?.data || res;
+      toast.success("Ticket resolved");
+      setSelectedTicket(updated);
+      setShowResolveModal(false);
+      setResolutionNotes("");
+      loadTickets(true);
+      loadMetrics();
+    } catch (err) {
+      toast.error("Failed to resolve ticket");
+    }
+  };
+
+  // Close Ticket & Automatically Refill Capacity
+  const handleCloseTicket = async () => {
+    if (!selectedTicketId) return;
+    const reason = window.prompt("Enter reason for closing this ticket:");
+    if (reason === null) return;
+    try {
+      const res = await axiosInstance.post(`/support-workspace/tickets/${selectedTicketId}/close`, {
+        reason: reason.trim() || "Closed by Support Member",
+      });
+      const updated = res?.data || res;
+      toast.success("Ticket closed and capacity refilled");
+      setSelectedTicket(updated);
+      loadTickets(true);
+      loadMetrics();
+    } catch (err) {
+      toast.error("Failed to close ticket");
+    }
+  };
+
+  // Reopen Ticket
+  const handleReopenTicket = async () => {
+    if (!selectedTicketId) return;
+    try {
+      const res = await axiosInstance.post(`/support-workspace/tickets/${selectedTicketId}/reopen`, {
+        reason: "Customer requested further investigation",
+      });
+      const updated = res?.data || res;
+      toast.success("Ticket reopened");
+      setSelectedTicket(updated);
+      loadTickets(true);
+      loadMetrics();
+    } catch (err) {
+      toast.error("Failed to reopen ticket");
+    }
+  };
+
+  // Delete Ticket Permanently
+  const handleDeleteTicket = async () => {
+    if (!selectedTicketId) return;
+    const ok = window.confirm(
+      "Are you sure you want to permanently delete this support ticket? All messages, notes, and activity history will be erased."
+    );
+    if (!ok) return;
+    try {
+      await axiosInstance.delete(`/support-workspace/tickets/${selectedTicketId}`);
+      toast.success("Ticket permanently deleted");
+      setSelectedTicketId(null);
+      setSelectedTicket(null);
+      loadTickets(false);
+      loadMetrics();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to delete ticket");
+    }
+  };
+
+  const handleToggleSelectAll = () => {
+    if (selectedTicketIds.length === tickets.length) {
+      setSelectedTicketIds([]);
+    } else {
+      setSelectedTicketIds(tickets.map((t) => t._id).filter(Boolean));
+    }
+  };
+
+  const handleToggleSelectTicket = (id, e) => {
+    e?.stopPropagation?.();
+    setSelectedTicketIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedTicketIds.length === 0) return;
+    const count = selectedTicketIds.length;
+    const ok = window.confirm(
+      `Are you sure you want to permanently delete these ${count} support ticket${count > 1 ? "s" : ""}? All associated messages, notes, and activity history will be erased.`
+    );
+    if (!ok) return;
+    try {
+      await axiosInstance.post("/support-workspace/tickets/bulk-delete", {
+        ticketIds: selectedTicketIds,
+      });
+      toast.success(`${count} ticket${count > 1 ? "s" : ""} permanently deleted`);
+      if (selectedTicketId && selectedTicketIds.includes(selectedTicketId)) {
+        setSelectedTicketId(null);
+        setSelectedTicket(null);
+      }
+      setSelectedTicketIds([]);
+      loadTickets(false);
+      loadMetrics();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to bulk delete tickets");
+    }
+  };
+
+  // Combine and sort messages and internal notes chronologically for support members
+  const allChronologicalItems = [];
+  if (selectedTicket) {
+    (selectedTicket.messages || []).forEach((m) => {
+      allChronologicalItems.push({
+        type: "message",
+        _id: m._id || m.createdAt,
+        senderType: m.senderType,
+        senderName: m.senderName,
+        body: m.body,
+        attachments: m.attachments || [],
+        createdAt: m.createdAt,
+      });
+    });
+
+    (selectedTicket.internalNotes || []).forEach((n) => {
+      allChronologicalItems.push({
+        type: "internal_note",
+        _id: n._id || n.createdAt,
+        senderName: n.adminName,
+        body: n.note,
+        createdAt: n.createdAt,
+      });
+    });
+
+    allChronologicalItems.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  }
+
+  return (
+    <div className="flex flex-col h-full w-full bg-[#f8fafc] text-slate-800 overflow-hidden font-sans select-none">
+      
+      {/* 1. TOP METRICS BAR */}
+      <div className="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between flex-shrink-0 shadow-xs">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-500 font-semibold">Total:</span>
+            <span className="font-extrabold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-full">{metrics.total}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-emerald-700 font-semibold">Open:</span>
+            <span className="font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">{metrics.open}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-blue-700 font-semibold">My Active Workload:</span>
+            <span className="font-extrabold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+              {metrics.assignedToMe ?? 0} / 3
+            </span>
+            <span className="text-[10px] text-blue-600 font-bold hidden sm:inline">
+              ({Math.max(0, 3 - (metrics.assignedToMe || 0))} slots free)
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-amber-700 font-semibold">In Progress:</span>
+            <span className="font-extrabold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">{metrics.inProgress || metrics.assigned}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-500 font-semibold">Resolved:</span>
+            <span className="font-extrabold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">{metrics.resolved}</span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            loadMetrics();
+            loadTickets();
+          }}
+          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-emerald-700 px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+        >
+          <RefreshCw size={12} className={queueLoading ? "animate-spin" : ""} />
+          <span className="hidden sm:inline">Refresh</span>
+        </button>
+      </div>
+
+      {/* MOBILE PANE SWITCHER */}
+      <div className="md:hidden flex border-b border-slate-200 bg-white">
+        <button
+          onClick={() => setMobilePane("queue")}
+          className={`flex-1 py-2 text-xs font-bold text-center border-b-2 ${
+            mobilePane === "queue" ? "border-emerald-600 text-emerald-800" : "border-transparent text-slate-500"
+          }`}
+        >
+          Queue ({tickets.length})
+        </button>
+        <button
+          onClick={() => setMobilePane("chat")}
+          className={`flex-1 py-2 text-xs font-bold text-center border-b-2 ${
+            mobilePane === "chat" ? "border-emerald-600 text-emerald-800" : "border-transparent text-slate-500"
+          }`}
+        >
+          Conversation
+        </button>
+        <button
+          onClick={() => setMobilePane("context")}
+          className={`flex-1 py-2 text-xs font-bold text-center border-b-2 ${
+            mobilePane === "context" ? "border-emerald-600 text-emerald-800" : "border-transparent text-slate-500"
+          }`}
+        >
+          Customer Context
+        </button>
+      </div>
+
+      {/* 2. THREE-PANE MAIN WORKSPACE */}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        
+        {/* PANE A: TICKET INBOX QUEUE */}
+        <div
+          className={`w-full md:w-80 lg:w-96 flex flex-col border-r border-slate-200 bg-white flex-shrink-0 ${
+            mobilePane !== "queue" ? "hidden md:flex" : "flex"
+          }`}
+        >
+          {/* Search & Filter Header */}
+          <div className="p-3 border-b border-slate-200 space-y-2 bg-slate-50/50">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search ticket #, customer, email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && loadTickets()}
+                className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500 transition-colors"
+              />
             </div>
-            <div className="flex items-center space-x-2">
-              <button className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded" onClick={() => setMobilePane("context")}>
-                <MoreVertical className="w-5 h-5" />
-              </button>
+
+            {/* Filter pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-white border border-slate-200 rounded px-2 py-1 text-slate-700 text-xs font-medium focus:outline-none focus:border-emerald-500"
+              >
+                <option value="all">All Status</option>
+                <option value="Open">Open</option>
+                <option value="Assigned">Assigned</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Waiting">Waiting</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Closed">Closed</option>
+              </select>
+
+              <select
+                value={assignmentFilter}
+                onChange={(e) => setAssignmentFilter(e.target.value)}
+                className="bg-white border border-slate-200 rounded px-2 py-1 text-slate-700 text-xs font-medium focus:outline-none focus:border-emerald-500"
+              >
+                <option value="all">All Queues</option>
+                <option value="me">Assigned to Me</option>
+                <option value="unassigned">Unassigned</option>
+              </select>
+
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="bg-white border border-slate-200 rounded px-2 py-1 text-slate-700 text-xs font-medium focus:outline-none focus:border-emerald-500"
+              >
+                <option value="all">All Priorities</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+
+            {/* Select All & Bulk Actions Bar */}
+            <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+              <label className="flex items-center gap-1.5 cursor-pointer text-slate-600 font-semibold select-none">
+                <input
+                  type="checkbox"
+                  checked={tickets.length > 0 && selectedTicketIds.length === tickets.length}
+                  onChange={handleToggleSelectAll}
+                  className="rounded border-slate-300 text-red-600 focus:ring-red-500 cursor-pointer h-3.5 w-3.5"
+                />
+                <span className="text-[11px]">Select All ({tickets.length})</span>
+              </label>
+
+              {selectedTicketIds.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTicketIds([])}
+                    className="text-[11px] text-slate-500 hover:underline cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBulkDelete}
+                    className="px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold flex items-center gap-1 shadow-xs cursor-pointer transition"
+                    title="Permanently Delete Selected Tickets"
+                  >
+                    <Trash2 size={11} /> Delete ({selectedTicketIds.length})
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-          
-          {/* Messages */}
-          <div 
-            ref={messagesContainerRef}
-            onScroll={handleScroll}
-            className="flex-1 overflow-y-auto p-4 bg-[#f1f2f4] space-y-4"
-          >
-            {chatLoading ? (
-               <div className="flex justify-center p-8"><Loader className="w-6 h-6 animate-spin text-[#065F46]" /></div>
+
+          {/* Ticket List */}
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+            {queueLoading ? (
+              <div className="p-8 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
+                <Loader size={20} className="animate-spin text-emerald-600" />
+                <span>Loading tickets queue...</span>
+              </div>
+            ) : tickets.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs">
+                <LifeBuoy size={28} className="mx-auto mb-2 text-slate-300" />
+                <p className="font-semibold text-slate-600">No tickets found</p>
+                <p className="text-[11px] mt-1 text-slate-400">All customer tickets matching criteria have been addressed.</p>
+              </div>
             ) : (
-              <>
-                {hasMoreMessages && (
-                  <div className="text-center pb-2"><Loader className="w-4 h-4 animate-spin inline text-gray-400" /></div>
-                )}
-                {messages.map((msg, i) => {
-                  const isAgent = msg.senderType === 'admin' || msg.senderType === 'support_manager';
-                  const isInternal = msg.messageType === 'internal_note';
-                  return (
-                    <div key={msg._id || i} className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'}`}>
-                      <div className={`max-w-[85%] md:max-w-[70%] rounded-lg p-3 ${
-                        isInternal ? 'bg-amber-100 text-amber-900 rounded-br-none border border-amber-300' :
-                        isAgent ? 'bg-[#065F46] text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none shadow-sm border border-gray-100'
-                      } ${msg.optimistic ? 'opacity-70' : ''}`}>
-                        {isInternal && <div className="text-[10px] uppercase font-bold text-amber-700 mb-1 flex items-center"><Lock className="w-3 h-3 mr-1"/> Internal Note</div>}
-                        <div className="text-sm whitespace-pre-wrap leading-relaxed">{msg.body}</div>
-                      </div>
-                      <div className="text-[10px] text-gray-500 mt-1 flex items-center space-x-1">
-                        <span>
-                          {new Date(msg.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })},{" "}
-                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              tickets.map((t) => {
+                const isActive = t._id === selectedTicketId;
+                const isHigh = t.priority === "High" || t.priority === "Critical";
+                const isSelected = selectedTicketIds.includes(t._id);
+                return (
+                  <div
+                    key={t._id}
+                    onClick={() => handleSelectTicket(t._id)}
+                    className={`p-3 cursor-pointer transition-colors border-l-4 ${
+                      isActive
+                        ? "bg-emerald-50/70 border-emerald-600"
+                        : "border-transparent hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => handleToggleSelectTicket(t._id, e)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="rounded border-slate-300 text-red-600 focus:ring-red-500 cursor-pointer h-3.5 w-3.5"
+                          title="Select Ticket"
+                        />
+                        <span className="font-extrabold text-xs text-blue-700 tracking-tight">
+                          {t.ticketNumber}
                         </span>
-                        {isAgent && !isInternal && msg.readAt && <CheckCircle className="w-3 h-3 text-blue-500" />}
-                        {isAgent && !isInternal && msg.delivered && !msg.readAt && <CheckCircle className="w-3 h-3 text-gray-400" />}
                       </div>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        {new Date(t.updatedAt || t.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
-                  );
-                })}
-                {Object.keys(typingUsers).length > 0 && (
-                  <div className="text-xs text-gray-500 italic">
-                    {Object.values(typingUsers).join(", ")} is typing...
+
+                    <h4 className="font-bold text-xs text-slate-900 truncate mb-1">
+                      {t.subject}
+                    </h4>
+
+                    <p className="text-[11px] text-slate-500 truncate mb-2">
+                      {t.customerName || t.customerEmail || "Customer"}
+                    </p>
+
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span
+                        className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wider ${
+                          isHigh
+                            ? "bg-red-100 text-red-800 border border-red-200"
+                            : "bg-blue-100 text-blue-800 border border-blue-200"
+                        }`}
+                      >
+                        {t.priority || "Medium"}
+                      </span>
+
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200">
+                        {t.status || "Open"}
+                      </span>
+
+                      {t.category && (
+                        <span className="text-[9px] font-medium text-slate-500 truncate max-w-[120px]">
+                          • {t.category}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                )}
-                <div ref={messagesEndRef} />
-              </>
+                );
+              })
             )}
           </div>
-          
-          {/* Input */}
-          <div className="p-3 bg-white border-t border-gray-200">
-            <div className="flex items-center mb-2 px-1">
-               <label className="flex items-center cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                  <input type="checkbox" checked={isInternalNote} onChange={(e) => setIsInternalNote(e.target.checked)} className="mr-2 rounded text-amber-600 focus:ring-amber-500" />
-                  <Lock className="w-3 h-3 mr-1 text-amber-600" /> Make Internal Note (Hidden from Customer)
-               </label>
-            </div>
-            <div className={`flex items-end bg-gray-50 border rounded-lg overflow-hidden focus-within:ring-1 ${isInternalNote ? 'border-amber-300 focus-within:border-amber-500 focus-within:ring-amber-500/50 bg-amber-50/30' : 'border-gray-300 focus-within:border-[#065F46] focus-within:ring-[#065F46]/50'}`}>
-              <textarea
-                value={typing}
-                onChange={handleTyping}
-                onKeyDown={handleKeyDown}
-                placeholder="Type a message... (Shift+Enter for new line)"
-                className="flex-1 max-h-32 min-h-[2.5rem] p-3 bg-transparent resize-none focus:outline-none text-sm"
-                rows={1}
-                disabled={chatLoading}
-              />
-              <button 
-                onClick={handleSend}
-                disabled={!typing.trim() || chatLoading}
-                className="p-3 text-[#065F46] disabled:text-gray-400 hover:bg-gray-100 transition-colors"
-                aria-label="Send message"
-              >
-                <Send className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center bg-[#f1f2f4]">
-          <Search className="w-16 h-16 mb-4 opacity-20" />
-          <p className="text-lg font-medium text-gray-500">No Conversation Selected</p>
-          <p className="text-sm mt-2">Select a conversation from the queue to start support.</p>
         </div>
-      )}
-    </div>
-  );
 
-  const ContextPane = () => (
-    <div className={`flex flex-col h-full bg-white border-l border-gray-200 lg:w-72 xl:w-80 flex-shrink-0 ${mobilePane === "context" ? "w-full absolute inset-0 z-30" : "hidden lg:flex"}`}>
-      {activeConvId ? (
-        <>
-          <div className="h-16 border-b border-gray-200 px-4 flex items-center justify-between lg:justify-start">
-             <button className="lg:hidden mr-3 p-2 text-gray-600 hover:bg-gray-100 rounded" onClick={() => setMobilePane("chat")}>
-                <X className="w-5 h-5" />
-              </button>
-            <h3 className="font-semibold text-gray-800">Customer Context</h3>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-6">
-            
-            {/* Action Bar */}
-            <div className="space-y-2">
-               {!activeConvDetails?.assignedAgentId || activeConvDetails.assignedAgentId !== user._id ? (
-                  <button onClick={handleAssignToMe} className="w-full py-2 bg-[#065F46] hover:bg-[#044c38] text-white text-sm font-medium rounded transition-colors shadow-sm">
-                    Assign to Me
-                  </button>
-               ) : (
-                  <div className="w-full py-2 bg-green-50 text-green-800 text-sm font-medium rounded border border-green-200 text-center flex items-center justify-center">
-                    <CheckCircle className="w-4 h-4 mr-2" /> Assigned to You
-                  </div>
-               )}
-               {(() => {
-                 const activeCallback = callbacks.find(cb => cb.conversationId === activeConvId);
-                 if (activeCallback) {
-                   return (
-                     <div className="w-full p-3 bg-amber-50 text-amber-900 text-sm font-medium rounded border border-amber-200">
-                       <div className="flex items-center mb-2">
-                         <Phone className="w-4 h-4 mr-2" /> Callback Requested
-                       </div>
-                       <div className="text-xs font-mono bg-white p-1 mb-2 border border-amber-100 rounded text-center">
-                         {activeCallback.phone}
-                       </div>
-                       <div className="flex gap-2">
-                         <button 
-                           onClick={async () => {
-                             try {
-                               await axiosInstance.post(`/support/callbacks/${activeCallback._id}/start-call`);
-                               loadCallbacks();
-                               toast.success("Calling customer\u2026");
-                             } catch(err) { const code = err?.response?.data?.message || "Failed to initiate call"; toast.error(code); }
-                           }}
-                           className="flex-1 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-xs transition-colors"
-                         >
-                           Start Call
-                         </button>
-                         <button 
-                           onClick={async () => {
-                             try {
-                               await axiosInstance.put(`/support/callbacks/${activeCallback._id}/status`, { status: "completed" });
-                               loadCallbacks();
-                               toast.success("Callback marked completed");
-                             } catch(err) { toast.error("Failed"); }
-                           }}
-                           className="flex-1 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition-colors"
-                         >
-                           Resolve
-                         </button>
-                       </div>
-                     </div>
-                   );
-                 } else {
-                   return (
-                     <button className="w-full py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded border border-gray-300 transition-colors shadow-sm flex items-center justify-center opacity-50 cursor-not-allowed" title="Phase 4 functionality">
-                        <Phone className="w-4 h-4 mr-2" /> Request Callback
-                     </button>
-                   );
-                 }
-               })()}
+        {/* PANE B: CONVERSATION AREA */}
+        <div
+          className={`flex-1 flex flex-col bg-white overflow-hidden ${
+            mobilePane !== "chat" ? "hidden md:flex" : "flex"
+          }`}
+        >
+          {ticketLoading ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-xs gap-2">
+              <Loader size={24} className="animate-spin text-emerald-600" />
+              <span>Loading conversation...</span>
             </div>
+          ) : !selectedTicket ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-xs p-8 text-center">
+              <LifeBuoy size={40} className="text-slate-300 mb-3" />
+              <h3 className="font-bold text-sm text-slate-700">No Ticket Selected</h3>
+              <p className="text-slate-500 max-w-sm mt-1">
+                Select an active ticket from the inbox queue to view conversation history, internal notes, and customer account details.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Ticket Top Action Bar */}
+              <div className="p-3.5 border-b border-slate-200 bg-slate-50/80 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-sm text-blue-700">{selectedTicket.ticketNumber}</span>
+                    <span className="text-xs text-slate-400">•</span>
+                    <span className="text-xs font-semibold text-slate-700">{selectedTicket.category || "General Support"}</span>
+                  </div>
+                  <h2 className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight">
+                    {selectedTicket.subject}
+                  </h2>
+                </div>
 
-            {/* Customer Details */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center"><User className="w-3 h-3 mr-1" /> Customer</h4>
-              {activeConvDetails?.customerId && typeof activeConvDetails.customerId === 'object' ? (
-                <div className="bg-gray-50 p-3 rounded text-sm border border-gray-100">
-                  <div className="grid grid-cols-[80px_1fr] gap-1 mb-1">
-                    <span className="text-gray-500">Name</span>
-                    <span className="font-medium text-gray-900">{activeConvDetails.customerId.firstName} {activeConvDetails.customerId.lastName}</span>
+                {/* Status & Assignment Controls */}
+                <div className="flex items-center gap-2 flex-wrap text-xs">
+                  {/* Status Dropdown */}
+                  <select
+                    value={selectedTicket.status}
+                    onChange={(e) => handleUpdateStatus(e.target.value)}
+                    className="bg-white border border-slate-300 rounded px-2.5 py-1 text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-600"
+                  >
+                    <option value="Open">Open</option>
+                    <option value="Assigned">Assigned</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Waiting">Waiting</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+
+                  {/* Priority Dropdown */}
+                  <select
+                    value={selectedTicket.priority}
+                    onChange={(e) => handleUpdatePriority(e.target.value)}
+                    className="bg-white border border-slate-300 rounded px-2.5 py-1 text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-600"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+
+
+
+                  {/* Resolve / Reopen Button */}
+                  {selectedTicket.status === "Resolved" || selectedTicket.status === "Closed" ? (
+                    <button
+                      onClick={handleReopenTicket}
+                      className="flex items-center gap-1 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold transition shadow-xs cursor-pointer"
+                    >
+                      <RotateCcw size={12} />
+                      Reopen
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setShowResolveModal(true)}
+                        className="flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold transition shadow-xs cursor-pointer"
+                      >
+                        <CheckCheck size={12} />
+                        Resolve
+                      </button>
+                      <button
+                        onClick={handleCloseTicket}
+                        className="flex items-center gap-1 px-3 py-1 bg-slate-600 hover:bg-slate-700 text-white rounded font-bold transition shadow-xs cursor-pointer"
+                        title="Close Ticket & Free Capacity"
+                      >
+                        <X size={12} />
+                        Close
+                      </button>
+                    </>
+                  )}
+
+                  {/* Delete Permanently Button */}
+                  <button
+                    onClick={handleDeleteTicket}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded font-bold transition shadow-xs cursor-pointer text-xs"
+                    title="Permanently Delete Ticket"
+                  >
+                    <Trash2 size={12} />
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              {/* Conversation Messages Container */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-100/50">
+                {allChronologicalItems.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400 text-xs">
+                    No messages yet in this ticket.
                   </div>
-                  <div className="grid grid-cols-[80px_1fr] gap-1 mb-1">
-                    <span className="text-gray-500">Email</span>
-                    <span className="text-gray-900 truncate" title={activeConvDetails.customerId.email}>{activeConvDetails.customerId.email || '-'}</span>
+                ) : (
+                  allChronologicalItems.map((item, idx) => {
+                    const isStaff = item.senderType === "admin";
+                    const isInternal = item.type === "internal_note";
+
+                    if (isInternal) {
+                      return (
+                        <div
+                          key={item._id || idx}
+                          className="bg-amber-50 border border-amber-300 rounded-xl p-3.5 shadow-xs max-w-xl mx-auto my-2"
+                        >
+                          <div className="flex items-center justify-between text-amber-900 font-extrabold text-xs mb-1.5 pb-1 border-b border-amber-200">
+                            <span className="flex items-center gap-1.5">
+                              <Lock size={13} className="text-amber-700" />
+                              Internal Staff Note • {item.senderName}
+                            </span>
+                            <span className="text-[10px] text-amber-700 font-normal">
+                              {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+                          <p className="text-xs text-amber-950 whitespace-pre-wrap leading-relaxed">
+                            {item.body}
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={item._id || idx}
+                        className={`flex flex-col ${isStaff ? "items-end" : "items-start"}`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-1 px-1">
+                          <span className="text-[11px] font-extrabold text-slate-700">
+                            {isStaff ? `${item.senderName} (Staff)` : item.senderName}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+
+                        <div
+                          className={`max-w-xl rounded-2xl px-4 py-2.5 text-xs shadow-xs leading-relaxed ${
+                            isStaff
+                              ? "bg-emerald-600 text-white rounded-tr-none"
+                              : "bg-white text-slate-900 border border-slate-200 rounded-tl-none"
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap">{item.body}</p>
+                          {Array.isArray(item.attachments) && item.attachments.length > 0 && (
+                            <div className="mt-2 space-y-1.5 pt-1.5 border-t border-white/20">
+                              {item.attachments.map((att, attIdx) => {
+                                const url = typeof att === "string" ? att : att?.url;
+                                const isImg = /\.(jpeg|jpg|png|webp|gif)(\?.*)?$/i.test(url);
+                                const isPdf = /\.pdf(\?.*)?$/i.test(url);
+                                return (
+                                  <div key={attIdx} className="rounded overflow-hidden">
+                                    {isImg ? (
+                                      <a href={url} target="_blank" rel="noopener noreferrer">
+                                        <img src={url} alt="attachment" className="max-h-48 rounded object-cover border border-slate-200/40" />
+                                      </a>
+                                    ) : (
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`inline-flex items-center gap-1.5 py-1 px-2 rounded text-[11px] font-bold ${
+                                          isStaff ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-800"
+                                        }`}
+                                      >
+                                        <FileText size={13} /> View Attachment ({isPdf ? "PDF" : "Document"})
+                                      </a>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Message Composer */}
+              <div className="p-3 border-t border-slate-200 bg-white flex-shrink-0">
+                {/* Note vs Public Mode Toggle */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsInternalNote(false)}
+                      className={`text-xs font-bold px-2.5 py-1 rounded-md transition ${
+                        !isInternalNote
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                          : "text-slate-500 hover:text-slate-700"
+                      }`}
+                    >
+                      Public Reply (Customer Visible)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsInternalNote(true)}
+                      className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md transition ${
+                        isInternalNote
+                          ? "bg-amber-100 text-amber-900 border border-amber-300"
+                          : "text-slate-500 hover:text-slate-700"
+                      }`}
+                    >
+                      <Lock size={12} />
+                      Internal Staff Note
+                    </button>
                   </div>
-                  <div className="grid grid-cols-[80px_1fr] gap-1">
-                    <span className="text-gray-500">Phone</span>
-                    <span className="text-gray-900">{activeConvDetails.customerId.phoneNumber || '-'}</span>
+
+                  <span className="text-[10px] text-slate-400 hidden sm:inline">
+                    {isInternalNote ? "⚠️ Hidden from customer" : "Visible in customer support portal"}
+                  </span>
+                </div>
+
+                <form onSubmit={handleSendMessage} className="flex gap-2">
+                  <textarea
+                    rows={2}
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder={
+                      isInternalNote
+                        ? "Add private internal note for support staff..."
+                        : "Type public reply to customer..."
+                    }
+                    className={`flex-1 p-2.5 text-xs rounded-xl border focus:outline-none transition resize-none ${
+                      isInternalNote
+                        ? "bg-amber-50/50 border-amber-300 focus:border-amber-500 text-amber-950 placeholder-amber-700/50"
+                        : "bg-slate-50 border-slate-200 focus:border-emerald-600 text-slate-900"
+                    }`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(e);
+                      }
+                    }}
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={sending || !replyText.trim()}
+                    className={`px-4 rounded-xl text-white font-bold text-xs flex items-center justify-center transition shadow-xs disabled:opacity-40 cursor-pointer ${
+                      isInternalNote
+                        ? "bg-amber-600 hover:bg-amber-700"
+                        : "bg-emerald-600 hover:bg-emerald-700"
+                    }`}
+                  >
+                    {sending ? <Loader size={16} className="animate-spin" /> : <Send size={16} />}
+                  </button>
+                </form>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* PANE C: CUSTOMER CONTEXT PANEL */}
+        <div
+          className={`w-full md:w-80 lg:w-88 border-l border-slate-200 bg-white flex flex-col flex-shrink-0 overflow-y-auto ${
+            mobilePane !== "context" ? "hidden lg:flex" : "flex"
+          }`}
+        >
+          <div className="p-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+            <h3 className="font-extrabold text-xs text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <User size={14} className="text-emerald-700" />
+              Customer Information
+            </h3>
+          </div>
+
+          {contextLoading ? (
+            <div className="p-8 text-center text-slate-400 text-xs">
+              <Loader size={20} className="animate-spin mx-auto mb-2 text-emerald-600" />
+              Loading customer context...
+            </div>
+          ) : !customerContext ? (
+            <div className="p-6 text-center text-slate-400 text-xs">
+              No context loaded for this ticket.
+            </div>
+          ) : (
+            <div className="p-4 space-y-5 text-xs">
+              {/* Customer Profile Card */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+                    {customerContext.customer?.name?.[0] || "C"}
                   </div>
-                  <div className="grid grid-cols-[80px_1fr] gap-1 mt-1">
-                    <span className="text-gray-500">Language</span>
-                    <span className="text-gray-900">{activeConvDetails.customerId.preferredLanguage || 'English'}</span>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">
+                      {customerContext.customer?.name}
+                    </h4>
+                    <p className="text-slate-500 text-[11px]">
+                      {customerContext.customer?.email}
+                    </p>
                   </div>
                 </div>
-              ) : (
-                <div className="bg-gray-50 p-3 rounded text-sm border border-gray-100">
-                   <div className="grid grid-cols-[80px_1fr] gap-1 mb-1">
-                    <span className="text-gray-500">ID</span>
-                    <span className="font-mono text-xs truncate">{activeConvDetails?.customerId || '-'}</span>
+
+                <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200 space-y-1.5 text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Verified Email:</span>
+                    <span className="font-bold text-slate-800">
+                      {customerContext.customer?.isEmailVerified ? "Yes ✓" : "No"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Account Status:</span>
+                    <span className="font-bold text-emerald-700">
+                      {customerContext.customer?.isBlocked ? "Suspended" : "Active"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Member Since:</span>
+                    <span className="font-bold text-slate-800">
+                      {customerContext.customer?.memberSince
+                        ? new Date(customerContext.customer.memberSince).toLocaleDateString()
+                        : "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Past Support Cases:</span>
+                    <span className="font-bold text-blue-700">
+                      {customerContext.pastTicketsCount} previous
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Orders Section */}
+              <div className="space-y-2">
+                <h4 className="font-extrabold text-[11px] text-slate-900 uppercase tracking-wider flex items-center gap-1">
+                  <Package size={13} className="text-slate-600" />
+                  Recent Orders ({customerContext.recentOrders?.length || 0})
+                </h4>
+
+                {customerContext.recentOrders?.length === 0 ? (
+                  <p className="text-[11px] text-slate-400 italic">No recent orders on record.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {customerContext.recentOrders.map((ord) => (
+                      <div
+                        key={ord._id}
+                        className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 text-[11px] space-y-1"
+                      >
+                        <div className="flex justify-between items-center font-bold">
+                          <span className="text-slate-800">#{ord.orderNumber}</span>
+                          <span className="text-emerald-700 font-extrabold">₹{ord.totalAmount}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-500 text-[10px]">
+                          <span>Status: <strong className="text-slate-700">{ord.orderStatus}</strong></span>
+                          <span>{new Date(ord.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Ticket Audit Timeline */}
+              {selectedTicket?.auditLogs?.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-slate-200">
+                  <h4 className="font-extrabold text-[11px] text-slate-900 uppercase tracking-wider flex items-center gap-1">
+                    <Clock size={13} className="text-slate-600" />
+                    Activity & Audit Log
+                  </h4>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {selectedTicket.auditLogs.map((log, i) => (
+                      <div key={log._id || i} className="text-[10px] border-l-2 border-slate-300 pl-2 py-0.5 space-y-0.5">
+                        <div className="flex justify-between text-slate-600 font-bold">
+                          <span>{log.action?.replace("_", " ")}</span>
+                          <span className="text-slate-400 font-normal">
+                            {new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        <p className="text-slate-500 truncate">{log.details}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
+          )}
+        </div>
+      </div>
 
-            {/* Order Details */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center"><FileText className="w-3 h-3 mr-1" /> Order Reference</h4>
-              <div className="bg-gray-50 p-3 rounded text-sm border border-gray-100">
-                {activeConvDetails?.orderId && typeof activeConvDetails.orderId === 'object' ? (
-                   <>
-                    <div className="grid grid-cols-[80px_1fr] gap-1 mb-1">
-                      <span className="text-gray-500">Order ID</span>
-                      <span className="font-medium text-[#065F46] hover:underline cursor-pointer truncate" title={activeConvDetails.orderId._id}>#{activeConvDetails.orderId._id.slice(-8).toUpperCase()}</span>
-                    </div>
-                    <div className="grid grid-cols-[80px_1fr] gap-1 mb-1">
-                      <span className="text-gray-500">Status</span>
-                      <span className="text-gray-900 capitalize font-medium">{activeConvDetails.orderId.status || '-'}</span>
-                    </div>
-                    <div className="grid grid-cols-[80px_1fr] gap-1 mb-1">
-                      <span className="text-gray-500">Total</span>
-                      <span className="text-gray-900">₹{activeConvDetails.orderId.totalAmount?.toLocaleString() || '0'}</span>
-                    </div>
-                  </>
-                ) : activeConvDetails?.orderId ? (
-                   <div className="grid grid-cols-[80px_1fr] gap-1 mb-1">
-                    <span className="text-gray-500">Order ID</span>
-                    <span className="font-mono text-xs truncate">{activeConvDetails?.orderId}</span>
-                  </div>
-                ) : (
-                  <span className="text-gray-400 italic">No order linked</span>
-                )}
-              </div>
-            </div>
-            
-             {/* Ticket Details */}
-             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center"><Settings className="w-3 h-3 mr-1" /> Properties</h4>
-              <div className="bg-gray-50 p-3 rounded text-sm border border-gray-100">
-                <div className="grid grid-cols-[80px_1fr] gap-1 mb-2">
-                  <span className="text-gray-500">Category</span>
-                  <span className="capitalize">{activeConvDetails?.category}</span>
-                </div>
-                <div className="grid grid-cols-[80px_1fr] gap-1 mb-2">
-                  <span className="text-gray-500">Channel</span>
-                  <span className="capitalize">{activeConvDetails?.channel}</span>
-                </div>
-                <div className="grid grid-cols-[80px_1fr] gap-1 mb-2">
-                  <span className="text-gray-500">Priority</span>
-                  <span className="capitalize">{activeConvDetails?.priority}</span>
-                </div>
-                {activeConvDetails?.createdAt && (
-                  <div className="grid grid-cols-[80px_1fr] gap-1 mb-2">
-                    <span className="text-gray-500">Created</span>
-                    <span className="text-gray-900 font-medium text-xs">
-                      {new Date(activeConvDetails.createdAt).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })},{" "}
-                      {new Date(activeConvDetails.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                )}
-                {activeConvDetails?.updatedAt && (
-                  <div className="grid grid-cols-[80px_1fr] gap-1">
-                    <span className="text-gray-500">Updated</span>
-                    <span className="text-gray-900 font-medium text-xs">
-                      {new Date(activeConvDetails.updatedAt).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })},{" "}
-                      {new Date(activeConvDetails.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
+      {/* RESOLUTION MODAL */}
+      {showResolveModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <h3 className="text-base font-extrabold text-slate-900">Resolve Ticket #{selectedTicket?.ticketNumber}</h3>
+            <p className="text-xs text-slate-500">
+              Provide resolution notes explaining how this support ticket was handled. The notes will be emailed to the customer and recorded in the audit log.
+            </p>
 
+            <textarea
+              rows={3}
+              value={resolutionNotes}
+              onChange={(e) => setResolutionNotes(e.target.value)}
+              placeholder="e.g. Refund initiated, tracking details updated, replacement shipped..."
+              className="w-full p-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600"
+            />
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowResolveModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleResolveTicket}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs"
+              >
+                Confirm Resolution
+              </button>
+            </div>
           </div>
-        </>
-      ) : (
-        <div className="flex-1 flex items-center justify-center text-gray-400 p-8 text-center bg-gray-50">
-          <p className="text-sm">Context will appear here</p>
         </div>
       )}
+
+
     </div>
   );
-
-  return (
-    <div className="flex w-full h-full relative overflow-hidden bg-[#f1f2f4]">
-      <QueuePane />
-      <ChatPane />
-      <ContextPane />
-    </div>
-  );
-};
-
-export default SupportWorkspace;
+}

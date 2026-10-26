@@ -15,7 +15,7 @@ export default function SupportChat({
   defaultSubject = "Support Request",
 }) {
   const authStoreHook = role === "seller" ? useSellerAuthStore : useAuthStore;
-  const { user } = authStoreHook();
+  const { user, token } = authStoreHook();
 
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -37,6 +37,23 @@ export default function SupportChat({
   const typingTimeoutRef = useRef(null);
 
   const activeConvId = conversation?._id || null;
+
+  const getRequestConfig = (customParams = {}) => {
+    const headers = {};
+    const effectiveToken =
+      token ||
+      (role === "seller"
+        ? localStorage.getItem("sellerAccessToken") || (JSON.parse(localStorage.getItem("indiafy-seller-auth-storage") || "{}")?.state?.token)
+        : localStorage.getItem("customerAccessToken") || (JSON.parse(localStorage.getItem("indiafy-auth-storage") || "{}")?.state?.token));
+
+    if (effectiveToken) {
+      headers.Authorization = `Bearer ${effectiveToken}`;
+    }
+    return {
+      headers,
+      params: customParams,
+    };
+  };
 
   const {
     isConnected,
@@ -132,25 +149,26 @@ export default function SupportChat({
         const validStoreId = isValidMongoId(storeId) ? storeId : null;
 
         // 1. Check existing
-        let endpoint = `/support/conversations`;
-        const params = [];
-        if (validOrderId) params.push(`orderId=${validOrderId}`);
-        if (validStoreId) params.push(`storeId=${validStoreId}`);
-        if (params.length > 0) endpoint += `?${params.join("&")}`;
+        const params = {};
+        if (validOrderId) params.orderId = validOrderId;
+        if (validStoreId) params.storeId = validStoreId;
+        if (role === "seller") params.role = "seller";
 
-        const res = await axiosInstance.get(endpoint);
+        const res = await axiosInstance.get(`/support/conversations`, getRequestConfig(params));
         const conversations = res?.conversations || res?.data?.conversations || [];
         let conv = conversations[0];
 
         // 2. Create new if missing
         if (!conv) {
           const payload = {
-            subject: validOrderId ? `Order #${validOrderId.slice(-6)} Support` : defaultSubject,
+            subject: validOrderId 
+              ? `Order #${validOrderId.slice(-6)} Support` 
+              : (role === "seller" ? "Seller Support Request" : defaultSubject),
           };
           if (validOrderId) payload.orderId = validOrderId;
           if (validStoreId) payload.storeId = validStoreId;
 
-          const createRes = await axiosInstance.post(`/support/conversations`, payload);
+          const createRes = await axiosInstance.post(`/support/conversations`, payload, getRequestConfig());
           conv = createRes?.conversation || createRes?.data?.conversation;
         }
 
@@ -163,6 +181,7 @@ export default function SupportChat({
         }
       } catch (err) {
         if (!isMounted) return;
+        console.error("[SupportChat] Failed to initialize support conversation:", err);
         const status = err.response?.status;
         let errorMessage = "Failed to load support chat.";
         if (status === 401) {
@@ -189,12 +208,13 @@ export default function SupportChat({
     return () => {
       isMounted = false;
     };
-  }, [orderId, storeId, defaultSubject]);
+  }, [orderId, storeId, role, defaultSubject, token]);
 
   const fetchMessages = async (convId, pageNum = 1) => {
     try {
       const res = await axiosInstance.get(
-        `/support/conversations/${convId}/messages?page=${pageNum}&limit=30`
+        `/support/conversations/${convId}/messages`,
+        getRequestConfig({ page: pageNum, limit: 30 })
       );
       const rawMessages = res?.messages || res?.data?.messages || [];
       // Filter out internal notes just in case, though backend should do this
@@ -225,26 +245,59 @@ export default function SupportChat({
     }
   };
 
-  const handleSend = () => {
-    if (!typingText.trim() || !activeConvId) return;
+  const handleSend = async () => {
+    const text = typingText.trim();
+    if (!text || !activeConvId) return;
 
     const clientMessageId = uuidv4();
     const tempMsg = {
       _id: "temp-" + clientMessageId,
-      body: typingText.trim(),
+      body: text,
       clientMessageId,
-      senderId: user?._id,
+      senderId: user?._id || user?.sellerId,
       senderType: role,
-      messageType: "customer", // Enforced client-side, also enforced backend
+      messageType: "customer",
       createdAt: new Date().toISOString(),
       optimistic: true,
     };
 
     setMessages((prev) => [...prev, tempMsg]);
-    sendMessage(activeConvId, typingText.trim(), clientMessageId);
     setTypingText("");
     sendTypingStop(activeConvId);
     scrollToBottom();
+
+    // 1. Send via WebSocket if connected
+    try {
+      sendMessage(activeConvId, text, clientMessageId);
+    } catch (_sErr) {
+      console.warn("[SupportChat] Socket send error:", _sErr);
+    }
+
+    // 2. Guaranteed persistence in database via HTTP POST
+    try {
+      const res = await axiosInstance.post(
+        `/support/conversations/${activeConvId}/messages`,
+        {
+          body: text,
+          clientMessageId,
+          messageType: "customer",
+        },
+        getRequestConfig()
+      );
+      const savedMsg = res?.message || res?.data?.message;
+      if (savedMsg) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.clientMessageId === clientMessageId
+              ? { ...savedMsg, delivered: true }
+              : m
+          )
+        );
+      }
+    } catch (err) {
+      console.error("[SupportChat] Failed to send message via HTTP:", err);
+      toast.error(err.response?.data?.message || "Failed to send message. Please retry.");
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -271,9 +324,11 @@ export default function SupportChat({
     if (!callbackPhone.trim() || !activeConvId) return;
     setCallbackLoading(true);
     try {
-      const res = await axiosInstance.post(`/support/conversations/${activeConvId}/callback`, {
-        phone: callbackPhone.trim(),
-      });
+      const res = await axiosInstance.post(
+        `/support/conversations/${activeConvId}/callback`,
+        { phone: callbackPhone.trim() },
+        getRequestConfig()
+      );
       setCallbackRequested(true);
       setShowCallbackForm(false);
       toast.success(res.data?.message || "Callback requested! Support team will call you shortly.");

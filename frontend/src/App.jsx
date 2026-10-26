@@ -82,7 +82,6 @@ const SellerGuidelines = lazy(() => import("./pages/public/SellerGuidelines"));
 const CommunityStandards = lazy(() => import("./pages/public/CommunityStandards"));
 const TrustSafety = lazy(() => import("./pages/public/TrustSafety"));
 const BecomeSellerInfo = lazy(() => import("./pages/public/BecomeSellerInfo"));
-const HelpCenter = lazy(() => import("./pages/public/HelpCenter"));
 const FAQ = lazy(() => import("./pages/public/FAQ"));
 const CampaignPage = lazy(() => import("./pages/public/CampaignPage"));
 
@@ -357,7 +356,6 @@ export default function App() {
               <Route path="/community-standards" element={<CommunityStandards />} />
               <Route path="/trust-safety" element={<TrustSafety />} />
               <Route path="/become-seller-info" element={<BecomeSellerInfo />} />
-              <Route path="/help-center" element={<HelpCenter />} />
               <Route path="/faq" element={<FAQ />} />
 
               {/* ADDED: Hero standalone preview route */}
@@ -518,6 +516,8 @@ export default function App() {
             <Route path="/admin/stores" element={<StoreManagement />} />
             <Route path="/admin/categories" element={<CategoryManagement />} />
             <Route path="/admin/tickets" element={<SupportInbox />} />
+            <Route path="/admin/help-desk" element={<Navigate to="/admin/tickets" replace />} />
+            <Route path="/admin/helpdesk" element={<Navigate to="/admin/tickets" replace />} />
             <Route path="/admin/roles" element={<RoleManagement />} />
             <Route path="/admin/audit-logs" element={<AuditLogs />} />
           </Route>
@@ -530,6 +530,12 @@ export default function App() {
               <Route index element={<SupportWorkspace />} />
             </Route>
           </Route>
+
+          {/* =====================================================
+              HELP DESK ALIASES / DIRECT ACCESS
+          ===================================================== */}
+          <Route path="/help-desk" element={<Navigate to="/support-workspace" replace />} />
+          <Route path="/helpdesk" element={<Navigate to="/support-workspace" replace />} />
 
           {/* =====================================================
               ERRORS

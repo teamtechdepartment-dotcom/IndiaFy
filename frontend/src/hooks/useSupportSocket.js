@@ -32,14 +32,19 @@ export const useSupportSocket = (activeConversationId, callbacks = {}, authStore
   useEffect(() => {
     if (!isAuthenticated) return;
 
+    const activeToken = token || localStorage.getItem('sellerAccessToken') || localStorage.getItem('customerAccessToken') || undefined;
+
     if (!globalSupportSocket || !globalSupportSocket.connected) {
       globalSupportSocket = io(getSocketURL(), {
         withCredentials: true,
-        auth: { token: token || undefined },
+        auth: { token: activeToken },
         transports: ["websocket", "polling"],
         reconnectionAttempts: 10,
         reconnectionDelay: 2000,
       });
+    } else if (activeToken && globalSupportSocket.auth?.token !== activeToken) {
+      globalSupportSocket.auth = { token: activeToken };
+      globalSupportSocket.disconnect().connect();
     }
 
     const socket = globalSupportSocket;
@@ -123,11 +128,10 @@ export const useSupportSocket = (activeConversationId, callbacks = {}, authStore
 
   // Handle active conversation switching cleanly
   useEffect(() => {
-    if (globalSupportSocket && globalSupportSocket.connected) {
+    if (globalSupportSocket && globalSupportSocket.connected && activeConversationId) {
+      globalSupportSocket.emit("support:conversation:join", { conversationId: activeConversationId });
       return () => {
-        if (activeConversationId) {
-          globalSupportSocket.emit("support:conversation:leave", { conversationId: activeConversationId });
-        }
+        globalSupportSocket.emit("support:conversation:leave", { conversationId: activeConversationId });
       };
     }
   }, [activeConversationId]);

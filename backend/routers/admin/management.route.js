@@ -37,9 +37,18 @@ import {
   deleteCategory,
   getSupportTickets,
   getSupportTicketDetails,
+  getSupportWorkload,
+  reconcileQueueController,
+  assignAdminTicket,
+  closeAdminTicket,
+  resolveAdminTicket,
+  reopenAdminTicket,
   replySupportTicket,
   addInternalNote,
   updateTicketStatus,
+  deleteSupportTicket,
+  bulkDeleteSupportTickets,
+  deleteSupportMember,
   getSystemSettings,
   updateSystemSettings,
   getAuditLogs,
@@ -122,12 +131,22 @@ router.post("/categories", permissionGuard("categories:write"), createCategory);
 router.put("/categories/:id", permissionGuard("categories:write"), updateCategory);
 router.delete("/categories/:id", permissionGuard("categories:write"), deleteCategory);
 
-// Ticket Support
+// Ticket Support & Workload Governance
 router.get("/tickets", permissionGuard("tickets:read"), getSupportTickets);
+router.get("/support-workload", permissionGuard("tickets:read"), getSupportWorkload);
+router.post("/queue/reconcile", permissionGuard("tickets:write"), reconcileQueueController);
 router.get("/tickets/:id", permissionGuard("tickets:read"), getSupportTicketDetails);
 router.post("/tickets/:id/reply", permissionGuard("tickets:write"), replySupportTicket);
 router.post("/tickets/:id/note", permissionGuard("tickets:write"), addInternalNote);
+router.post("/tickets/:id/assign", permissionGuard("tickets:write"), assignAdminTicket);
+router.post("/tickets/:id/close", permissionGuard("tickets:write"), closeAdminTicket);
+router.post("/tickets/:id/resolve", permissionGuard("tickets:write"), resolveAdminTicket);
+router.post("/tickets/:id/reopen", permissionGuard("tickets:write"), reopenAdminTicket);
 router.put("/tickets/:id/properties", permissionGuard("tickets:write"), updateTicketStatus);
+router.post("/tickets/bulk-delete", permissionGuard("tickets:write"), bulkDeleteSupportTickets);
+router.delete("/tickets/bulk", permissionGuard("tickets:write"), bulkDeleteSupportTickets);
+router.delete("/tickets/:id", permissionGuard("tickets:write"), deleteSupportTicket);
+router.delete("/support-members/:id", permissionGuard("tickets:write"), deleteSupportMember);
 
 // Config Settings
 router.get("/settings", permissionGuard("settings:read"), getSystemSettings);

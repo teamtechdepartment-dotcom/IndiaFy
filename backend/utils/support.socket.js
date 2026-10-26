@@ -9,11 +9,45 @@ const rateLimits = new Map();
 let socketIoInstance = null;
 
 export const getSocketIo = () => socketIoInstance;
+
+export const emitSupportEvent = (event, data, room = null) => {
+    if (!socketIoInstance) return;
+    try {
+        if (room) {
+            socketIoInstance.to(room).emit(event, data);
+        } else {
+            socketIoInstance.to("support_admin_room").emit(event, data);
+        }
+    } catch (_err) {
+        // Socket broadcast errors must not break main transaction
+    }
+};
+
 // Rate limiter disabled per user request
 const checkRateLimit = () => false;
 
 export const initSupportSocket = (io, socket, socketUser) => {
     if (!socketIoInstance) socketIoInstance = io;
+
+    // Join global support staff and member personal room if staff
+    if (socketUser) {
+        const role = (socketUser.role || "customer").toLowerCase();
+        const isStaff =
+            role === "admin" ||
+            role === "super_admin" ||
+            role === "support_member" ||
+            role === "supportmember" ||
+            role === "support_lead" ||
+            role === "support_agent" ||
+            role === "support_manager";
+        if (isStaff) {
+            socket.join("support_admin_room");
+            const memberId = socketUser._id || socketUser.id;
+            if (memberId) {
+                socket.join(`support_member:${memberId.toString()}`);
+            }
+        }
+    }
 
     const emitError = (code, message) => {
         socket.emit("support:error", { code, message });
@@ -39,7 +73,9 @@ export const initSupportSocket = (io, socket, socketUser) => {
             const isCustomerOrSeller = role === "customer" || role === "seller";
             const isAdmin = !isCustomerOrSeller;
             
-            if (!isAdmin && conv.customerId.toString() !== socketUser._id.toString()) {
+            const principalId = (socketUser._id || socketUser.sellerId || socketUser.id || "").toString();
+            const convCustomerId = (conv.customerId?._id || conv.customerId || "").toString();
+            if (!isAdmin && convCustomerId !== principalId) {
                 return emitError("SUPPORT_FORBIDDEN", "Not authorized for this conversation");
             }
             
@@ -78,7 +114,7 @@ export const initSupportSocket = (io, socket, socketUser) => {
     socket.on("support:message:send", async (payload) => {
         if (!socketUser) return emitError("SUPPORT_AUTH_REQUIRED", "Authentication required");
         
-        const userKey = socketUser._id?.toString() || socket.id;
+        const userKey = (socketUser._id || socketUser.sellerId || socketUser.id || socket.id).toString();
         if (checkRateLimit(userKey, "message:send", 30, 60000)) {
             return emitError("SUPPORT_RATE_LIMITED", "Too many messages");
         }

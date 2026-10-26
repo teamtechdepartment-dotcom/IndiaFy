@@ -28,6 +28,17 @@ import { queueEmail, getApprovalTemplate, getRejectionTemplate } from "../../ser
 import { getIO } from "../../utils/socket.js";
 import { getRecommendationHealth as getRecHealth } from "../../services/recommendationObservability.service.js";
 import { getRecommendationTuningAnalysis } from "../../services/recommendationExperiment.service.js";
+import { SUPPORT_CONFIG } from "../../config/support.config.js";
+import {
+  calculateMemberWorkloads,
+  processSupportQueue,
+  reconcileSupportQueue,
+  assignTicket as assignWorkspaceTicket,
+  closeTicket as closeWorkspaceTicket,
+  resolveTicket as resolveWorkspaceTicket,
+  reopenTicket as reopenWorkspaceTicket,
+  syncConversationToTicket,
+} from "../../services/supportWorkspace.service.js";
 
 const REVIEW_STATUS = {
   PENDING_REVIEW: "PENDING_REVIEW",
@@ -1217,60 +1228,203 @@ export const getRecommendationExperimentTuning = async (req, res) => {
 };
 
 // ============================================================================
-// DASHBOARD STATSICKETS ---
+// ============================================================================
+// DASHBOARD SUPPORT TICKETS & ENTERPRISE QUEUE MONITORING
 export const getSupportTickets = async (req, res) => {
   try {
-    const tickets = await SupportTicket.find({}).sort({ updatedAt: -1 }).lean();
-    const existingIds = new Set(tickets.map(t => t._id.toString()));
+    const {
+      page,
+      limit,
+      status,
+      priority,
+      category,
+      userType,
+      sourceChannel,
+      assignedTo,
+      search,
+      startDate,
+      endDate,
+    } = req.query;
 
-    const conversations = await SupportConversation.find({}).sort({ updatedAt: -1 }).limit(100).lean();
-    const convIds = conversations.map(c => c._id);
-    const callLogs = await SupportCallLog.find({ conversationId: { $in: convIds } }).sort({ createdAt: -1 }).lean();
-    const callLogsByConv = {};
-    for (const log of callLogs) {
-      if (!callLogsByConv[log.conversationId.toString()]) {
-        callLogsByConv[log.conversationId.toString()] = log;
+    const query = {};
+
+    // 1. Status Filter
+    if (status && status !== "all") {
+      const s = String(status).toLowerCase();
+      if (s === "open") query.status = "Open";
+      else if (s === "assigned") query.status = "Assigned";
+      else if (s.includes("progress")) query.status = "In Progress";
+      else if (s === "waiting") query.status = "Waiting";
+      else if (s === "resolved") query.status = "Resolved";
+      else if (s === "closed") query.status = "Closed";
+      else if (s === "reopened") query.$or = [{ status: "Reopened" }, { reopenedAt: { $ne: null } }];
+      else if (s === "unassigned") {
+        query.assignedMemberId = null;
+        query.status = { $nin: ["Resolved", "Closed"] };
+      } else {
+        query.status = status;
       }
     }
 
-    for (const conv of conversations) {
-      if (!existingIds.has(conv._id.toString())) {
-        const msgs = await SupportMessage.find({ conversationId: conv._id }).sort({ createdAt: 1 }).lean();
-        const mappedStatus = conv.status === "open" ? "Open" : conv.status === "in_progress" || conv.status === "assigned" ? "In Progress" : conv.status === "resolved" ? "Resolved" : conv.status === "closed" ? "Closed" : "Open";
-        const activeCall = callLogsByConv[conv._id.toString()] || null;
-        tickets.push({
-          _id: conv._id,
-          ticketNumber: conv.ticketNumber || `TCK-${conv._id.toString().slice(-6).toUpperCase()}`,
-          userType: conv.customerTypeModel || "customer",
-          userId: conv.customerId,
-          userTypeModel: conv.customerTypeModel || "customer",
-          subject: conv.subject || "Customer Support Inquiry",
-          description: msgs.length > 0 ? msgs[0].body : conv.subject || "No initial description",
-          status: mappedStatus,
-          priority: conv.priority || "Medium",
-          callback: activeCall ? {
-            _id: activeCall._id,
-            phone: activeCall.phone,
-            status: activeCall.status,
-            requestedTimeWindow: activeCall.requestedTimeWindow,
-            requestedAt: activeCall.requestedAt || activeCall.createdAt,
-            createdAt: activeCall.createdAt
-          } : null,
-          messages: msgs.map(m => ({
-            senderType: m.senderType,
-            senderId: m.senderId,
-            senderName: m.senderType === "admin" ? "Admin Support" : m.senderType === "seller" ? "Seller Partner" : "Customer",
-            body: m.body,
-            createdAt: m.createdAt
-          })),
-          createdAt: conv.createdAt,
-          updatedAt: conv.updatedAt || conv.createdAt
-        });
+    // 2. Priority Filter
+    if (priority && priority !== "all") {
+      query.priority = priority;
+    }
+
+    // 3. Category Filter
+    if (category && category !== "all") {
+      query.category = category;
+    }
+
+    // 4. Requester Type Filter (Customer, Seller, Guest)
+    if (userType && userType !== "all") {
+      query.userType = String(userType).toLowerCase();
+    }
+
+    // 5. Source Channel Filter
+    if (sourceChannel && sourceChannel !== "all") {
+      query.sourceChannel = sourceChannel;
+    }
+
+    // 6. Assignment Filter
+    if (assignedTo && assignedTo !== "all") {
+      if (assignedTo === "unassigned") {
+        query.assignedMemberId = null;
+      } else if (mongoose.Types.ObjectId.isValid(assignedTo)) {
+        query.$or = [
+          { assignedMemberId: new mongoose.Types.ObjectId(assignedTo) },
+          { assignedTo: new mongoose.Types.ObjectId(assignedTo) },
+        ];
       }
     }
 
-    tickets.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-    return res.status(200).json(new ApiResponse(200, tickets, "Support tickets fetched"));
+    // 7. Search Filter (Server-side search across ticketNumber, subject, customerName, customerEmail, description)
+    if (search && String(search).trim()) {
+      const clean = String(search).trim();
+      const regex = new RegExp(clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      const searchConditions = [
+        { ticketNumber: regex },
+        { subject: regex },
+        { customerName: regex },
+        { customerEmail: regex },
+        { description: regex },
+      ];
+      if (query.$or) {
+        query.$and = [{ $or: query.$or }, { $or: searchConditions }];
+        delete query.$or;
+      } else {
+        query.$or = searchConditions;
+      }
+    }
+
+    // 8. Date Range Filter
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
+    }
+
+    // Pagination rules (Default 50, Allowed: 25, 50, 100, Max: 100)
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const rawLimit = parseInt(limit, 10);
+    let pageSize = SUPPORT_CONFIG.DEFAULT_ADMIN_PAGE_SIZE;
+    if (!isNaN(rawLimit)) {
+      if (rawLimit > SUPPORT_CONFIG.MAX_PAGE_SIZE) {
+        pageSize = SUPPORT_CONFIG.MAX_PAGE_SIZE;
+      } else if (SUPPORT_CONFIG.ALLOWED_PAGE_SIZES.includes(rawLimit)) {
+        pageSize = rawLimit;
+      }
+    }
+    const skip = (pageNum - 1) * pageSize;
+
+    // Stable tie-breaker ordering
+    const sortOrder = { updatedAt: -1, _id: -1 };
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const [
+      tickets,
+      total,
+      totalAllTickets,
+      todayCount,
+      last7DaysCount,
+      last30DaysCount,
+      unassignedCount,
+      assignedCount,
+      inProgressCount,
+      waitingCount,
+      resolvedCount,
+      closedCount,
+      reopenedCount,
+      highPriorityCount,
+      pendingAssignmentCount,
+      failedAssignmentCount,
+      requiringReconciliationCount,
+    ] = await Promise.all([
+      SupportTicket.find(query)
+        .sort(sortOrder)
+        .skip(skip)
+        .limit(pageSize)
+        .populate("assignedMemberId", "name email role status")
+        .populate("assignedTo", "name email role")
+        .populate("orderId", "_id orderNumber orderStatus totalAmount createdAt")
+        .lean(),
+      SupportTicket.countDocuments(query),
+      SupportTicket.countDocuments({}),
+      SupportTicket.countDocuments({ createdAt: { $gte: todayStart } }),
+      SupportTicket.countDocuments({ createdAt: { $gte: sevenDaysAgo } }),
+      SupportTicket.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
+      SupportTicket.countDocuments({ assignedMemberId: null, status: { $nin: ["Resolved", "Closed"] } }),
+      SupportTicket.countDocuments({ status: "Assigned" }),
+      SupportTicket.countDocuments({ status: "In Progress" }),
+      SupportTicket.countDocuments({ status: "Waiting" }),
+      SupportTicket.countDocuments({ status: "Resolved" }),
+      SupportTicket.countDocuments({ status: "Closed" }),
+      SupportTicket.countDocuments({ $or: [{ status: "Reopened" }, { reopenedAt: { $ne: null } }] }),
+      SupportTicket.countDocuments({ priority: { $in: ["High", "Critical"] }, status: { $nin: ["Resolved", "Closed"] } }),
+      SupportTicket.countDocuments({ queueStatus: "pending_assignment", status: { $nin: ["Resolved", "Closed"] } }),
+      SupportTicket.countDocuments({ queueStatus: "failed" }),
+      SupportTicket.countDocuments({ $or: [{ queueStatus: "retry_required" }, { queueStatus: "processing" }] }),
+    ]);
+
+    const pagination = {
+      total,
+      page: pageNum,
+      limit: pageSize,
+      totalPages: Math.ceil(total / pageSize) || 1,
+    };
+
+    const metrics = {
+      total: totalAllTickets,
+      today: todayCount,
+      last7Days: last7DaysCount,
+      last30Days: last30DaysCount,
+      unassigned: unassignedCount,
+      assigned: assignedCount,
+      inProgress: inProgressCount,
+      waiting: waitingCount,
+      resolved: resolvedCount,
+      closed: closedCount,
+      reopened: reopenedCount,
+      pendingAssignment: pendingAssignmentCount,
+      failedAssignment: failedAssignmentCount,
+      requiringReconciliation: requiringReconciliationCount,
+      highPriority: highPriorityCount,
+    };
+
+    const responseObj = new ApiResponse(200, tickets, "Support tickets fetched");
+    responseObj.tickets = tickets;
+    responseObj.pagination = pagination;
+    responseObj.metrics = metrics;
+
+    return res.status(200).json(responseObj);
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
   }
@@ -1278,49 +1432,127 @@ export const getSupportTickets = async (req, res) => {
 
 export const getSupportTicketDetails = async (req, res) => {
   try {
-    let ticket = await SupportTicket.findById(req.params.id).lean();
+    let ticket = await SupportTicket.findById(req.params.id)
+      .populate("assignedMemberId", "name email role status")
+      .populate("assignedTo", "name email role")
+      .populate("orderId", "_id orderNumber orderStatus totalAmount createdAt")
+      .lean();
+
     if (!ticket) {
       const conv = await SupportConversation.findById(req.params.id).lean();
       if (conv) {
-        const msgs = await SupportMessage.find({ conversationId: conv._id }).sort({ createdAt: 1 }).lean();
-        const activeCall = await SupportCallLog.findOne({ conversationId: conv._id }).sort({ createdAt: -1 }).lean();
-        const mappedStatus = conv.status === "open" ? "Open" : conv.status === "in_progress" || conv.status === "assigned" ? "In Progress" : conv.status === "resolved" ? "Resolved" : conv.status === "closed" ? "Closed" : "Open";
-        ticket = {
-          _id: conv._id,
-          ticketNumber: conv.ticketNumber || `TCK-${conv._id.toString().slice(-6).toUpperCase()}`,
-          userType: conv.customerTypeModel || "customer",
-          userId: conv.customerId,
-          userTypeModel: conv.customerTypeModel || "customer",
-          subject: conv.subject || "Customer Support Inquiry",
-          description: msgs.length > 0 ? msgs[0].body : conv.subject || "No initial description",
-          status: mappedStatus,
-          priority: conv.priority || "Medium",
-          callback: activeCall ? {
-            _id: activeCall._id,
-            phone: activeCall.phone,
-            status: activeCall.status,
-            requestedTimeWindow: activeCall.requestedTimeWindow,
-            requestedAt: activeCall.requestedAt || activeCall.createdAt,
-            createdAt: activeCall.createdAt
-          } : null,
-          messages: msgs.map(m => ({
-            senderType: m.senderType,
-            senderId: m.senderId,
-            senderName: m.senderType === "admin" ? "Admin Support" : m.senderType === "seller" ? "Seller Partner" : "Customer",
-            body: m.body,
-            createdAt: m.createdAt
-          })),
-          createdAt: conv.createdAt,
-          updatedAt: conv.updatedAt || conv.createdAt
-        };
+        await syncConversationToTicket(conv);
+        ticket = await SupportTicket.findById(req.params.id)
+          .populate("assignedMemberId", "name email role status")
+          .populate("assignedTo", "name email role")
+          .populate("orderId", "_id orderNumber orderStatus totalAmount createdAt")
+          .lean();
       }
+    }
+    if (!ticket) {
+      ticket = await SupportTicket.findOne({ ticketNumber: req.params.id })
+        .populate("assignedMemberId", "name email role status")
+        .populate("assignedTo", "name email role")
+        .populate("orderId", "_id orderNumber orderStatus totalAmount createdAt")
+        .lean();
     }
     if (!ticket) {
       throw new ApiError(404, "Ticket not found");
     }
     return res.status(200).json(new ApiResponse(200, ticket, "Ticket details loaded"));
   } catch (err) {
+    const status = err.statusCode || err.status || 500;
+    return res.status(status).json(new ApiError(status, err.message));
+  }
+};
+
+export const getSupportWorkload = async (req, res) => {
+  try {
+    const workloads = await calculateMemberWorkloads();
+    const unassignedCount = await SupportTicket.countDocuments({
+      assignedMemberId: null,
+      status: { $nin: ["Resolved", "Closed"] },
+    });
+    const totalActiveAssigned = workloads.reduce((sum, w) => sum + (w.activeWorkload || 0), 0);
+    const activeMembers = workloads.filter((w) => w.isEligible);
+    const totalCapacity = activeMembers.length * SUPPORT_CONFIG.DEFAULT_MEMBER_CAPACITY;
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          workloads,
+          summary: {
+            totalMembers: workloads.length,
+            activeMembers: activeMembers.length,
+            totalActiveAssigned,
+            totalCapacity,
+            unassignedQueueCount: unassignedCount,
+            defaultCapacityPerMember: SUPPORT_CONFIG.DEFAULT_MEMBER_CAPACITY,
+          },
+        },
+        "Support workload monitoring fetched"
+      )
+    );
+  } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
+export const reconcileQueueController = async (req, res) => {
+  try {
+    const report = await reconcileSupportQueue();
+    return res.status(200).json(new ApiResponse(200, report, "Queue reconciled successfully"));
+  } catch (err) {
+    return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
+export const assignAdminTicket = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { memberId } = req.body;
+    const ticket = await assignWorkspaceTicket(id, memberId, req.user);
+    return res.status(200).json(new ApiResponse(200, ticket, "Ticket assigned successfully"));
+  } catch (err) {
+    const status = err.status || 400;
+    return res.status(status).json(new ApiError(status, err.message));
+  }
+};
+
+export const resolveAdminTicket = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { resolutionNotes } = req.body;
+    const ticket = await resolveWorkspaceTicket(id, resolutionNotes, req.user);
+    return res.status(200).json(new ApiResponse(200, ticket, "Ticket resolved successfully"));
+  } catch (err) {
+    const status = err.status || 400;
+    return res.status(status).json(new ApiError(status, err.message));
+  }
+};
+
+export const closeAdminTicket = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const ticket = await closeWorkspaceTicket(id, reason, req.user);
+    return res.status(200).json(new ApiResponse(200, ticket, "Ticket closed successfully"));
+  } catch (err) {
+    const status = err.status || 400;
+    return res.status(status).json(new ApiError(status, err.message));
+  }
+};
+
+export const reopenAdminTicket = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const ticket = await reopenWorkspaceTicket(id, reason, req.user);
+    return res.status(200).json(new ApiResponse(200, ticket, "Ticket reopened successfully"));
+  } catch (err) {
+    const status = err.status || 400;
+    return res.status(status).json(new ApiError(status, err.message));
   }
 };
 
@@ -1413,6 +1645,8 @@ export const updateTicketStatus = async (req, res) => {
       if (status) {
         const s = status.toLowerCase();
         conv.status = s.includes("progress") ? "in_progress" : s.includes("resolve") ? "resolved" : s.includes("close") ? "closed" : "open";
+        if (s.includes("close")) conv.closedAt = new Date();
+        if (s.includes("resolve")) conv.resolvedAt = new Date();
       }
       if (priority) conv.priority = priority;
       if (assignedTo !== undefined) conv.assignedAgentId = assignedTo;
@@ -1421,16 +1655,124 @@ export const updateTicketStatus = async (req, res) => {
 
     if (ticket) {
       const before = { status: ticket.status, priority: ticket.priority, assignedTo: ticket.assignedTo };
-      if (status) ticket.status = status;
+      if (status) {
+        ticket.status = status;
+        if (status === "Resolved") {
+          ticket.resolvedAt = new Date();
+          ticket.resolvedBy = req.user._id;
+          ticket.queueStatus = "completed";
+        } else if (status === "Closed") {
+          ticket.closedAt = new Date();
+          ticket.closedBy = req.user._id;
+          ticket.queueStatus = "completed";
+        } else if (status === "Assigned") {
+          ticket.queueStatus = "assigned";
+        }
+      }
       if (priority) ticket.priority = priority;
-      if (assignedTo !== undefined) ticket.assignedTo = assignedTo;
+      if (assignedTo !== undefined) {
+        ticket.assignedTo = assignedTo;
+        ticket.assignedMemberId = assignedTo;
+        if (assignedTo && ticket.queueStatus === "pending_assignment") {
+          ticket.queueStatus = "assigned";
+        } else if (!assignedTo && ticket.status !== "Resolved" && ticket.status !== "Closed") {
+          ticket.queueStatus = "pending_assignment";
+        }
+      }
       await ticket.save();
       await logAdminAction(req, "UPDATE_TICKET_PROPERTIES", `ticket:${id}`, before, { status, priority, assignedTo });
+
+      // Automatically refill capacity if a member's active slot was freed
+      if (status === "Resolved" || status === "Closed" || !assignedTo) {
+        try {
+          await processSupportQueue();
+        } catch (_qErr) {}
+      }
     }
 
     return res.status(200).json(new ApiResponse(200, ticket || conv, "Ticket properties updated"));
   } catch (err) {
     return res.status(500).json(new ApiError(500, err.message));
+  }
+};
+
+export const deleteSupportTicket = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const ticket = await SupportTicket.findById(id);
+    const conv = await SupportConversation.findById(id);
+
+    if (!ticket && !conv) {
+      throw new ApiError(404, "Ticket not found");
+    }
+
+    await Promise.all([
+      SupportTicket.deleteMany({ _id: id }),
+      SupportConversation.deleteMany({ _id: id }),
+      SupportMessage.deleteMany({ conversationId: id }),
+      SupportCallLog.deleteMany({ conversationId: id }),
+    ]);
+
+    await logAdminAction(req, "DELETE_SUPPORT_TICKET", `ticket:${id}`, { id }, null);
+
+    return res.status(200).json(new ApiResponse(200, { deletedId: id }, "Ticket permanently deleted"));
+  } catch (err) {
+    const status = err.statusCode || 500;
+    return res.status(status).json(new ApiError(status, err.message));
+  }
+};
+
+export const deleteSupportMember = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { deleteSupportMember: deleteMemberService } = await import("../../services/supportWorkspace.service.js");
+    const result = await deleteMemberService(id, req.user);
+    await logAdminAction(req, "DELETE_SUPPORT_MEMBER", `member:${id}`, { id }, null);
+    return res.status(200).json(new ApiResponse(200, result, "Support member permanently deleted"));
+  } catch (err) {
+    const status = err.status || err.statusCode || 500;
+    return res.status(status).json(new ApiError(status, err.message));
+  }
+};
+
+export const bulkDeleteSupportTickets = async (req, res) => {
+  try {
+    const ids = req.body.ids || req.body.ticketIds;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "Please provide a non-empty array of ticket IDs");
+    }
+
+    const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      throw new ApiError(400, "No valid ticket IDs provided");
+    }
+
+    const result = await Promise.all([
+      SupportTicket.deleteMany({ _id: { $in: validIds } }),
+      SupportConversation.deleteMany({ _id: { $in: validIds } }),
+      SupportMessage.deleteMany({ conversationId: { $in: validIds } }),
+      SupportCallLog.deleteMany({ conversationId: { $in: validIds } }),
+    ]);
+
+    await logAdminAction(
+      req,
+      "BULK_DELETE_SUPPORT_TICKETS",
+      `tickets:${validIds.length}`,
+      { count: validIds.length, ids: validIds },
+      null
+    );
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        { deletedCount: result[0]?.deletedCount || validIds.length, deletedIds: validIds },
+        `${validIds.length} tickets permanently deleted`
+      )
+    );
+  } catch (err) {
+    const status = err.statusCode || 500;
+    return res.status(status).json(new ApiError(status, err.message));
   }
 };
 

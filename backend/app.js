@@ -45,6 +45,7 @@ import deliveryRoutes from "./routers/delivery/delivery.route.js";
 import storeApprovalRoutes from "./routers/seller/storeApproval.route.js";
 import orderNotificationRoutes from "./routers/seller/orderNotification.route.js";
 import supportRoutes from "./routers/support/support.routes.js";
+import supportWorkspaceRoutes from "./routers/support/supportWorkspace.routes.js";
 import { getDashboardAccess, getLatestNodeStatus } from "./controllers/sellers/node.controllers.js";
 import seoRoutes from "./routers/seo/seo.route.js";
 import { getActiveCampaigns, attachCampaignPricingToProducts } from "./services/pricing.service.js";
@@ -102,7 +103,11 @@ app.use(
       "Accept",
       "Cache-Control",
       "Pragma",
-      "Expires"
+      "Expires",
+      "x-role",
+      "x-requester-role",
+      "x-user-lat",
+      "x-user-lng"
     ],
   }),
 );
@@ -251,6 +256,8 @@ app.use("/api/v1/indiafy/delivery", deliveryRoutes);
 app.use("/api/v1/indiafy", storeApprovalRoutes);
 app.use("/api/v1/indiafy/seller/notifications", orderNotificationRoutes);
 app.use("/api/v1/indiafy/support", supportRoutes);
+app.use("/api/v1/indiafy/support-workspace", supportWorkspaceRoutes);
+app.use("/api/support-workspace", supportWorkspaceRoutes);
 app.get("/api/v1/indiafy/seller/dashboard-access", requiredLogin, getDashboardAccess);
 app.get("/api/v1/indiafy/seller/node/status", requiredLogin, getLatestNodeStatus);
 app.get("/api/v1/indiafy/campaigns/active", async (req, res) => {
@@ -316,6 +323,12 @@ app.use((err, req, res, next) => {
     const messages = Object.values(err.errors).map(val => val.message);
     message = `Validation Error: ${messages.join(', ')}`;
     errors = messages;
+  }
+
+  // Multer Error handling (file size limits, unexpected fields)
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+    message = err.code === 'LIMIT_FILE_SIZE' ? 'File size exceeds maximum allowed limit (5MB)' : (err.message || 'File upload error');
   }
 
   // Mongoose CastError (invalid ObjectId)

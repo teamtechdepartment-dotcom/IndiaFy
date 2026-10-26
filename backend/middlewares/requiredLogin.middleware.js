@@ -2,6 +2,18 @@ import jwt from "jsonwebtoken";
 import ApiError from "../utils/apiError.js";
 import userCookies from "../utils/userCookies.js";
 
+const normalizeUser = (user) => {
+  if (!user || typeof user !== "object") return user;
+  const principalId = user._id || user.sellerId || user.id || user.userId;
+  if (principalId) {
+    if (!user._id) user._id = principalId;
+    if (!user.sellerId && (user.role || "").toLowerCase() === "seller") {
+      user.sellerId = principalId;
+    }
+  }
+  return user;
+};
+
 const requiredLogin = async (req, res, next) => {
   const primarySecret = process.env.SecurityKey || process.env.JWT_SECRET;
   const secondarySecret = process.env.JWT_SECRET || process.env.SecurityKey;
@@ -23,7 +35,7 @@ const requiredLogin = async (req, res, next) => {
               throw firstErr;
             }
           }
-          req.user = decoded;
+          req.user = normalizeUser(decoded);
           return next();
         } catch (err) {
           return res
@@ -37,12 +49,17 @@ const requiredLogin = async (req, res, next) => {
     }
 
     // 2. Fallback to cookie verification
-    const isSellerRoute = req.originalUrl.includes('/seller') || req.originalUrl.includes('/wholesale') || req.originalUrl.includes('/local') || req.originalUrl.includes('sellerorders') || req.originalUrl.includes('upload-video');
-    const isAdminRoute = req.originalUrl.includes('/admin');
+    const isSellerReferer = req.headers.referer && (req.headers.referer.includes('/seller') || req.headers.referer.includes('/seller-hub'));
+    const isSellerRoleHeader = req.headers['x-role']?.toLowerCase() === 'seller' || req.headers['x-requester-role']?.toLowerCase() === 'seller' || req.query.role === 'seller';
+    const isSellerRoute = req.originalUrl.includes('/seller') || req.originalUrl.includes('/wholesale') || req.originalUrl.includes('/local') || req.originalUrl.includes('sellerorders') || req.originalUrl.includes('upload-video') || isSellerReferer || isSellerRoleHeader;
+    const isAdminReferer = req.headers.referer && req.headers.referer.includes('/admin');
+    const isAdminRoute = req.originalUrl.includes('/admin') || isAdminReferer;
+    const isSupportRoute = !isAdminRoute && (req.originalUrl.includes('/support-workspace') || req.originalUrl.includes('/support'));
     
-    let order = ["Customer", "Seller", "Admin"];
-    if (isSellerRoute) order = ["Seller", "Customer", "Admin"];
-    if (isAdminRoute) order = ["Admin", "Seller", "Customer"];
+    let order = ["Customer", "Seller", "Admin", "Support"];
+    if (isSellerRoute) order = ["Seller", "Customer", "Admin", "Support"];
+    else if (isAdminRoute) order = ["Admin", "Support", "Seller", "Customer"];
+    else if (isSupportRoute) order = ["Support", "Admin", "Customer", "Seller"];
 
     let lastError = null;
     for (const prefix of order) {
@@ -60,7 +77,7 @@ const requiredLogin = async (req, res, next) => {
             }
           }
           if (result) {
-            req.user = result;
+            req.user = normalizeUser(result);
             return next();
           }
         } catch (err) {

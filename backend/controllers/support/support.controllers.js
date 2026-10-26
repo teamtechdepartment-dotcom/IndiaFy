@@ -12,20 +12,39 @@ import CustomerModel from "../../models/customers/auth.model.js";
 import SellerModel from "../../models/sellers/auth.model.js";
 import { checkUserPermission } from "../../middlewares/permissionGuard.middleware.js";
 import { createSupportMessage } from "../../services/support.service.js";
+import { syncConversationToTicket, processSupportQueue } from "../../services/supportWorkspace.service.js";
+import SupportTicket from "../../models/admins/supportTicket.model.js";
 import telephonyService from "../../services/telephony/telephony.service.js";
 import { getSocketIo } from "../../utils/support.socket.js";
 
 const { ObjectId } = mongoose.Types;
 
+export const getRequesterIdentity = (user) => {
+  if (!user) return { id: null, objectId: null, role: "customer", isSeller: false, typeModel: "customer" };
+  const role = (user.role || "customer").toLowerCase();
+  const isSeller = role === "seller";
+  const rawId = isSeller
+    ? (user.sellerId || user._id || user.id)
+    : (user._id || user.id || user.customerId);
+  const id = rawId ? rawId.toString() : null;
+  const objectId = id && mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null;
+  return {
+    id,
+    objectId,
+    role,
+    isSeller,
+    typeModel: isSeller ? "seller" : "customer",
+  };
+};
+
 export const createConversation = async (req, res, next) => {
   try {
     const { subject, orderId, storeId } = req.body;
+    const { id: requesterId, objectId: customerId, isSeller, typeModel: customerTypeModel } = getRequesterIdentity(req.user);
 
-    const userRole = (req.user?.role || "customer").toLowerCase();
-    
-    // For customers or sellers creating a ticket
-    let customerId = req.user._id;
-    let customerTypeModel = userRole === "seller" ? "seller" : "customer";
+    if (!requesterId || !customerId) {
+      return res.status(401).json(new ApiError(401, "Invalid authenticated identity"));
+    }
 
     // Validate Order Ownership
     if (orderId) {
@@ -37,18 +56,55 @@ export const createConversation = async (req, res, next) => {
         return res.status(404).json(new ApiError(404, "Order not found"));
       }
 
-      if (userRole === "seller") {
+      if (isSeller) {
         const isSellerInOrder = order.orderItems.some(
-          (item) => item.seller?.toString() === customerId.toString()
+          (item) => item.seller?.toString() === requesterId
         );
         if (!isSellerInOrder) {
           return res.status(403).json(new ApiError(403, "Access denied to this order"));
         }
       } else {
-        if (order.customer.toString() !== customerId.toString()) {
+        if (order.customer.toString() !== requesterId) {
           return res.status(403).json(new ApiError(403, "Access denied to this order"));
         }
       }
+    }
+
+    // Validate Store Ownership if provided
+    let validatedStoreId = null;
+    if (storeId) {
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res.status(400).json(new ApiError(400, "Invalid storeId format"));
+      }
+      validatedStoreId = storeId;
+    }
+
+    // Deduplication check: prevent duplicate active conversations on repeated initialization
+    const activeStatuses = ["open", "assigned", "in_progress", "waiting_customer", "waiting_agent", "escalated"];
+    const duplicateQuery = {
+      customerId,
+      customerTypeModel,
+      status: { $in: activeStatuses },
+    };
+
+    if (orderId) {
+      duplicateQuery.orderId = orderId;
+    } else if (validatedStoreId) {
+      duplicateQuery.storeId = validatedStoreId;
+    } else {
+      duplicateQuery.orderId = null;
+    }
+
+    const existingConv = await SupportConversation.findOne(duplicateQuery)
+      .sort({ updatedAt: -1 });
+
+    if (existingConv) {
+      try {
+        await syncConversationToTicket(existingConv);
+      } catch (_sErr) {
+        console.warn("Could not sync existing conversation to ticket:", _sErr.message);
+      }
+      return res.status(200).json({ success: true, conversation: existingConv, isExisting: true });
     }
 
     // Generate simple ticket number
@@ -60,13 +116,21 @@ export const createConversation = async (req, res, next) => {
       customerId,
       customerTypeModel,
       orderId: orderId || null,
-      storeId: storeId || null,
+      storeId: validatedStoreId || null,
       subject,
       status: "open",
       priority: "Medium",
     });
 
-    res.status(201).json({ success: true, conversation });
+    try {
+      await syncConversationToTicket(conversation);
+      await processSupportQueue();
+    } catch (_sErr) {
+      console.warn("Could not sync new conversation to ticket or process queue:", _sErr.message);
+    }
+
+    const refreshed = await SupportConversation.findById(conversation._id).lean();
+    res.status(201).json({ success: true, conversation: refreshed || conversation });
   } catch (error) {
     next(error);
   }
@@ -74,10 +138,10 @@ export const createConversation = async (req, res, next) => {
 
 export const getConversations = async (req, res, next) => {
   try {
-    const userRole = (req.user?.role || "customer").toLowerCase();
+    const { id: requesterId, objectId: customerId, role: userRole, isSeller, typeModel: customerTypeModel } = getRequesterIdentity(req.user);
     let filter = {};
 
-    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const isCustomerOrSeller = userRole === "customer" || isSeller;
     const isAdmin = !isCustomerOrSeller;
 
     if (isAdmin) {
@@ -92,11 +156,18 @@ export const getConversations = async (req, res, next) => {
       if (req.query.status) {
         filter.status = req.query.status;
       }
+      if (req.query.customerTypeModel) {
+        filter.customerTypeModel = req.query.customerTypeModel;
+      }
     } else {
       // Customers/Sellers can only see their own
-      filter.customerId = req.user._id;
+      filter.customerId = customerId || requesterId;
+      filter.customerTypeModel = customerTypeModel;
       if (req.query.orderId) {
         filter.orderId = req.query.orderId;
+      }
+      if (req.query.storeId) {
+        filter.storeId = req.query.storeId;
       }
     }
 
@@ -115,7 +186,7 @@ export const getConversationDetails = async (req, res, next) => {
   try {
     const { id } = req.params;
     const conversation = await SupportConversation.findById(id)
-      .populate("customerId", "firstName lastName email createdAt isBlocked")
+      .populate("customerId", "firstName lastName email createdAt isBlocked status")
       .populate({
         path: "orderId",
         select: "orderItems totalPrice status paymentMethod createdAt shippingAddress",
@@ -130,10 +201,15 @@ export const getConversationDetails = async (req, res, next) => {
       return res.status(404).json(new ApiError(404, "Conversation not found"));
     }
 
-    const userRole = (req.user?.role || "customer").toLowerCase();
+    const rawConv = await SupportConversation.findById(id).select("customerId").lean();
+    if (!rawConv) {
+      return res.status(404).json(new ApiError(404, "Conversation not found"));
+    }
+
+    const { id: requesterId, role: userRole, isSeller } = getRequesterIdentity(req.user);
     
     // Authorization
-    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const isCustomerOrSeller = userRole === "customer" || isSeller;
     const isAdmin = !isCustomerOrSeller;
     if (isAdmin) {
       const hasRead = await checkUserPermission(req.user, "tickets:read");
@@ -141,18 +217,18 @@ export const getConversationDetails = async (req, res, next) => {
         return res.status(403).json(new ApiError(403, "Access Denied: Missing tickets:read permission"));
       }
     } else {
-      const convUserId = conversation.customerId?._id?.toString() || conversation.customerId?.toString();
-      if (convUserId !== req.user._id.toString()) {
+      const convUserId = (conversation?.customerId?._id || conversation?.customerId || rawConv.customerId || "").toString();
+      if (!requesterId || convUserId !== requesterId) {
         return res.status(403).json(new ApiError(403, "Access denied to this conversation"));
       }
     }
 
     // P1-04: Multi-vendor order privacy isolation for sellers
-    if (userRole === "seller" && conversation.orderId) {
+    if (isSeller && conversation.orderId) {
       if (Array.isArray(conversation.orderId.orderItems)) {
         conversation.orderId.orderItems = conversation.orderId.orderItems.filter((item) => {
           const itemSeller = item.seller?.toString() || item.product?.seller?.toString() || item.product?.sellerId?.toString();
-          return itemSeller === req.user._id.toString();
+          return itemSeller === requesterId;
         });
       }
       if (conversation.orderId.shippingAddress) {
@@ -181,8 +257,8 @@ export const getMessages = async (req, res, next) => {
       return res.status(404).json(new ApiError(404, "Conversation not found"));
     }
 
-    const userRole = (req.user?.role || "customer").toLowerCase();
-    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const { id: requesterId, role: userRole, isSeller } = getRequesterIdentity(req.user);
+    const isCustomerOrSeller = userRole === "customer" || isSeller;
     const isAdmin = !isCustomerOrSeller;
     if (isAdmin) {
       const hasRead = await checkUserPermission(req.user, "tickets:read");
@@ -190,7 +266,8 @@ export const getMessages = async (req, res, next) => {
         return res.status(403).json(new ApiError(403, "Access Denied: Missing tickets:read permission"));
       }
     } else {
-      if (conversation.customerId.toString() !== req.user._id.toString()) {
+      const convUserId = (conversation.customerId?._id || conversation.customerId || "").toString();
+      if (!requesterId || convUserId !== requesterId) {
         return res.status(403).json(new ApiError(403, "Access denied"));
       }
     }
@@ -357,6 +434,33 @@ export const updateStatus = async (req, res, next) => {
         { conversationId: id, status: "active" },
         { $set: { status: "completed", unassignedAt: new Date() } }
       );
+
+      const ticketStatus = status === "closed" ? "Closed" : "Resolved";
+      await SupportTicket.updateOne(
+        { _id: id },
+        {
+          $set: {
+            status: ticketStatus,
+            queueStatus: "completed",
+            ...(status === "resolved" ? { resolvedAt: new Date(), resolvedBy: req.user?._id } : {}),
+            ...(status === "closed" ? { closedAt: new Date(), closedBy: req.user?._id } : {}),
+          },
+          $push: {
+            auditLogs: {
+              action: `TICKET_${status.toUpperCase()}`,
+              performedBy: req.user?._id,
+              performedByName: req.user?.firstName || req.user?.name || "Staff",
+              performedByRole: req.user?.role || "support",
+              details: `Ticket marked as ${ticketStatus}`,
+              createdAt: new Date(),
+            },
+          },
+        }
+      );
+
+      try {
+        await processSupportQueue();
+      } catch (_qErr) {}
     }
 
     // Audit Logging
@@ -389,33 +493,33 @@ export const requestCallback = async (req, res, next) => {
       return res.status(404).json(new ApiError(404, "Conversation not found"));
     }
 
-    const userRole = (req.user?.role || "customer").toLowerCase();
-    const isCustomerOrSeller = userRole === "customer" || userRole === "seller";
+    const { id: requesterId, objectId: customerId, role: userRole, isSeller, typeModel: customerTypeModel } = getRequesterIdentity(req.user);
+    const isCustomerOrSeller = userRole === "customer" || isSeller;
     const isAdmin = !isCustomerOrSeller;
     
     if (isCustomerOrSeller) {
-      const convUserId = conversation.customerId?._id?.toString() || conversation.customerId?.toString();
-      if (convUserId !== req.user._id.toString()) {
+      const convUserId = (conversation.customerId?._id || conversation.customerId || "").toString();
+      if (!requesterId || convUserId !== requesterId) {
         return res.status(403).json(new ApiError(403, "Access denied"));
       }
     }
 
     // Resolve authoritative phone number server-side (P0-02 fix)
     let authoritativePhone = null;
-    if (userRole === "seller") {
-      const seller = await SellerModel.findById(req.user._id).select("phone").lean();
+    if (isSeller) {
+      const seller = await SellerModel.findById(customerId).select("phone").lean();
       authoritativePhone = seller?.phone || req.user.phone;
       if (!authoritativePhone && req.body.phone) {
         authoritativePhone = String(req.body.phone).trim();
-        await SellerModel.findByIdAndUpdate(req.user._id, { phone: authoritativePhone }).catch(() => {});
+        await SellerModel.findByIdAndUpdate(customerId, { phone: authoritativePhone }).catch(() => {});
       }
     } else if (userRole === "customer") {
-      const profile = await CustomerProfile.findOne({ customerId: req.user._id }).select("contact").lean();
-      const customer = await CustomerModel.findById(req.user._id).select("phone").lean();
+      const profile = await CustomerProfile.findOne({ customerId }).select("contact").lean();
+      const customer = await CustomerModel.findById(customerId).select("phone").lean();
       authoritativePhone = profile?.contact ? String(profile.contact) : (customer?.phone || req.user.phone);
       if (!authoritativePhone && req.body.phone) {
         authoritativePhone = String(req.body.phone).trim();
-        await CustomerModel.findByIdAndUpdate(req.user._id, { phone: authoritativePhone }).catch(() => {});
+        await CustomerModel.findByIdAndUpdate(customerId, { phone: authoritativePhone }).catch(() => {});
       }
     } else if (isAdmin) {
       const hasWrite = await checkUserPermission(req.user, "tickets:write");
@@ -451,8 +555,8 @@ export const requestCallback = async (req, res, next) => {
         },
         {
           $setOnInsert: {
-            customerId: req.user._id,
-            customerTypeModel: userRole === "seller" ? "seller" : "customer",
+            customerId,
+            customerTypeModel,
             phone: String(authoritativePhone),
             requestedTimeWindow,
             preferredTime,
@@ -472,7 +576,7 @@ export const requestCallback = async (req, res, next) => {
 
       // Audit Logging
       await AuditLog.create({
-        adminId: req.user._id,
+        adminId: customerId || req.user._id,
         adminEmail: req.user.email || "system@indiafy.com",
         action: "SUPPORT_CALLBACK_REQUESTED",
         targetResource: `SupportCallLog:${callbackLog?._id}`,

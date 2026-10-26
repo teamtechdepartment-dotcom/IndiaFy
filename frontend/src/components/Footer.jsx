@@ -41,7 +41,7 @@ const footerSections = [
   {
     title: "Support",
     links: [
-      { label: "Help Center", path: "/help-center" },
+      { label: "FAQs", path: "/faq" },
       { label: "Contact Us", path: "/contact" },
       { label: "Trust & Safety", path: "/trust-safety" },
       { label: "About Us", path: "/about" },

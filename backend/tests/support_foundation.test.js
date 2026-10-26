@@ -30,6 +30,8 @@ describe("Support Foundation Implementation", () => {
     const { databaseConfig } = await import("../config/db.config.js");
     await databaseConfig();
 
+    await AdminModel.deleteMany({ email: { $in: ["admin1@test.com", "admin2@test.com"] } });
+
     await AdminModel.create({
       _id: adminId,
       firstName: "Test",

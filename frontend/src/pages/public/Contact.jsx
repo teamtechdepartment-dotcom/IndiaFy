@@ -6,6 +6,8 @@ import WebsiteNavbar from "../../components/WebsiteNavbar";
 import Footer from "../../components/Footer";
 import SEOHead from "../../components/seo/SEOHead";
 
+import axiosInstance from "../../utils/axiosInstance";
+
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
@@ -13,13 +15,35 @@ export default function Contact() {
     subject: "",
     message: "",
   });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.success("Message sent! Our support team will respond shortly.", {
-      icon: "✉️",
-    });
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    if (!formData.message.trim() || !formData.email.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await axiosInstance.post("/support-workspace/tickets", {
+        customerName: formData.name.trim() || "Visitor",
+        customerEmail: formData.email.trim(),
+        subject: formData.subject.trim() || "Contact Us Inquiry",
+        description: formData.message.trim(),
+        category: "General Inquiry",
+        priority: "Medium",
+      });
+      const ticketNumber = res?.data?.ticketNumber || res?.ticketNumber || "";
+      toast.success(
+        ticketNumber
+          ? `Support Ticket #${ticketNumber} created! We'll reply to your email.`
+          : "Message sent! Our support team will respond shortly.",
+        { icon: "✉️" }
+      );
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      console.error("Failed to submit contact query:", err);
+      toast.error(err?.response?.data?.message || "Failed to submit request.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const supportChannels = [
@@ -192,9 +216,9 @@ export default function Contact() {
 
             <div className="mt-8 p-6 bg-emerald-50 border border-emerald-100 rounded">
               <p className="text-sm font-bold text-emerald-800 mb-1">Need more help?</p>
-              <p className="text-xs font-medium text-emerald-600 mb-4">Browse our comprehensive Help Center for detailed guides.</p>
-              <a href="/help-center" className="text-xs font-black bg-white text-emerald-700 px-4 py-2 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors">
-                Visit Help Center
+              <p className="text-xs font-medium text-emerald-600 mb-4">Browse our comprehensive FAQs for quick answers.</p>
+              <a href="/faq" className="text-xs font-black bg-white text-emerald-700 px-4 py-2 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                Visit FAQs
               </a>
             </div>
           </section>

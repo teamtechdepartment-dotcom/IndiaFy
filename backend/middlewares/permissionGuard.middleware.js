@@ -40,6 +40,22 @@ const fallbackRolePermissions = {
     "reviews:read", "reviews:write",
     "users:read"
   ],
+  SUPPORT_MEMBER: [
+    "dashboard:read",
+    "tickets:read", "tickets:write"
+  ],
+  SUPPORTMEMBER: [
+    "dashboard:read",
+    "tickets:read", "tickets:write"
+  ],
+  SUPPORT_AGENT: [
+    "dashboard:read",
+    "tickets:read", "tickets:write"
+  ],
+  SUPPORT_LEAD: [
+    "dashboard:read",
+    "tickets:read", "tickets:write"
+  ],
   CONTENT_MANAGER: [
     "products:read", "products:write",
     "categories:read", "categories:write"

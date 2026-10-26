@@ -95,12 +95,22 @@ const supportConversationSchema = new Schema(
     callbackStartedAt: { type: Date, default: null },
     callbackCompletedAt: { type: Date, default: null },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
+
+// Virtual helper to seamlessly access sellerId for seller requester conversations
+supportConversationSchema.virtual("sellerId").get(function () {
+  return this.customerTypeModel === "seller" ? this.customerId : null;
+});
 
 // Compound index to help fetch active assigned conversations for an agent quickly
 supportConversationSchema.index({ assignedAgentId: 1, status: 1 });
 supportConversationSchema.index({ customerId: 1, updatedAt: -1 });
+supportConversationSchema.index({ customerId: 1, customerTypeModel: 1, status: 1 });
 
 const SupportConversation = mongoose.model(
   "support_Conversation",

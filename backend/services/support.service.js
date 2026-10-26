@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import SupportConversation from "../models/support/supportConversation.model.js";
 import SupportMessage from "../models/support/supportMessage.model.js";
+import SupportTicket from "../models/admins/supportTicket.model.js";
 import AuditLog from "../models/admins/auditLog.model.js";
 import { checkUserPermission } from "../middlewares/permissionGuard.middleware.js";
 
@@ -39,19 +40,35 @@ export const createSupportMessage = async (conversationId, user, payload) => {
   
   // Auth Check
   let senderType = "customer";
-  if (userRole === "admin" || userRole === "super_admin" || userRole === "support_manager") {
+  if (
+    userRole === "admin" ||
+    userRole === "super_admin" ||
+    userRole === "support_manager" ||
+    userRole === "support_member" ||
+    userRole === "supportmember" ||
+    userRole === "support_lead" ||
+    userRole === "support_agent"
+  ) {
     senderType = "admin";
   } else if (userRole === "seller") {
     senderType = "seller";
   }
+
+  const rawPrincipalId = senderType === "seller"
+    ? (user?.sellerId || user?._id || user?.id)
+    : (user?._id || user?.id || user?.customerId);
+  const principalId = rawPrincipalId ? rawPrincipalId.toString() : "";
 
   if (senderType === "admin") {
     const hasWrite = await checkUserPermission(user, "tickets:write");
     if (!hasWrite) {
       throw { status: 403, message: "Access denied: Missing tickets:write permission", code: "SUPPORT_FORBIDDEN" };
     }
-  } else if (conversation.customerId.toString() !== user._id.toString()) {
-    throw { status: 403, message: "Access denied", code: "SUPPORT_FORBIDDEN" };
+  } else {
+    const convCustomerId = (conversation.customerId?._id || conversation.customerId || "").toString();
+    if (!principalId || convCustomerId !== principalId) {
+      throw { status: 403, message: "Access denied", code: "SUPPORT_FORBIDDEN" };
+    }
   }
 
   const isInternalNote = messageType === "internal_note";
@@ -63,7 +80,7 @@ export const createSupportMessage = async (conversationId, user, payload) => {
   try {
     const message = await SupportMessage.create({
       conversationId,
-      senderId: user._id,
+      senderId: new mongoose.Types.ObjectId(principalId),
       senderType,
       messageType: isInternalNote ? "internal_note" : "customer",
       body,
@@ -100,6 +117,58 @@ export const createSupportMessage = async (conversationId, user, payload) => {
       } catch (auditErr) {
         console.error("Failed to audit log internal note", auditErr);
       }
+    }
+
+    // Synchronize to SupportTicket for unified workspace visibility
+    try {
+      const ticketSenderType = senderType === "admin" ? "admin" : (senderType === "seller" ? "seller" : "user");
+      const ticketSenderName = senderType === "admin"
+        ? (user.name || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Support Staff")
+        : (senderType === "seller" ? "Seller Partner" : "Customer");
+
+      if (!isInternalNote) {
+        const isAssigned = Boolean(conversation.assignedAgentId);
+        const newTicketStatus = !isAssigned
+          ? "Open"
+          : (senderType === "admin" ? "Waiting" : "In Progress");
+
+        const updateSet = {
+          status: newTicketStatus,
+          updatedAt: new Date(),
+        };
+        if (!isAssigned) {
+          updateSet.queueStatus = "pending_assignment";
+        }
+
+        await SupportTicket.findByIdAndUpdate(conversationId, {
+          $push: {
+            messages: {
+              _id: message._id,
+              senderType: ticketSenderType,
+              senderId: message.senderId,
+              senderName: ticketSenderName,
+              body: message.body,
+              attachments: attachments ? attachments.map((a) => (typeof a === "string" ? a : a.url)) : [],
+              createdAt: message.createdAt || new Date(),
+            },
+          },
+          $set: updateSet,
+        });
+      } else {
+        await SupportTicket.findByIdAndUpdate(conversationId, {
+          $push: {
+            internalNotes: {
+              adminId: user._id,
+              adminName: user.name || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Support Staff",
+              note: body,
+              createdAt: message.createdAt || new Date(),
+            },
+          },
+          $set: { updatedAt: new Date() },
+        });
+      }
+    } catch (_syncErr) {
+      console.warn("Could not sync message to SupportTicket:", _syncErr.message);
     }
 
     return { message, isDuplicate: false, conversation };

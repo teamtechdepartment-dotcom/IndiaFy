@@ -288,8 +288,9 @@ const refreshTokenHandler = async (req, res) => {
 
         if (admin.refreshToken !== refreshToken) {
             if (admin.refreshToken) {
-                const { accessToken } = await userCookies(res, userData);
-                return res.status(200).json(new ApiResponse(200, { accessToken, refreshToken: admin.refreshToken }, "Token refreshed successfully"));
+                userData.role = "Admin";
+                const { accessToken, refreshToken: newRefreshToken } = await userCookies(res, userData);
+                return res.status(200).json(new ApiResponse(200, { accessToken, refreshToken: newRefreshToken }, "Token refreshed successfully"));
             }
 
             // Reuse detected! Clear stored token to revoke all sessions.

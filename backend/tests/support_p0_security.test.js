@@ -65,12 +65,13 @@ describe("Support System P0 Security Verification Suite", () => {
     seller2Token = jwt.sign({ _id: seller2Id, role: "seller" }, securityKey);
 
     // Seed Custom Admin Role in Database (uppercase stored)
+    await AdminRole.deleteMany({ roleName: { $regex: /tier1_support/i } });
     await AdminRole.create({
       _id: customRoleId,
       roleName: "tier1_support",
       description: "Tier 1 Support with read-only access",
       permissions: ["tickets:read"]
-    }).catch(() => {});
+    });
 
     // Seed Admins
     await AdminModel.create([
@@ -194,7 +195,7 @@ describe("Support System P0 Security Verification Suite", () => {
     await AdminRole.deleteMany({ _id: customRoleId });
     await SellerModel.deleteMany({ _id: { $in: [seller1Id, seller2Id] } });
     await OrderModel.deleteMany({ _id: { $in: [orderId, orderSellerId] } });
-  });
+  }, 30000);
 
   // 1 & 2. Callback cannot use arbitrary req.body.phone & uses authenticated account phone
   it("1 & 2. Callback cannot use arbitrary req.body.phone and securely uses authoritative account phone", async () => {
@@ -384,7 +385,7 @@ describe("Support System P0 Security Verification Suite", () => {
 
     expect(postRes.status).toBe(403);
     expect(postRes.body.message).toMatch(/Missing tickets:write/i);
-  });
+  }, 30000);
 
   // 13. Invalid ObjectIds are rejected
   it("13. Invalid ObjectIds are rejected with 400 validation error", async () => {

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, no-empty */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axiosInstance from '../utils/axiosInstance';
@@ -12,29 +13,44 @@ export const useAdminAuthStore = create(
       isBackendAvailable: true,
       expiresAt: null,
 
-      login: (userData, token, refreshToken) => set({
-        user: {
-          ...userData,
-          role: userData?.role?.toUpperCase() || 'ADMIN'
-        },
-        token: token,
-        refreshToken: refreshToken || userData?.refreshToken,
-        isAuthenticated: true,
-        isBackendAvailable: true,
-        expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days expiration
-      }),
+      login: (userData, token, refreshToken) => {
+        const adminToken = token || userData?.accessToken;
+        const adminRefreshToken = refreshToken || userData?.refreshToken;
+        try {
+          if (adminToken) localStorage.setItem('adminAccessToken', adminToken);
+          if (adminRefreshToken) localStorage.setItem('adminRefreshToken', adminRefreshToken);
+        } catch (_) {}
+        set({
+          user: {
+            ...userData,
+            role: userData?.role?.toUpperCase() || 'ADMIN'
+          },
+          token: adminToken,
+          refreshToken: adminRefreshToken,
+          isAuthenticated: true,
+          isBackendAvailable: true,
+          expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days expiration
+        });
+      },
 
       updateUser: (updatedData) => set((state) => ({
         user: state.user ? { ...state.user, ...updatedData } : updatedData
       })),
 
-      clearSession: () => set({ 
-        user: null, 
-        token: null, 
-        refreshToken: null,
-        isAuthenticated: false,
-        expiresAt: null 
-      }),
+      clearSession: () => {
+        try {
+          localStorage.removeItem('adminAccessToken');
+          localStorage.removeItem('adminRefreshToken');
+          localStorage.removeItem('indiafy-admin-auth-storage');
+        } catch (_) {}
+        set({ 
+          user: null, 
+          token: null, 
+          refreshToken: null,
+          isAuthenticated: false,
+          expiresAt: null 
+        });
+      },
 
       logout: async () => {
         try {
@@ -61,6 +77,12 @@ export const useAdminAuthStore = create(
 
       fetchMe: async (retries = 2) => {
         const state = get();
+
+        // Skip /admin/auth/me if not authenticated and no token exists
+        if (!state.token && !state.isAuthenticated) {
+          return;
+        }
+
         if (state.expiresAt && Date.now() > state.expiresAt) {
           state.clearSession();
           return;
@@ -76,7 +98,8 @@ export const useAdminAuthStore = create(
                 role: userData?.role?.toUpperCase() || 'ADMIN'
               },
               isAuthenticated: true,
-              isBackendAvailable: true
+              isBackendAvailable: true,
+              expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 // Renew session window
             });
           } else {
             set({ user: null, isAuthenticated: false, isBackendAvailable: true });
@@ -88,7 +111,8 @@ export const useAdminAuthStore = create(
               await new Promise(resolve => setTimeout(resolve, 1000));
               return get().fetchMe(retries - 1);
             }
-            set({ user: null, isAuthenticated: false, isBackendAvailable: false });
+            // Preserve session on network error instead of kicking out admin
+            set({ isBackendAvailable: false });
             return;
           }
           
@@ -115,3 +139,7 @@ export const useAdminAuthStore = create(
     }
   )
 );
+
+if (typeof window !== 'undefined') {
+  window.__adminAuthStore = useAdminAuthStore;
+}

@@ -19,16 +19,37 @@ export const getSocketUser = (socket) => {
     const authHeader = socket.handshake.headers?.authorization || "";
     const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
     const cookieHeader = socket.handshake.headers?.cookie;
+    const referer = socket.handshake.headers?.referer || "";
+    const isSellerReferer = referer.includes("/seller");
     const customerCookieToken = getCookieValue(cookieHeader, "CustomerAccessToken") || getCookieValue(cookieHeader, "customerAccessToken");
     const sellerCookieToken = getCookieValue(cookieHeader, "SellerAccessToken") || getCookieValue(cookieHeader, "sellerAccessToken");
     const adminCookieToken = getCookieValue(cookieHeader, "AccessToken") || getCookieValue(cookieHeader, "adminAccessToken");
+    const supportCookieToken = getCookieValue(cookieHeader, "SupportAccessToken") || getCookieValue(cookieHeader, "supportAccessToken");
     const authToken = socket.handshake.auth?.token;
-    const token = authToken || bearerToken || customerCookieToken || sellerCookieToken || adminCookieToken;
+    
+    let token = authToken || bearerToken;
+    if (!token) {
+        if (isSellerReferer && sellerCookieToken) {
+            token = sellerCookieToken;
+        } else {
+            token = customerCookieToken || sellerCookieToken || adminCookieToken || supportCookieToken;
+        }
+    }
 
     if (!token) return null;
 
     try {
-        return jwt.verify(token, securityKey);
+        const decoded = jwt.verify(token, securityKey);
+        if (decoded && typeof decoded === "object") {
+            const principalId = decoded._id || decoded.sellerId || decoded.id || decoded.userId;
+            if (principalId) {
+                if (!decoded._id) decoded._id = principalId;
+                if (!decoded.sellerId && (decoded.role || "").toLowerCase() === "seller") {
+                    decoded.sellerId = principalId;
+                }
+            }
+        }
+        return decoded;
     } catch (_err) {
         return null;
     }
@@ -38,7 +59,8 @@ const canJoinSellerRoom = (socket, sellerId) => {
     const socketUser = getSocketUser(socket);
     if (!socketUser) return false;
     const role = (socketUser.role || "").toLowerCase();
-    const isSeller = role === "seller" && socketUser._id?.toString() === sellerId?.toString();
+    const principalId = (socketUser._id || socketUser.sellerId || socketUser.id || "").toString();
+    const isSeller = role === "seller" && principalId === sellerId?.toString();
     const isAdmin = role === "admin" || role === "super_admin" || role === "support_manager";
     return isSeller || isAdmin;
 };

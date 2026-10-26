@@ -85,7 +85,24 @@ const ProtectedRoute = ({ allowedRoles }) => {
      Admin-only routes
   ---------------------------------------------------------- */
   if (isAdminAllowed) {
-    const role = (adminAuth.user?.role || "").toLowerCase();
+    let isAuthenticated = adminAuth.isAuthenticated;
+    let user = adminAuth.user;
+
+    // Check localStorage fallback if zustand store is hydrating during initial mount/refresh
+    if (!isAuthenticated || !user) {
+      try {
+        const raw = localStorage.getItem('indiafy-admin-auth-storage');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.state?.isAuthenticated && parsed?.state?.user) {
+            isAuthenticated = true;
+            user = parsed.state.user;
+          }
+        }
+      } catch (_) {}
+    }
+
+    const role = (user?.role || "").toLowerCase();
     const isAllowedAdmin =
       role === "admin" ||
       role === "super_admin" ||
@@ -94,7 +111,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
       role.includes("manager") ||
       role === "analyst";
 
-    if (adminAuth.isAuthenticated && isAllowedAdmin) {
+    if (isAuthenticated && isAllowedAdmin) {
       return (
         <div className="admin-theme-wrapper min-h-screen w-full select-none overflow-x-hidden">
           <Outlet />
