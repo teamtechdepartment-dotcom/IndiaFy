@@ -77,7 +77,7 @@ const fetchProductsWithLocationPriority = async (baseQuery, lat, lng, sortOption
     // If querying for a specific node or seller (e.g. Store page or Seller Catalog), return store products directly
     if (baseQuery.nodeId || baseQuery.sellerId) {
         const directQuery = await getActiveFilterQuery(baseQuery);
-        return await ProductModel.find(directQuery)
+        return await ProductModel.find(directQuery).lean()
             .populate("sellerId", "firstName lastName email businessName")
             .populate("nodeId", "storeName nodeType status logo location")
             .populate("subCategoryId", "subCategoryName")
@@ -97,7 +97,7 @@ const fetchProductsWithLocationPriority = async (baseQuery, lat, lng, sortOption
             const nearbyNodeIds = nearbyNodes.map(n => n._id);
             
             const nearbyQuery = await getActiveFilterQuery({ ...baseQuery, nodeId: { $in: nearbyNodeIds } });
-            products = await ProductModel.find(nearbyQuery)
+            products = await ProductModel.find(nearbyQuery).lean()
                 .populate("sellerId", "firstName lastName email businessName")
                 .populate("nodeId", "storeName nodeType status logo location")
                 .populate("subCategoryId", "subCategoryName")
@@ -123,7 +123,7 @@ const fetchProductsWithLocationPriority = async (baseQuery, lat, lng, sortOption
         }
         
         const fallbackQuery = await getActiveFilterQuery(fallbackQueryBase);
-        const fallbackProducts = await ProductModel.find(fallbackQuery)
+        const fallbackProducts = await ProductModel.find(fallbackQuery).lean()
             .populate("sellerId", "firstName lastName email businessName")
             .populate("nodeId", "storeName nodeType status logo location")
             .populate("subCategoryId", "subCategoryName")
@@ -348,11 +348,11 @@ export const getProductById = asyncHandler(async (req, res) => {
     let product;
 
     // 1. Try slug first
-    product = await ProductModel.findOne({ slug: identifier }).populate("sellerId", "firstName lastName email");
+    product = await ProductModel.findOne({ slug: identifier }).populate("sellerId", "firstName lastName email").lean();
 
     // 2. Fallback to ID if not found and is valid ObjectId
     if (!product && mongoose.Types.ObjectId.isValid(identifier)) {
-        product = await ProductModel.findById(identifier).populate("sellerId", "firstName lastName email");
+        product = await ProductModel.findById(identifier).populate("sellerId", "firstName lastName email").lean();
     }
 
     if (!product) {

@@ -180,6 +180,9 @@ orderSchema.index({ customer: 1 });
 orderSchema.index({ "orderItems.seller": 1 });
 orderSchema.index({ "orderItems.product": 1 });
 
+orderSchema.index({ customer: 1, createdAt: -1 });
+orderSchema.index({ orderStatus: 1, createdAt: -1 });
+
 const OrderModel = mongoose.model("order", orderSchema);
 
 export default OrderModel;

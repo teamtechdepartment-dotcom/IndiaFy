@@ -1,6 +1,8 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { initSupportSocket } from "./support.socket.js";
+import { setupWorker } from "@socket.io/cluster-adapter";
+
 
 let io;
 
@@ -77,6 +79,9 @@ export const initSocket = (server) => {
             credentials: true
         }
     });
+
+    // Relay socket events across cluster workers via IPC
+    io.adapter(setupWorker());
 
     io.on("connection", (socket) => {
         console.log(`Socket connected: ${socket.id}`);

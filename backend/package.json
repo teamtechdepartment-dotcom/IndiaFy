@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "start": "node index.js",
+    "start": "node --max-old-space-size=512 --gc-interval=100 cluster.js",
+    "start:cluster": "node --max-old-space-size=512 --gc-interval=100 cluster.js",
     "dev": "nodemon index.js",
     "seed": "node scripts/seed.js"
   },
@@ -14,6 +15,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@socket.io/cluster-adapter": "^0.3.0",
     "apicache": "^1.6.3",
     "axios": "^1.20.0",
     "bcrypt": "^6.0.0",

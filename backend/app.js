@@ -6,6 +6,8 @@ import compression from "compression";
 
 import cookieParser from "cookie-parser";
 import hpp from "hpp";
+import apicache from 'apicache';
+const cache = apicache.middleware;
 import mongoSanitize from "express-mongo-sanitize";
 import { databaseConfig } from "./config/db.config.js";
 import { seedDatabase } from "./services/seeder.service.js";
@@ -16,12 +18,12 @@ import { seedDatabase } from "./services/seeder.service.js";
 if (process.env.NODE_ENV === "production") {
     if (!process.env.SecurityKey) {
         process.env.SecurityKey = process.env.JWT_SECRET || "indiafy_production_fallback_security_key_2026";
-        console.warn("⚠️ SecurityKey was missing in production, applied fallback.");
+        console.warn("?? SecurityKey was missing in production, applied fallback.");
     }
 
     if (!process.env.KYC_ENCRYPTION_KEY) {
         process.env.KYC_ENCRYPTION_KEY = process.env.SecurityKey || "indiafy_default_secure_kyc_key_32";
-        console.warn("⚠️ KYC_ENCRYPTION_KEY was missing in production, falling back to SecurityKey.");
+        console.warn("?? KYC_ENCRYPTION_KEY was missing in production, falling back to SecurityKey.");
     }
 }
 
@@ -112,11 +114,6 @@ app.use(
   }),
 );
 
-// Request Logger
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  next();
-});
 
 // Disable technology exposure
 app.disable("x-powered-by");
@@ -178,14 +175,14 @@ app.use(compression({
   }
 }));
 app.use(express.json({ 
-  limit: "10mb",
+  limit: "1mb",
   verify: (req, res, buf) => {
     req.rawBody = buf;
   }
 }));
 app.use(express.urlencoded({ 
   extended: true, 
-  limit: "10mb",
+  limit: "1mb",
   verify: (req, res, buf) => {
     req.rawBody = buf;
   }
@@ -207,6 +204,15 @@ app.use(hpp());
 
 
 
+// Cache-Control: tell browsers/CDN to cache public GETs, never cache auth/mutations
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.includes('/auth') && !req.path.includes('/me') && !req.path.includes('/cart') && !req.path.includes('/profile') && !req.path.includes('/orders') && !req.path.includes('/notifications')) {
+    res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=60');
+  } else if (req.method !== 'GET') {
+    res.setHeader('Cache-Control', 'no-store');
+  }
+  next();
+});
 // Health Check Endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -233,8 +239,8 @@ app.use("/api/v1/indiafy/seller/auth", sellerAuthRoutes);
 app.use("/api/v1/indiafy/seller/nodes", sellerNodeRoutes);
 // app.use("/api/v1/indiafy/seller/applications", sellerApplicationRoutes);
 // app.use("/api/v1/indiafy/seller/store", sellerApplicationRoutes);
-app.use("/api/v1/indiafy/public", publicStoreRoutes);
-app.use("/api/v1/indiafy/products", productRoutes);
+app.use("/api/v1/indiafy/public", cache('2 minutes'), publicStoreRoutes);
+app.use("/api/v1/indiafy/products", cache('2 minutes'), productRoutes);
 app.use("/api/v1/indiafy/orders", orderRoutes);
 app.get("/api/v1/indiafy/seller/orders", requiredLogin, requireSeller, dashboardGuard, getSellerOrders);
 app.use("/api/v1/indiafy/payments", paymentRoutes);
@@ -249,7 +255,7 @@ app.use("/api/checkout", orderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/cart", customerCartRoutes);
 app.use("/api/customer", customerProfileRoutes);
-app.use("/api/v1/indiafy/wholesale", wholesaleRoutes);
+app.use("/api/v1/indiafy/wholesale", cache('2 minutes'), wholesaleRoutes);
 app.use("/api/v1/indiafy/seller/applications", sellerApplicationRoutes);
 app.use("/api/v1/indiafy/delivery", deliveryRoutes);
 
@@ -344,6 +350,20 @@ app.use((err, req, res, next) => {
     errors,
     stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
   });
+});
+
+
+// Graceful shutdown: drain in-flight requests before exit
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  process.exit(0);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err.message);
+  // Don't exit ? let cluster primary restart if needed
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
 });
 
 export default app;

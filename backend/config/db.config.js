@@ -44,6 +44,10 @@ export const databaseConfig = async () => {
       socketTimeoutMS: 45000,
       retryWrites: true,
       family: 4, // Force IPv4 to avoid macOS DNS lookup issues
+      maxPoolSize: 50,
+      minPoolSize: 10,
+      waitQueueTimeoutMS: 5000,
+      maxIdleTimeMS: 30000,
     });
     console.log("✅ Database Connect Successfully");
     return db;

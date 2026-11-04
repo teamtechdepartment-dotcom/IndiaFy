@@ -228,6 +228,9 @@ const sellerNodeSchema = new mongoose.Schema(
   }
 );
 
+sellerNodeSchema.index({ seller: 1, status: 1 });
+sellerNodeSchema.index({ seller: 1, isActive: 1 });
+
 // Text index for search
 sellerNodeSchema.index({ storeName: "text", description: "text", storeCategory: "text" });
 

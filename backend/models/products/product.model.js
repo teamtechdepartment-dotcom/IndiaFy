@@ -373,6 +373,10 @@ productSchema.pre("validate", async function () {
   }
 });
 
+productSchema.index({ slug: 1 }, { unique: false });
+productSchema.index({ isActive: 1, isDeleted: 1, categoryName: 1 });
+productSchema.index({ isFeatured: 1, isActive: 1 });
+
 /* =========================================================
    INDEXES
 ========================================================= */
